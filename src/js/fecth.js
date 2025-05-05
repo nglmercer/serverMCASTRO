@@ -235,14 +235,14 @@ class BaseAPI {
   }
  //window.localStorage.selectedServer 
   // Ejemplo de uso directo sin callback (retorna promesa):
-  api.get(`/servermanager/${window.localStorage.selectedServer}/log`)
+/*   api.get(`/servermanager/${window.localStorage.selectedServer}/log`)
     .then((data) => console.log(data))
     .catch((error) => console.error(error));
   
   // Ejemplo de uso con callback:
   ServerManager.getServersList((servers) => {
     console.log('Lista de servidores:', servers);
-  });
+  }); */
 export {
   BaseAPI,
   MiAPI,

@@ -3,18 +3,10 @@ import Layout from '../layouts/Layout.astro';
 
 ---
 <Layout>
-<link rel="stylesheet" href="./assets/base.css">
 
-<link rel="stylesheet" href="css/newServer.css"/>
-<link rel="stylesheet" href="css/elements/elements.css"/>
-
-<link rel="stylesheet" href="css/preloader.css"/>
-<link rel="stylesheet" href="css/mobile.css"/>
-<link rel="stylesheet" href="css/globals.css"/>
-<link rel="stylesheet" href="css/theme.css"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<link rel="stylesheet" href="assets/materialSymbols.css"/>
+<link rel="stylesheet" href="/materialSymbols.css"/>
 
  <script src="/src/js/KubekNotifyModal.js"></script>
 <script src="/src/js/KubekRequests.js"></script>
@@ -31,6 +23,7 @@ body {
 <script src="/src/js/newserver.js"></script>
 <script src="/src/js/Serversbar.js"></script>
 <script src="/src/js/fecth.js"></script>
+<script src="/src/fetch/fetchapi.js"></script>
 <body>
         <task-notifications id="notificaciones"></task-notifications>
 
@@ -64,7 +57,7 @@ body {
             type="file"
     />
 </form>
-<div class="new-server-container animate__animated animate__fadeIn animate__faster">
+<div class="grid">
     <h2>Crear un nuevo Servidor</h2>
 
     <div class="stage">

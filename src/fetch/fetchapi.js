@@ -1,6 +1,6 @@
 const baseApi = "productionUrl";
-const baseTestApi = "http://localhost:8080"; // Original test API
-const mockApi = "http://localhost:8081/mock-api"; // Mock API endpoint
+const baseTestApi = "http://localhost:3000"; // Original test API
+const mockApi = "http://localhost:3000/api"; // Mock API endpoint
 const actualBaseApi = mockApi; // Use mock API for development
 const http = {
     get: (url, options = {}) => {
@@ -147,147 +147,52 @@ class FetchApi {
             headers: this._authHeaders()
         }));
     }
+}
+class ServerApi {
+    constructor(baseApi) {
+        this.host = baseApi;
+        this.http = http;
+        const info = safeParse(localStorage.getItem("info")) || {};
+        this.token = info.token || localStorage.getItem("token");
+        this.user = safeParse(info.user || safeParse(localStorage.getItem("user"))) || {};
+    }
 
-    obtenerFavoritos() {
-        return this._interceptor(this.http.get(`${this.host}/usuario/${this.user.idUsuario}/favoritos`, {
+    _authHeaders(contentType = 'application/json') {
+        const defaultHeaders = {
+            'Authorization': `${this.token}`
+        };
+        if (contentType) {
+            defaultHeaders['Content-Type'] = contentType;
+        }
+        return defaultHeaders;
+    }
+
+    async _interceptor(promise) {
+        try {
+            const response = await promise;
+            return response;
+        } catch (error) {
+            console.error('Error en la llamada a la API:', error);
+            throw error;
+        }
+    }
+      // GET /java/all
+    getVSJava(){
+        return this._interceptor(http.get(`${this.host}/java/all`, {
             headers: this._authHeaders()
         }));
     }
-
-    agregarFavorito(catalogo) {
-        return this._interceptor(this.http.post(`${this.host}/usuario/${this.user.idUsuario}/catalogo/${catalogo}/favorito`, {}, {
-            headers: this._authHeaders()
-        }));
-    }
-
-    verificarFavorito(catalogo) {
-        return this._interceptor(this.http.get(`${this.host}/usuario/${this.user.idUsuario}/catalogo/${catalogo}/favorito`, {
-            headers: this._authHeaders()
-        }));
-    }
-    obtenerUsuarios(pagina, data) {
-        return this._interceptor(this.http.get(`${this.host}/usuario/pagina/${pagina}`, {
-            headers: this._authHeaders()
-        }));
-    }
-    obtenerCatalogosRecientes() {
-        return this._interceptor(this.http.get(`${this.host}/catalogos/recientes`, {
-            headers: this._authHeaders()
-        }));
-    }
-
-    obtenerInformacionCatalogo(idCatalogo) {
-        return this._interceptor(this.http.get(`${this.host}/catalogo/${idCatalogo}`, {
-            headers: this._authHeaders()
-        }));
-    }
-
-    obtenerDirectorio(pagina, data) {
-        return this._interceptor(this.http.post(`${this.host}/catalogos/pagina/${pagina}`, data, {
-            headers: this._authHeaders()
-        }));
-    }
-
-    obtenerExistenciaDirectorio(pagina, data) {
-        return this._interceptor(this.http.post(`${this.host}/catalogos/pagina/${pagina}/exists`, data, {
-            headers: this._authHeaders()
-        }));
-    }
-
-    obtenerTodoCatalogo(idCatalogo) {
-        return this._interceptor(this.http.get(`${this.host}/catalogo/${idCatalogo}/info`, {
-            headers: this._authHeaders()
-        }));
-    }
-
-    buscarCatalogo(data) {
-        return this._interceptor(this.http.post(`${this.host}/catalogos/buscar`, data, {
-            headers: this._authHeaders()
-        }));
-    }
-
-    getEstados() {
-        return this._interceptor(this.http.get(`${this.host}/catalogos/estados`, {
-            headers: this._authHeaders()
-        }));
-    }
-
-    getTipos() {
-        return this._interceptor(this.http.get(`${this.host}/catalogos/tipos`, {
-            headers: this._authHeaders()
-        }));
-    }
-
-    getCategorias() {
-        return this._interceptor(this.http.get(`${this.host}/catalogos/categorias`, {
-            headers: this._authHeaders()
-        }));
-    }
-
-    getRecomendado() {
-        return this._interceptor(this.http.get(`${this.host}/catalogo/recomendado`, {
-            headers: this._authHeaders()
-        }));
-    }
-
-    getCapitulosPorEstados() {
-        return this._interceptor(this.http.get(`${this.host}/capitulos/por/estados`, {
-            headers: this._authHeaders()
-        }));
-    }
-
-    getRandomCatalogo() {
-        return this._interceptor(this.http.get(`${this.host}/catalogo/aleatorio`, {
-            headers: this._authHeaders()
-        }));
-    }
-
-    getInfoCatalogo(id) {
-        return this._interceptor(this.http.get(`${this.host}/catalogo/${id}/info`, {
-            headers: this._authHeaders()
-        }));
-    }
-
-    getCapitulo(id) {
-        return this._interceptor(this.http.get(`${this.host}/capitulo/${id}`, {
-            headers: this._authHeaders()
-        }));
-    }
-
-    getHistorial(id) {
-        return this._interceptor(this.http.get(`${this.host}/usuario/${id}/historial`, {
-            headers: this._authHeaders("application/json")
-        }));
-    }
-
-    getFavoritos(id) {
-        return this._interceptor(this.http.get(`${this.host}/usuario/${id}/favoritos`, {
-            headers: this._authHeaders("application/json")
-        }));
-    }
-
-    obtenerSiguienteOAnterior(idCatalogo, numeroTemporada, numeroCapitulo) {
-        return this._interceptor(this.http.get(`${this.host}/catalogo/${idCatalogo}/temporada/${numeroTemporada}/capitulo/${numeroCapitulo}/siguienteOAnterior`, {
-            headers: this._authHeaders()
-        }));
-    }
-
-    getTemporadas(idCatalogo) {
-        return this._interceptor(this.http.get(`${this.host}/catalogo/${idCatalogo}/temporadas`, {
-            headers: this._authHeaders()
-        }));
-    }
-
-    getCapitulos(idCatalogo, idTemporada) {
-        return this._interceptor(this.http.get(`${this.host}/catalogo/${idCatalogo}/temporada/${idTemporada}/capitulos`, {
-            headers: this._authHeaders()
-        }));
-    }
-    getRecursos(idCapitulo) {
-        return this._interceptor(this.http.get(`${this.host}/res/recursos/${idCapitulo}`, {
+      // GET /cores/all
+    getCores(){
+        return this._interceptor(http.get(`${this.host}/cores/all`, {
             headers: this._authHeaders()
         }));
     }
 }
-
 const fetchapi = new FetchApi(actualBaseApi);
+const serverapi = new ServerApi(actualBaseApi)
+async function testFetch() {
+    const result = await serverapi.getVSJava();
+    console.log("result", result);
+}
+testFetch()
