@@ -7,6 +7,7 @@ import {
 } from './modal';
 import { DialogContent, DialogContainer } from './custom-modal.js';
 import {CInput} from './CInput.js';
+import {ESelectLit} from './select.js'
 // Declare custom elements for improved autocompletion in HTML templates
 declare global {
     interface HTMLElementTagNameMap {
@@ -18,6 +19,7 @@ declare global {
         'dialog-content': DialogContent;
         'dialog-container': DialogContainer;
         'c-input': CInput;
+        'lit-select': ESelectLit;
     }
 }
 

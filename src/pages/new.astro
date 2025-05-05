@@ -1,0 +1,105 @@
+---
+import Layout from '../layouts/Layout.astro';
+import TabbedContent from '@components/TabbedContent.astro'
+// Opcional: Define clases de Tailwind (o las que uses) para personalizar
+---
+<Layout>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<link rel="stylesheet" href="/materialSymbols.css"/>
+
+
+<style>
+body {
+    color-scheme: dark light;
+}
+</style>
+<body>
+        <task-notifications id="notificaciones"></task-notifications>
+
+<div class="grid">
+    <h2>Crear un nuevo Servidor</h2>
+
+    <div class="stage">
+        <div class="stage-header">
+            <div class="stage-circle">1</div>
+            <h3>Nombre del server</h3>
+        </div>
+        <label>
+            <c-input type="text" id="server_name_input" style="background-color: #222c3a;  border-radius: 4px; color: white; font-size: 15pt;"
+            name="server-name-input" placeholder="{{newServerWizard.serverNameInput}}"  value="tu nombre de servidor"
+            required>
+            </c-input>
+        </label>
+    </div>
+
+    <div class="stage">
+        <div class="stage-header">
+            <div class="stage-circle">2</div>
+            <h3>Seleccionar nucleo del server</h3>
+        </div>
+        <TabbedContent tabs={["Pestaña 1", "Pestaña 2"]}>
+            <Fragment slot="tab-0">
+              <p>Contenido de la primera pestaña.</p>
+            </Fragment>
+            <Fragment slot="tab-1">
+              <p>Contenido de la segunda pestaña.</p>
+            </Fragment>
+          </TabbedContent>
+  
+
+    </div>
+
+    <div class="stage">
+        <div class="stage-header">
+            <div class="stage-circle">3</div>
+            <h3>.finalSettings</h3>
+        </div>
+        <!-- Список версий Java -->
+        <h3>.javaVersion</h3>
+        <div id="java-list-placeholder">
+            <div class="lds-spinner"><div></div><div></div><div></div></div>
+        </div>
+        <div class="checksList developed-by-seeeroy" id="javas-list" style="display: none">
+            <enhanced-select id="javas_list" style="width: 100%; height: 100%; display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr;"></enhance-select>
+
+
+        </div>
+        <div style="display: flex;">
+            <!-- Выбор количества памяти -->
+            <div style="display: flex; flex-direction: column; width: 100%; margin: 0 6px;">
+                <h3>.ramSelect</h3>
+                <label style="display: flex; align-items: center;">
+                    <input type="number" min="0.5" step="0.5" id="server-mem" style="width: max-content;">
+                    <h3 style="margin-left: 8px;">GB</h3>
+                </label>
+            </div>
+
+            <!-- Выбор порта -->
+            <div style="display: flex; flex-direction: column; width: 100%; margin: 0 6px;">
+                <h3>.serverPort</h3>
+                <label>
+                    <input type="number" min="1025" step="1" max="60000" value="25565" id="server-port" style="width: max-content;">
+                </label>
+            </div>
+        </div>
+
+        <!-- Применять ли флаги оптимизации? -->
+        <input type="checkbox" style="display: none;" class="checkbox" id="add-aikar-flags" name="add-aikar-flags">
+        <label for="add-aikar-flags" style=" margin: 12px 0;">.useAikarFlags</label>
+
+        <button class="primary-btn" id="create-server-btn">
+            <span class="material-symbols-rounded">build</span>
+            <span class="material-symbols-rounded spinning" style="display: none">settings</span>
+            <span class="text" id="create_server_dialog">.noServerName</span>
+        </button>
+
+        <div style="text-align: center; display: flex; align-items: center; justify-content: center; margin: 24px 0;">
+            <h3 id="after-creation-text" style="display: none;"></h3>
+        </div>
+    </div>
+</div>
+
+</body>
+</Layout>

@@ -1,0 +1,148 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends HTMLAttributes<'div'> {
+  tabs: string[];
+  initialTab?: number;
+  buttonClass?: string;
+  activeButtonClass?: string;
+  contentClass?: string;
+}
+
+const {
+  tabs,
+  initialTab = 0,
+  class: containerClass,
+  buttonClass = 'btn btn-primary p-6',
+  activeButtonClass = 'btn btn-primary p-6',
+  contentClass = 'flex gap-6',
+  ...rest
+} = Astro.props;
+
+const validInitialTab = Math.max(0, Math.min(initialTab, tabs.length - 1));
+const uniqueId = `tabbed-content-${crypto.randomUUID().slice(0, 8)}`;
+const finalActiveButtonClass = activeButtonClass || 'active-tab-button-default';
+---
+
+<div
+  class:list={["tabbed-content-wrapper", containerClass]}
+  {...rest}
+  data-initial-tab={validInitialTab}
+  id={uniqueId}
+  data-active-class={finalActiveButtonClass}
+>
+  <div class="tab-buttons flex border-b border-gray-600 gap-6" role="tablist">
+    {tabs.map((tabLabel, index) => (
+      <button
+        type="button"
+        role="tab"
+        aria-selected={index === validInitialTab ? 'true' : 'false'}
+        aria-controls={`${uniqueId}-panel-${index}`}
+        id={`${uniqueId}-tab-${index}`}
+        class:list={[
+          'tab-button',
+          buttonClass,
+          index === validInitialTab && finalActiveButtonClass
+        ]}
+        data-tab-index={index}
+      >
+        {tabLabel}
+      </button>
+    ))}
+  </div>
+
+  <div class="tab-content-panels">
+    {tabs.map((_, index) => {
+      const slotName = `tab-${index}`; 
+      return (
+        <div
+          role="tabpanel"
+          id={`${uniqueId}-panel-${index}`}
+          aria-labelledby={`${uniqueId}-tab-${index}`}
+          class:list={[
+            'tab-content-panel',
+            contentClass,
+            index !== validInitialTab && 'hidden',
+            !Astro.slots.has(slotName) && 'hidden'
+          ]}
+          data-panel-index={index}
+        >
+          <div set:html={Astro.slots.render(slotName)} />
+        </div>
+      );
+    })}
+  </div>
+</div>
+
+<script>
+  function initializeTabbedContent(container) {
+    const buttons = container.querySelectorAll('.tab-button');
+    const panels = container.querySelectorAll('.tab-content-panel');
+    const activeButtonClass = container.dataset.activeClass || 'active-tab-button-default';
+
+    function switchTab(targetIndex) {
+      buttons.forEach((button, index) => {
+        const panel = container.querySelector(`.tab-content-panel[data-panel-index="${index}"]`);
+        const isActive = index === targetIndex;
+
+        button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        button.classList.remove(...activeButtonClass.split(' ').filter(Boolean));
+        if (isActive) {
+           button.classList.add(...activeButtonClass.split(' ').filter(Boolean));
+        }
+
+        if (panel) {
+          panel.classList.toggle('hidden', !isActive);
+        }
+      });
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const targetIndex = parseInt(button.dataset.tabIndex);
+        if (!isNaN(targetIndex)) {
+            switchTab(targetIndex);
+        }
+      });
+
+      button.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          const targetIndex = parseInt(button.dataset.tabIndex);
+          if (!isNaN(targetIndex)) {
+              switchTab(targetIndex);
+          }
+        }
+      });
+    });
+  }
+
+  document.querySelectorAll('.tabbed-content-wrapper').forEach(initializeTabbedContent);
+
+  document.addEventListener('astro:after-swap', () => {
+    document.querySelectorAll('.tabbed-content-wrapper:not([data-initialized])').forEach(container => {
+      initializeTabbedContent(container);
+      container.setAttribute('data-initialized', 'true');
+    });
+  });
+
+  document.querySelectorAll('.tabbed-content-wrapper').forEach(container => {
+    container.setAttribute('data-initialized', 'true');
+  });
+</script>
+
+<style>
+  .tabbed-content-wrapper .hidden {
+    display: none;
+  }
+  .tabbed-content-wrapper .tab-button {
+    cursor: pointer;
+  }
+  .active-tab-button-default {
+    font-weight: bold;
+  }
+  .tab-button:focus-visible {
+    outline: 2px solid skyblue;
+    outline-offset: 2px;
+  }
+</style>
