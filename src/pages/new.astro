@@ -8,7 +8,7 @@ import TabbedContent from '@components/TabbedContent.astro'
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <link rel="stylesheet" href="/materialSymbols.css"/>
-
+<script src="/src/components/newserver/newserver.js"></script>
 
 <style>
 body {
@@ -39,13 +39,17 @@ body {
             <div class="stage-circle">2</div>
             <h3>Seleccionar nucleo del server</h3>
         </div>
-        <TabbedContent tabs={["Pestaña 1", "Pestaña 2"]}>
-            <Fragment slot="tab-0">
-              <p>Contenido de la primera pestaña.</p>
-            </Fragment>
-            <Fragment slot="tab-1">
-              <p>Contenido de la segunda pestaña.</p>
-            </Fragment>
+        <TabbedContent tabs={["Seleccionar de la lista", "Subir tu archivo"]}>
+            <div slot="tab-0" class="w-full">
+
+                    <grid-selector class="selectcore w-full">
+    
+                    </grid-selector>
+                <p>select version</p>
+            </div>
+            <div slot="tab-1">
+              <c-input class="filecoreupload" type="file"></c-input>
+            </div>
           </TabbedContent>
   
 

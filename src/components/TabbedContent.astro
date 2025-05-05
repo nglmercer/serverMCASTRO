@@ -13,7 +13,7 @@ const {
   tabs,
   initialTab = 0,
   class: containerClass,
-  buttonClass = 'btn btn-primary p-6',
+  buttonClass = 'btn btn-primary p-6 w-full',
   activeButtonClass = 'btn btn-primary p-6',
   contentClass = 'flex gap-6',
   ...rest
@@ -31,7 +31,7 @@ const finalActiveButtonClass = activeButtonClass || 'active-tab-button-default';
   id={uniqueId}
   data-active-class={finalActiveButtonClass}
 >
-  <div class="tab-buttons flex border-b border-gray-600 gap-6" role="tablist">
+  <div class="tab-buttons flex btn-container-1 gap-6" role="tablist">
     {tabs.map((tabLabel, index) => (
       <button
         type="button"
@@ -132,17 +132,28 @@ const finalActiveButtonClass = activeButtonClass || 'active-tab-button-default';
 </script>
 
 <style>
+  .tab-content-panels {
+    * {
+      width: 100%;
+    }
+  }
   .tabbed-content-wrapper .hidden {
     display: none;
   }
+
   .tabbed-content-wrapper .tab-button {
     cursor: pointer;
+    border: none;
+    border-radius: 4px;
   }
   .active-tab-button-default {
     font-weight: bold;
   }
   .tab-button:focus-visible {
-    outline: 2px solid skyblue;
     outline-offset: 2px;
+  }
+  .tab-buttons {
+    padding: 6px;
+    
   }
 </style>

@@ -183,16 +183,31 @@ class ServerApi {
         }));
     }
       // GET /cores/all
-    getCores(){
+    getALLCores(){
         return this._interceptor(http.get(`${this.host}/cores/all`, {
+            headers: this._authHeaders()
+        }));
+    }
+    //GET /api/cores
+    getCores(){
+        return this._interceptor(http.get(`${this.host}/cores`, {
+            headers: this._authHeaders()
+        }));
+    }
+    //GET /core/:core
+    getcore(name){
+        return this._interceptor(http.get(`${this.host}/cores/${name}`, {
             headers: this._authHeaders()
         }));
     }
 }
 const fetchapi = new FetchApi(actualBaseApi);
 const serverapi = new ServerApi(actualBaseApi)
-async function testFetch() {
-    const result = await serverapi.getVSJava();
-    console.log("result", result);
+async function fetchCores() {
+
 }
-testFetch()
+fetchCores()
+export {
+    fetchapi,
+    serverapi
+}

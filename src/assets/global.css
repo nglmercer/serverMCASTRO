@@ -1,69 +1,97 @@
   /* Reset and base styles */
   :root {
-    /* --- Paleta de Azules (Estilo Tailwind) --- */
-    --color-blue-50:  #eff6ff; /* Muy claro, casi blanco */
-    --color-blue-100: #dbeafe; /* Azul muy pálido */
-    --color-blue-200: #bfdbfe; /* Azul pálido */
-    --color-blue-300: #93c5fd; /* Azul claro */
-    --color-blue-400: #60a5fa; /* Azul brillante */
-    --color-blue-500: #3b82f6; /* Azul principal (similar al link-color original) */
-    --color-blue-600: #2563eb; /* Azul ligeramente más oscuro */
-    --color-blue-700: #1d4ed8; /* Azul oscuro */
-    --color-blue-800: #1e40af; /* Azul muy oscuro */
-    --color-blue-900: #1e3a8a; /* Azul marino oscuro */
-    --color-blue-950: #172554; /* Azul casi negro */
+    --color-blue-50:  #eff6ff;
+    --color-blue-100: #dbeafe;
+    --color-blue-200: #bfdbfe;
+    --color-blue-300: #93c5fd;
+    --color-blue-400: #60a5fa;
+    --color-blue-500: #3b82f6;
+    --color-blue-600: #2563eb;
+    --color-blue-700: #1d4ed8;
+    --color-blue-800: #1e40af;
+    --color-blue-900: #1e3a8a;
+    --color-blue-950: #172554;
   
-    /* --- Paleta de Grises (Estilo Tailwind) --- */
-    --color-gray-50:  #f9fafb; /* Casi blanco (similar a secondary-bg light) */
-    --color-gray-100: #f3f4f6; /* Gris muy claro */
-    --color-gray-200: #e5e7eb; /* Gris claro (similar a border-color light) */
-    --color-gray-300: #d1d5db; /* Gris */
-    --color-gray-400: #9ca3af; /* Gris medio */
-    --color-gray-500: #6b7280; /* Gris oscuro (similar a text-muted light) */
-    --color-gray-600: #4b5563; /* Gris más oscuro */
-    --color-gray-700: #374151; /* Gris muy oscuro (útil para fondos dark) */
-    --color-gray-800: #1f2937; /* Gris casi negro (útil para fondos dark) */
-    --color-gray-900: #111827; /* Gris negrísimo */
-    --color-gray-950: #030712; /* Casi negro puro */
+    --color-cyan-100: #cffafe;
+    --color-cyan-200: #a5f3fc;
+    --color-cyan-300: #67e8f9;
+    --color-cyan-400: #22d3ee;
+    --color-cyan-500: #06b6d4;
+    --color-cyan-600: #0891b2;
+    --color-cyan-700: #0e7490;
   
-    /* --- Blanco y Negro --- */
+    --color-indigo-100: #e0e7ff;
+    --color-indigo-200: #c7d2fe;
+    --color-indigo-300: #a5b4fc;
+    --color-indigo-400: #818cf8;
+    --color-indigo-500: #6366f1;
+    --color-indigo-600: #4f46e5;
+    --color-indigo-700: #4338ca;
+  
+    --color-violet-100: #ede9fe;
+    --color-violet-200: #ddd6fe;
+    --color-violet-300: #c4b5fd;
+    --color-violet-400: #a78bfa;
+    --color-violet-500: #8b5cf6;
+    --color-violet-600: #7c3aed;
+    --color-violet-700: #6d28d9;
+  
+  
+    --color-gray-50:  #f9fafb;
+    --color-gray-100: #f3f4f6; 
+    --color-gray-200: #e5e7eb;
+    --color-gray-300: #d1d5db; 
+    --color-gray-400: #9ca3af; 
+    --color-gray-500: #6b7280;
+    --color-gray-600: #4b5563;
+    --color-gray-700: #374151; 
+    --color-gray-800: #1f2937; 
+    --color-gray-900: #111827; 
+    --color-gray-950: #030712;
+  
     --color-white: #ffffff;
     --color-black: #000000;
   
-    /* --- Variables de Tema (Usando la nueva paleta) --- */
   
-    /* - Light Theme Variables (Default) - */
+    
+    --primary-light: var(--color-blue-500);
+    --secondary-light: var(--color-cyan-400);
+    --accent-light: var(--color-indigo-400);
+    --highlight-light: var(--color-violet-400);
+  
+    --primary-bg: var(--color-gray-100);
+    --secondary-bg: var(--color-gray-50);
+    --background-primary: var(--color-black);
+    --border-color: var(--color-gray-200);
+    --text-color: var(--color-gray-900);
+    --text-muted: var(--color-gray-500);
+    --link-color: var(--primary-light);
+    --hover-bg: var(--color-gray-100);
+    --hover-text: var(--color-gray-900);
+    
+    --theme-transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    
+    --icon-size: 1.5rem; /* 24px */
     --sidebar-width: 250px;
     --navbar-height: 60px;
-  
-    --primary-bg: var(--color-white);         /* Blanco */
-    --background-primary: var(--color-black); /* Negro (Parece que esta variable era para contraste o un elemento específico, manteniendo negro) */
-    --secondary-bg: var(--color-gray-50);      /* Gris más claro */
-    --border-color: var(--color-gray-200);    /* Gris claro */
-    --text-color: var(--color-gray-900);      /* Gris casi negro para texto principal */
-    --text-muted: var(--color-gray-500);      /* Gris medio */
-    --link-color: var(--color-blue-600);      /* Azul principal ligeramente más oscuro */
-    --hover-bg: var(--color-gray-100);        /* Gris muy claro para hover */
-    --hover-text: var(--color-gray-900);      /* Mismo color de texto principal en hover */
-  
-    --theme-transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-  
-    /* Default icon size */
-    --icon-size: 1.5rem; /* 24px */
   }
   
   @media (prefers-color-scheme: dark) {
     :root {
-      /* - Dark Theme Variables (Usando la nueva paleta) - */
-      --primary-bg: var(--color-gray-900);      /* Gris muy oscuro para fondo principal */
+      --primary-dark: var(--color-blue-400);
+      --secondary-dark: var(--color-cyan-300);
+      --accent-dark: var(--color-indigo-300);
+      --highlight-dark: var(--color-violet-300);
+  
+      --primary-bg: var(--color-gray-900);
       --background-primary: var(--color-blue-900);
-      --secondary-bg: var(--color-gray-800);    /* Gris oscuro para fondos secundarios */
-      --border-color: var(--color-gray-700);    /* Gris oscuro para bordes */
-      --text-color: var(--color-gray-100);      /* Gris muy claro para texto */
-      --text-muted: var(--color-gray-400);      /* Gris medio-claro para texto atenuado */
-      --link-color: var(--color-blue-400);      /* Azul brillante para enlaces */
-      --hover-bg: var(--color-gray-700);        /* Gris oscuro para hover */
-      --hover-text: var(--color-white);         /* Blanco para texto en hover */
+      --secondary-bg: var(--color-gray-800);
+      --border-color: var(--color-gray-700);
+      --text-color: var(--color-gray-100);
+      --text-muted: var(--color-gray-400);
+      --link-color: var(--primary-dark);
+      --hover-bg: var(--color-gray-700);
+      --hover-text: var(--color-white);
     }
   }
 
@@ -313,16 +341,24 @@
 .gap-6 { gap: 6px;}
 .gap-8 { gap: 8px;}
 
+.w-full { width: 100%;}
+
+.h-full { height: 100%;}
 
 .btn {
     color: var(--text-color);
     border: none;
-    border-radius: 8px;
+    border-radius: 4px;
 }
 .btn-primary {
-    color: var(--text-color);
-    border: 1px var(--color-blue-400)
+    border: 1px var(--secondary-light);
 }
 .btn[aria-selected="true"] {
-  background-color: var(--color-blue-400);
+  background-color: var(--background-primary);
+  color: var(--secondary-light);
+}
+.btn-container-1 {
+  padding: 8px;
+  border-radius: 1rem;
+  background-color: var(--color-gray-600);
 }
