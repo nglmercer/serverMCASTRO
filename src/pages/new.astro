@@ -4,19 +4,10 @@ import TabbedContent from '@components/TabbedContent.astro'
 // Opcional: Define clases de Tailwind (o las que uses) para personalizar
 ---
 <Layout>
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
 <link rel="stylesheet" href="/materialSymbols.css"/>
 <script src="/src/components/newserver/newserver.js"></script>
-
-<style>
-body {
-    color-scheme: dark light;
-}
-</style>
-<body>
-        <task-notifications id="notificaciones"></task-notifications>
+<task-notifications id="notificaciones"></task-notifications>
 
 <div class="grid">
     <h2>Crear un nuevo Servidor</h2>
@@ -52,15 +43,15 @@ body {
               <c-input class="filecoreupload" type="file"></c-input>
             </div>
           </TabbedContent>
-              <h3>Selecciona tu version de java</h3>
-              <list-selector class="javaversions"></list-selector>
-    </div>
-
-    <div class="stage">
-        <div class="stage-header">
-            <div class="stage-circle">3</div>
-            <h3>Configuracion Final</h3>
         </div>
+        
+        <div class="stage">
+            <div class="stage-header">
+                <div class="stage-circle">3</div>
+                <h3>Configuracion Final</h3>
+            </div>
+            <h3>Selecciona tu version de java</h3>
+            <c-input class="javaversions" type="select"></c-input>
         <div class="flex wrap center">
                 <h3>selecciona Ram</h3>
                 <c-input class="Ramsize" type="number" value="4" placeholder="GB memoria" min="0.5" step="0.5" ></c-input>
@@ -83,6 +74,4 @@ body {
 
     </div>
 </div>
-
-</body>
 </Layout>

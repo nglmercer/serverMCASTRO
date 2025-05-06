@@ -32,17 +32,17 @@ async function setcoreversions(arrayV) {
     coreSelect.options = optionsCore;
 }
 async function setjavaversions(objV) {
-    const optionsCore = returnOptionfromArray(objV.available);
+    const optionsCore = returnOptionfromArray(objV.available,"java ");
     const javaSelect = document.querySelector(".javaversions");
     console.log("setjavaversions",optionsCore,objV)
     if (!javaSelect) return;
     javaSelect.options = optionsCore;
 }
-function returnOptionfromArray(arrayV){
+function returnOptionfromArray(arrayV,prefix=""){
     if (arrayV && Array.isArray(arrayV)){
         return (arrayV).map((v)=>({
-            label: v,
-            name: v,
+            label: prefix+v,
+            name: prefix+v,
             value: v
         }))
     }

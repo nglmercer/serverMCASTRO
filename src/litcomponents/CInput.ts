@@ -158,7 +158,7 @@ export class CInput extends LitElement {
       padding: 0;
       color-scheme: light dark;
       /* Define variables default aquí para que se puedan sobreescribir */
-      --inp-border-color: #ccc;
+      --inp-border-color: rgba(55, 55, 55, 0.5);
       --inp-disabled-bg: #f5f5f5;
       --inp-disabled-color: #888;
       --inp-slider-bg: #ccc;
@@ -218,7 +218,7 @@ export class CInput extends LitElement {
     
     input:read-only, textarea:read-only {
       background-color: var(--inp-disabled-bg);
-      cursor: not-allowed;
+      cursor: no-drop;
       color: var(--inp-disabled-color);
     }
 
@@ -363,6 +363,7 @@ export class CInput extends LitElement {
                 <input
                   class=${commonInputClass}
                   id=${ifDefined(this.id)}
+                  type="file"
                   name=${ifDefined(this.name)}
                   placeholder=${ifDefined(this.placeholder)}
                   ?disabled=${this.disabled}

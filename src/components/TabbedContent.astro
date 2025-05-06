@@ -74,7 +74,7 @@ const finalActiveButtonClass = activeButtonClass || 'active-tab-button-default';
   </div>
 </div>
 
-<script is:inline>
+<script is:inline define:vars={{tabs}}>
   function initializeTabbedContent(container) {
     const buttons = container.querySelectorAll('.tab-button');
     const panels = container.querySelectorAll('.tab-content-panel');
@@ -102,6 +102,12 @@ const finalActiveButtonClass = activeButtonClass || 'active-tab-button-default';
         const targetIndex = parseInt(button.dataset.tabIndex);
         if (!isNaN(targetIndex)) {
             switchTab(targetIndex);
+            window.selected = {
+              index: targetIndex,
+              item: button,
+              tabs: tabs
+            }
+            console.log(window.selected)
         }
       });
 
