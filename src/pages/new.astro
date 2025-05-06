@@ -5,9 +5,9 @@ import Step1 from '@components/newserver/steps/Step1.astro';
 import Step2 from '@components/newserver/steps/Step2.astro';
 import Step3 from '@components/newserver/steps/Step3.astro';
 const steps = [
-  { name: "Nombre del servidor", value: "server-name" },
-  { name: "Seleccionar núcleo del servidor", value: "server-core" },
-  { name: "Configuración Final", value: "final-config" }
+ { name: "Nombre del servidor", value: "server-name" },
+ { name: "Seleccionar núcleo del servidor", value: "server-core" },
+ { name: "Configuración Final", value: "final-config" }
 ];
 ---
 <Layout>
@@ -17,33 +17,73 @@ const steps = [
 <script src="/src/components/newserver/newserver.js"></script>
 <task-notifications id="notificaciones"></task-notifications>
 <StepForm steps={steps} title="Crear un nuevo Servidor de Minecraft">
-    <Step1 />
-    <Step2 />
-    <Step3 />
-  </StepForm>
+<Step1 />
+<Step2 />
+<Step3 />
+</StepForm>
 </Layout>
 <script>
-import type { CInput } from "src/litcomponents/CInput";
-const formelements = [
+const formElemNames = [
   "server_name_input",
-  "window.selecttab",
+  "selecttab", // Corregido de "window.selecttab"
   "coreselection",
   "coreversions",
-  "filecoreupload"
-]
-const formdata:any = {
-  
+  "filecoreupload",
+  "javaversions",
+  "Ramsize",
+  "serverport",
+  "optiflags"
+];
+
+const formElements: Element[] = [];
+const formData: Record<string, any> = {};
+
+// Función para establecer valores en formData
+function setValue(id: string, value: any) {
+  formData[id] = value;
 }
-formelements.forEach((el)=>{
-  const element = document.getElementById(el) as CInput;
-  if (!element) return;
-  element.addEventListener('change',(e)=>{
+
+// Función para configurar listeners en elementos
+function setListeners(element: Element, id: string) {
+  element.addEventListener('change', (e) => {
     const data = (e as CustomEvent).detail;
-    console.log(data)
-    formdata[el] = data.value
-  })
-})
-  document.addEventListener('formSubmit',async function(e) {
-      console.log(formdata)
-  })  
+    console.log(data);
+    if (!data || !data.value) return;
+    setValue(id, data.value);
+  });
+}
+
+// Inicializar elementos y configurar listeners
+formElemNames.forEach((id) => {
+  const element = document.getElementById(id);
+  if (!element) {
+    console.warn(`Elemento con ID '${id}' no encontrado`);
+    return;
+  }
+  
+  formElements.push(element);
+  
+  // Verifica si el elemento tiene la propiedad 'value' antes de usarla
+  if ('value' in element) {
+    setValue(id, (element as any).value);
+  }
+  
+  setListeners(element, id);
+});
+
+// Manejador del evento de envío del formulario
+document.addEventListener('formSubmit', async function(e) {
+  formElemNames.forEach((id) => {
+    const element = document.getElementById(id);
+    if (!element) return;
+    
+    if ('value' in element) {
+      setValue(id, (element as any).value);
+    }
+  });
+  
+  console.log(formData);
+  console.log(formElements);
+  console.log(window.selecttab);
+});
 </script>

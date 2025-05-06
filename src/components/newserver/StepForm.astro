@@ -112,7 +112,7 @@ const { steps, title = "Multi-Step Form" } = Astro.props;
       
       if (nextButton) {
         if (currentStep === totalSteps) {
-          nextButton.textContent = 'Submit';
+          nextButton.innerHTML = materialtemplate("storage") + "crear server";
           nextButton.classList.add('submit-button');
         } else {
           nextButton.textContent = 'Next';
@@ -120,7 +120,9 @@ const { steps, title = "Multi-Step Form" } = Astro.props;
         }
       }
     };
-    
+    function materialtemplate(name:string){
+        return `<span class="material-symbols-outlined">${name}</span>`
+    }
     // Navigation button event listeners
     const prevButton = document.querySelector('.step-prev');
     const nextButton = document.querySelector('.step-next');
