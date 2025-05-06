@@ -340,15 +340,29 @@
   align-items: center;
 }
 
+.p-0 { padding: 0px;}
 .p-2 { padding: 2px;}
 .p-4 { padding: 4px;}
 .p-6 { padding: 6px;}
 .p-8 { padding: 8px;}
+.p-10 { padding: 10px;}
+.p-auto {padding: auto;}
 
+.m-0 { margin: 0px;}
+.m-2 { margin: 2px;}
+.m-4 { margin: 4px;}
+.m-6 { margin: 6px;}
+.m-8 { margin: 8px;}
+.m-10 { margin: 10px;}
+.m-auto {margin: auto;}
+
+.gap-0 { gap: 0px;}
 .gap-2 { gap: 2px;}
 .gap-4 { gap: 4px;}
 .gap-6 { gap: 6px;}
 .gap-8 { gap: 8px;}
+.gap-10 { gap: 10px;}
+.gap-auto {gap: auto;}
 
 .w-full { width: 100%;}
 

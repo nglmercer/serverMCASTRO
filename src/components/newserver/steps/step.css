@@ -1,0 +1,41 @@
+.step-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  
+  .step-content.active {
+    display: block;
+  }
+  
+  .form-container {
+    background-color: #1F2937; /* bg-gray-800 */
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+  }
+  
+  .form-title {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+  
+  .flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }

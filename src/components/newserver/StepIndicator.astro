@@ -1,0 +1,111 @@
+---
+// StepIndicator.astro - Component for showing step progress
+interface Props {
+  steps: {
+    name: string;
+    value: string | number;
+  }[];
+}
+
+const { steps } = Astro.props;
+---
+
+<div class="step-indicator">
+  <div class="step-indicator-container">
+    {steps.map((step, index) => (
+      <div class="step-indicator-item" data-step-value={step.value}>
+        <div class="step-indicator-circle">
+          <span class="step-indicator-number">{index + 1}</span>
+          <span class="step-indicator-check">✓</span>
+        </div>
+        <span class="step-indicator-label">{step.name}</span>
+        {index < steps.length - 1 && <div class="step-indicator-line"></div>}
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .step-indicator {
+    margin-bottom: 2rem;
+  }
+  
+  .step-indicator-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    margin-bottom: 1rem;
+  }
+  
+  @media (max-width: 640px) {
+    .step-indicator-container {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    
+    .step-indicator-line {
+      display: none;
+    }
+  }
+  
+  .step-indicator-item {
+    display: flex;
+    align-items: center;
+    z-index: 1;
+    flex: 1;
+  }
+  
+  .step-indicator-circle {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+    background-color: #1E40AF; /* bg-blue-700 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem;
+    color: white;
+    font-weight: bold;
+    position: relative;
+    transition: background-color 0.3s ease;
+  }
+  
+  .step-indicator-number {
+    display: block;
+  }
+  
+  .step-indicator-check {
+    display: none;
+  }
+  
+  .step-indicator-label {
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  
+  .step-indicator-line {
+    flex-grow: 1;
+    height: 1px;
+    background-color: #4B5563; /* bg-gray-600 */
+    margin: 0 0.5rem;
+  }
+  
+  .step-indicator-item.completed .step-indicator-circle {
+    background-color: #10B981; /* bg-green-500 */
+  }
+  
+  .step-indicator-item.completed .step-indicator-number {
+    display: none;
+  }
+  
+  .step-indicator-item.completed .step-indicator-check {
+    display: block;
+  }
+  
+  .step-indicator-item.active .step-indicator-circle {
+    background-color: #3B82F6; /* bg-blue-500 */
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  }
+</style>

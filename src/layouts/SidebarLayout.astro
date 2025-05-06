@@ -1,7 +1,6 @@
 ---
 import { pagesConfigA, pagesConfigB } from '../config/pages';
 import Actiontest from '@components/menu/actiontest.astro';
-import UserProfile from '@components/user/userConnect.astro';
 
 interface Props {
   title?: string;
@@ -82,7 +81,6 @@ const currentConfig = activeConfig === 'A' ? pagesConfigA : pagesConfigB;
             }
           </div>
           <div class="login-desktop">
-            <UserProfile></UserProfile>
           </div>
         </div>
       </aside>

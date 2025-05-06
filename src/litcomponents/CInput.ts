@@ -158,7 +158,7 @@ export class CInput extends LitElement {
       padding: 0;
       color-scheme: light dark;
       /* Define variables default aquí para que se puedan sobreescribir */
-      --inp-border-color: rgba(55, 55, 55, 0.5);
+      --inp-border-color: rgba(99, 99, 99, 0.5);
       --inp-disabled-bg: #f5f5f5;
       --inp-disabled-color: #888;
       --inp-slider-bg: #ccc;

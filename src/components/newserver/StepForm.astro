@@ -1,0 +1,152 @@
+---
+// StepForm.astro - Main component for the step-based form
+import StepIndicator from './StepIndicator.astro';
+import StepNavigation from './StepNavigation.astro';
+// Props for the StepForm component
+interface Props {
+  steps: {
+    name: string;
+    value: string | number;
+  }[];
+  title?: string;
+}
+
+const { steps, title = "Multi-Step Form" } = Astro.props;
+---
+
+<div class="step-form">
+  <div class="container">
+    {title && <h1 class="title">{title}</h1>}
+    
+    <StepIndicator steps={steps} />
+      <slot />
+    <StepNavigation totalSteps={steps.length} />
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    let currentStep = 1;
+    const totalSteps = document.querySelectorAll('.step-content').length;
+    
+
+
+    const updateStepUI = () => {
+      document.querySelectorAll('.step-content').forEach((content, index) => {
+        if (index + 1 === currentStep) {
+          content.classList.add('active');
+        } else {
+          content.classList.remove('active');
+        }
+      });
+      
+      document.querySelectorAll('.step-indicator-item').forEach((indicator, index) => {
+        if (index + 1 < currentStep) {
+          indicator.classList.add('completed');
+          indicator.classList.remove('active');
+        } else if (index + 1 === currentStep) {
+          indicator.classList.add('active');
+          indicator.classList.remove('completed');
+        } else {
+          indicator.classList.remove('active', 'completed');
+        }
+      });
+      
+      const prevButton = document.querySelector('.step-prev');
+      const nextButton = document.querySelector('.step-next');
+      
+      if (prevButton) {
+        if (currentStep === 1) {
+          prevButton.setAttribute('disabled', 'disabled');
+        } else {
+          prevButton.removeAttribute('disabled');
+        }
+      }
+      
+      if (nextButton) {
+        if (currentStep === totalSteps) {
+          nextButton.textContent = 'Submit';
+        } else {
+          nextButton.textContent = 'Next';
+        }
+      }
+    };
+    const prevButton = document.querySelector('.step-prev');
+    const nextButton = document.querySelector('.step-next');
+    
+    if (prevButton) {
+      prevButton.addEventListener('click', () => {
+        if (currentStep > 1) {
+          currentStep--;
+          updateStepUI();
+        }
+      });
+    }
+    
+    if (nextButton) {
+      nextButton.addEventListener('click', () => {
+        if (currentStep < totalSteps) {
+          currentStep++;
+          updateStepUI();
+        } else {
+          // Form submission logic could go here
+          console.log('Form submitted!');
+          const formEvent = new CustomEvent('formSubmit');
+          document.dispatchEvent(formEvent);
+        }
+        updateStepUI();
+      });
+    }
+    
+    updateStepUI();
+  });
+</script>
+
+<style>
+  .step-form {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    min-height: 100vh;
+    background-color: #111827; /* bg-gray-900 */
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 2rem 1rem;
+  }
+  
+  .container {
+    width: 100%;
+    max-width: 768px;
+    margin: 0 auto;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+  }
+
+  .form-data-display {
+    margin-top: 2rem;
+    background-color: #1F2937;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+  }
+
+  .data-title {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+  }
+
+  .data-container {
+    background-color: #374151;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    white-space: pre-wrap;
+    font-family: monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    overflow-x: auto;
+  }
+</style>

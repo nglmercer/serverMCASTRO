@@ -1,0 +1,23 @@
+---
+// Step2.astro - Server Core Selection Step
+import TabbedContent from '@components/TabbedContent.astro';
+
+---
+
+<div class="step-content">
+  <div class="form-container">
+    <TabbedContent tabs={["Seleccionar de la lista", "Subir tu archivo"]}>
+      <div slot="tab-0" class="w-full">
+
+              <grid-selector class="selectcore w-full">
+
+              </grid-selector>
+          <p>select version</p>
+              <list-selector class="coreversions"></list-selector>
+      </div>
+      <div slot="tab-1">
+        <c-input class="filecoreupload" type="file"></c-input>
+      </div>
+    </TabbedContent>
+  </div>
+</div>
