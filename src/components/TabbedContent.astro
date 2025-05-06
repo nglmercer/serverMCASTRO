@@ -102,12 +102,12 @@ const finalActiveButtonClass = activeButtonClass || 'active-tab-button-default';
         const targetIndex = parseInt(button.dataset.tabIndex);
         if (!isNaN(targetIndex)) {
             switchTab(targetIndex);
-            window.selected = {
+            window.selecttab = {
               index: targetIndex,
               item: button,
               tabs: tabs
             }
-            console.log(window.selected)
+            console.log(window.selecttab)
         }
       });
 

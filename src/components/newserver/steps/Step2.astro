@@ -8,15 +8,12 @@ import TabbedContent from '@components/TabbedContent.astro';
   <div class="form-container">
     <TabbedContent tabs={["Seleccionar de la lista", "Subir tu archivo"]}>
       <div slot="tab-0" class="w-full">
-
-              <grid-selector class="selectcore w-full">
-
-              </grid-selector>
+          <grid-selector class="selectcore w-full" id="coreselection"> </grid-selector>
           <p>select version</p>
-              <list-selector class="coreversions"></list-selector>
+          <list-selector class="coreversions" id="coreversions"></list-selector>
       </div>
       <div slot="tab-1">
-        <c-input class="filecoreupload" type="file"></c-input>
+        <c-input class="filecoreupload" id="filecoreupload" type="file" darkmode></c-input>
       </div>
     </TabbedContent>
   </div>

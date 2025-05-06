@@ -22,3 +22,28 @@ const steps = [
     <Step3 />
   </StepForm>
 </Layout>
+<script>
+import type { CInput } from "src/litcomponents/CInput";
+const formelements = [
+  "server_name_input",
+  "window.selecttab",
+  "coreselection",
+  "coreversions",
+  "filecoreupload"
+]
+const formdata:any = {
+  
+}
+formelements.forEach((el)=>{
+  const element = document.getElementById(el) as CInput;
+  if (!element) return;
+  element.addEventListener('change',(e)=>{
+    const data = (e as CustomEvent).detail;
+    console.log(data)
+    formdata[el] = data.value
+  })
+})
+  document.addEventListener('formSubmit',async function(e) {
+      console.log(formdata)
+  })  
+</script>
