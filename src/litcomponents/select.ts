@@ -36,7 +36,8 @@ export abstract class BaseSelectorElement extends LitElement {
 
   private _validateSelection(): void {
     const validValues = new Set(this.options.map(opt => String(opt.value)));
-    const currentSelected = this.selectedValues.map(String);
+    const currentv = Array.isArray(this.selectedValues) ? this.selectedValues : [this.selectedValues]
+    const currentSelected = currentv.map(String);
 
     const newSelectedValues = currentSelected.filter(val => validValues.has(val));
 
@@ -142,31 +143,6 @@ export class ListSelectorElement extends BaseSelectorElement {
     :host([grid]) .select-container {
        max-width: 100%;
     }
-
-    .preview-container {
-      border: 0px;
-      margin-bottom: 12px;
-      padding: 8px;
-      border-bottom: 1px solid var(--enhanced-select-divider-color, #2e3e53);
-      min-height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .preview-container:empty {
-        display: none;
-    }
-
-    .preview-container img {
-      max-width: 100%;
-      max-height: 150px;
-      object-fit: contain;
-      border-radius: 4px;
-    }
-
     .options-list {
       display: flex;
       flex-direction: column;
@@ -274,26 +250,6 @@ export class ListSelectorElement extends BaseSelectorElement {
   }
 
   private _renderPreview(selectedOptions: SelectOption[] | SelectOption | null) {
-    const optionsToShow = Array.isArray(selectedOptions) ? selectedOptions : (selectedOptions ? [selectedOptions] : []);
-
-    if (optionsToShow.length === 0) {
-      return html``;
-    }
-
-    return html`
-      <div class="preview-container" aria-label="Preview of selected items">
-        ${map(optionsToShow, (option) => {
-          if (option.image || option.img) {
-            return html`<img src="${option.image || option.img}" alt="${option.label}">`;
-          } else if (option.html) {
-            const div = document.createElement('div');
-            div.innerHTML = option.html;
-            return div;
-          }
-          return html``;
-        })}
-      </div>
-    `;
   }
 }
 

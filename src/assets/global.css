@@ -329,7 +329,16 @@
 .grid {
     display: grid;
 }
-
+.wrap {
+  flex-wrap: wrap;
+}
+.float-right {
+  float: left;
+}
+.center {
+  justify-content: center;
+  align-items: center;
+}
 
 .p-2 { padding: 2px;}
 .p-4 { padding: 4px;}

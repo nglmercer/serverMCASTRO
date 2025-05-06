@@ -74,7 +74,7 @@ const finalActiveButtonClass = activeButtonClass || 'active-tab-button-default';
   </div>
 </div>
 
-<script>
+<script is:inline>
   function initializeTabbedContent(container) {
     const buttons = container.querySelectorAll('.tab-button');
     const panels = container.querySelectorAll('.tab-content-panel');

@@ -2555,20 +2555,6 @@ class CustomSelect extends HTMLElement {
           overflow-y: auto;
           padding: 8px;
         }
-        .preview-container {
-          margin-bottom: 12px;
-          padding: 8px;
-          border-bottom: 1px solid #eee;
-          min-height: 50px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .preview-container img {
-          max-width: 100%;
-          max-height: 150px;
-          object-fit: contain;
-        }
         .options-list {
           display: flex;
           flex-direction: column;
@@ -2601,7 +2587,6 @@ class CustomSelect extends HTMLElement {
         }
       </style>
       <div class="select-container">
-        <div class="preview-container" style="display: none;"></div>
         <div class="options-list"></div>
       </div>
     `;
@@ -2617,23 +2602,7 @@ class CustomSelect extends HTMLElement {
     });
   }
 
-  updatePreview(option) {
-    const previewContainer = this.shadowRoot.querySelector('.preview-container');
-    previewContainer.style.display = 'inline-block';
-    previewContainer.innerHTML = '';
-
-    if (option) {
-      if (option.img || option.image) {
-        const img = document.createElement('img');
-        img.src = option.img || option.image;
-        img.alt = option.label;
-        previewContainer.appendChild(img);
-      } else if (option.html) {
-        previewContainer.innerHTML = option.html;
-      } else {
-        previewContainer.style.display = 'none';
-      }
-    }
+  updatePreview() {
   }
 
   selectOption(optionElement) {

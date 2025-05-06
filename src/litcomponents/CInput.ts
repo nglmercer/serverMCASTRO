@@ -11,7 +11,7 @@ interface Option {
 
 // Define input types
 type InputType = 'text' | 'textarea' | 'select' | 'checkbox' | 'switch' | 'boolean' | 'radio' |
-    'number' | 'email' | 'password' | 'tel' | 'url' | 'date' | 'time' | 'datetime-local' | 'string' | 'File' | 'color' | 'range';
+    'number' | 'email' | 'password' | 'tel' | 'url' | 'date' | 'time' | 'datetime-local' | 'string' | 'File' | 'file' | 'color' | 'range';
 type InputReturnType = string | boolean | number | string[] | null | undefined | object;
 
 function safeParse(value: InputReturnType): InputReturnType {
@@ -48,6 +48,9 @@ export class CInput extends LitElement {
     @property({ type: String, reflect: true }) placeholder?: string;
     @property({ type: Boolean, reflect: true }) disabled: boolean = false;
     @property({ type: Boolean, reflect: true }) readonly: boolean = false;
+    @property({ type: Number, reflect: true }) min?: number;
+    @property({ type: Number, reflect: true }) max?: number;
+    @property({ type: Number, reflect: true }) step?: number;
     @property({ type: Boolean, reflect: true }) darkmode: boolean = false;
     @property({ type: Array }) options: Option[] = [];
     @property({ type: Boolean, reflect: true }) required: boolean = false;
@@ -108,6 +111,10 @@ export class CInput extends LitElement {
 
     // Parse value for internal storage based on input type
     private _parseValueForInternal(val: string | null | undefined | string[] | boolean | number): string | boolean | number | string[] | null {
+        if (val === null || val === undefined) {
+            return this.type === 'number' ? null : '';
+        }
+
         if (this.multiple && this.type === 'select') {
             if (Array.isArray(val)) {
                 return val.map(String);
@@ -130,10 +137,17 @@ export class CInput extends LitElement {
         }
 
         if (this.type === 'number') {
-            return (val === '' || val === null || val === undefined) ? null : Number(val);
+            // Fixed: Better handling of number values
+            if (val === '' || val === null || val === undefined) {
+                return null;
+            }
+            
+            // Parse as number but handle potential NaN results
+            const num = Number(val);
+            return isNaN(num) ? null : num;
         }
 
-        return val ?? '';
+        return String(val);
     }
 
     // CSS styles
@@ -343,7 +357,21 @@ export class CInput extends LitElement {
             </label>
           `)}
         `;
-
+            case 'File':
+            case 'file':
+                return html`
+                <input
+                  class=${commonInputClass}
+                  id=${ifDefined(this.id)}
+                  name=${ifDefined(this.name)}
+                  placeholder=${ifDefined(this.placeholder)}
+                  ?disabled=${this.disabled}
+                  ?readonly=${this.readonly}
+                  ?required=${this.required}
+                  title=${ifDefined(this.title)}
+                  pattern=${ifDefined(this.pattern)}
+                  @change=${this._handleInputChange}
+                >`;
             default: // text, email, number, password, etc.
                 return html`
           <input
@@ -351,14 +379,14 @@ export class CInput extends LitElement {
             type=${this.type === 'string' ? 'text' : this.type}
             id=${ifDefined(this.id)}
             name=${ifDefined(this.name)}
-            ${this.type.toLowerCase() !== 'file'
-                ? html` .value=${this._internalValue === null ? '' : String(this._internalValue)} `
-                : ''
-              }
+            value=${this._internalValue === null ? '' : String(this._internalValue)}
             placeholder=${ifDefined(this.placeholder)}
             ?disabled=${this.disabled}
             ?readonly=${this.readonly}
             ?required=${this.required}
+            min=${this.min}
+            max=${this.max}
+            step=${this.step}
             title=${ifDefined(this.title)}
             pattern=${ifDefined(this.pattern)}
             @change=${this._handleInputChange}
