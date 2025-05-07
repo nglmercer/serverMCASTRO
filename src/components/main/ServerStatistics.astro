@@ -1,0 +1,77 @@
+---
+import type { SystemMetrics } from 'src/types/server';
+
+interface Props {
+  metrics: SystemMetrics;
+}
+
+const { metrics } = Astro.props;
+---
+
+<div class="server-stats-card">
+  <h2>Server Statistics</h2>
+  
+  <div class="stats-grid">
+    <div class="stat-item">
+      <p class="stat-label">Total Servers</p>
+      <p class="stat-value">{metrics.totalServers}</p>
+    </div>
+    
+    <div class="stat-item">
+      <p class="stat-label">Active Servers</p>
+      <p class="stat-value active">{metrics.activeServers}</p>
+    </div>
+    
+    <div class="stat-item">
+      <p class="stat-label">Last Backup</p>
+      <p class="stat-value">{metrics.lastBackup}</p>
+    </div>
+    
+    <div class="stat-item">
+      <p class="stat-label">System Status</p>
+      <p class="stat-value active">Operational</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .server-stats-card {
+    background-color: var(--color-dark-900);
+    border: 1px solid var(--color-gray-800);
+    border-radius: var(--border-radius-xl);
+    padding: var(--space-6);
+  }
+  
+  h2 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-4);
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+  }
+  
+  .stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-gray-400);
+    margin-bottom: var(--space-1);
+  }
+  
+  .stat-value {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+  }
+  
+  .stat-value.active {
+    color: var(--color-green-500);
+  }
+  
+  @media (max-width: 480px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,30 @@
+---
+interface Props {
+  status: string;
+}
+
+const { status } = Astro.props;
+const isActive = status.toLowerCase() !== 'stopped';
+---
+
+<span class={`status-indicator ${isActive ? 'active' : 'inactive'}`}>
+  {status}
+</span>
+
+<style>
+  .status-indicator {
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--border-radius-full);
+    font-size: var(--font-size-sm);
+  }
+  
+  .active {
+    background-color: rgba(34, 197, 94, 0.1);
+    color: var(--color-green-500);
+  }
+  
+  .inactive {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--color-red-500);
+  }
+</style>

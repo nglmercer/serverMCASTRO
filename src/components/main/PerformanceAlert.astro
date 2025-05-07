@@ -1,0 +1,53 @@
+---
+// PerformanceAlert.astro
+---
+
+<div class="performance-alert">
+    <div class="alert-content">
+      <span class="material-symbols-rounded alert-icon">bolt</span>
+      <p class="alert-text">Boost your server's performance with free additional RAM for a better gameplay.</p>
+    </div>
+    <button class="btn btn-primary">Get your free RAM boost</button>
+  </div>
+  
+  <style>
+    .performance-alert {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: rgba(58, 123, 255, 0.1);
+      border: 1px solid rgba(58, 123, 255, 0.2);
+      border-radius: var(--border-radius-lg);
+      padding: var(--space-4);
+      margin-bottom: var(--space-8);
+    }
+    
+    .alert-content {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    
+    .alert-icon {
+      color: var(--color-primary-500);
+    }
+    
+    .alert-text {
+      color: var(--color-primary-100);
+    }
+    
+    .btn {
+      font-size: var(--font-size-sm);
+    }
+    
+    @media (max-width: 768px) {
+      .performance-alert {
+        flex-direction: column;
+        gap: var(--space-4);
+      }
+      
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>

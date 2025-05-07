@@ -1,17 +1,127 @@
 ---
-import SidebarLayout from '../layouts/SidebarLayout.astro';
+import Layout from '@layouts/Layout.astro';
+import SystemStatus from '@components/main/SystemStatus.astro';
+import ServerStatistics from '@components/main/ServerStatistics.astro';
+import QuickActions from '@components/main/QuickActions.astro';
+import PerformanceAlert from '@components/main/PerformanceAlert.astro';
+import ServerCard from '@components/main/ServerCard.astro';
+import RecentBackups from '@components/main/RecentBackups.astro';
+import SystemHealth from '@components/main/SystemHealth.astro';
+import type { Server, SystemMetrics, QuickAction } from '../types/server';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+// Datos de servidores
+const servers: Server[] = [
+  {
+    id: '213',
+    name: 'Server 213',
+    status: 'STOPPED',
+    type: 'vpaper-1.21.5.jar',
+    size: '49.02 MB',
+    lastModified: '4/5/2025',
+    players: '24/32',
+    uptime: '23 days 4 hours',
+    ping: '18ms'
+  },
+  {
+    id: 'server2',
+    name: 'NombreServidor',
+    status: 'stopped',
+    type: 'vpaper-1.21.5.jar',
+    size: '49.03 MB',
+    lastModified: '7/5/2025',
+    players: '15/20',
+    uptime: '15 days 8 hours',
+    ping: '22ms'
+  }
+];
+
+// Métricas del sistema
+const systemMetrics: SystemMetrics = {
+  cpu: 45,
+  memory: 72,
+  network: 38,
+  totalServers: 2,
+  activeServers: 0,
+  lastBackup: 'Never'
+};
+
+// Acciones rápidas
+const quickActions: QuickAction[] = [
+  { name: 'Documentation', icon: 'description', link: '#' },
+  { name: 'Support', icon: 'support_agent', link: '#' },
+  { name: 'Settings', icon: 'settings', link: '#' },
+  { name: 'Tutorials', icon: 'school', link: '#' }
+];
 ---
 
-<SidebarLayout title="Mi Aplicación" activeConfig="A">
-	<div slot="logo">
-		<h1 class="logo-text">Logo</h1>
-	</div>
-	<div class="content">
-		<h1>Contenido Principal</h1>
-	</div>
-</SidebarLayout>
+<Layout title="Server Overview - ServerManager">
+  <div class="app-container">
+    
+    <main>
+      <!-- Tarjetas de estado del sistema -->
+      <div class="dashboard-cards">
+        <SystemStatus metrics={systemMetrics} />
+        <ServerStatistics metrics={systemMetrics} />
+        <QuickActions actions={quickActions} />
+      </div>
+      
+      <!-- Alerta de rendimiento -->
+      <PerformanceAlert />
+      
+      <!-- Lista de servidores -->
+      <div class="servers-list">
+        {servers.map(server => (
+          <ServerCard server={server} />
+        ))}
+      </div>
+      
+      <!-- Sección de salud del sistema -->
+      <div class="system-section">
+        <RecentBackups />
+        <SystemHealth />
+      </div>
+    </main>
+  </div>
+</Layout>
 
-
+<style>
+  .app-container {
+    min-height: 100vh;
+    background-color: var(--color-dark-950);
+  }
+  
+  .main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-4);
+  }
+  
+  .dashboard-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
+  }
+  
+  .servers-list {
+    margin-bottom: var(--space-8);
+  }
+  
+  .system-section {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+  
+  @media (min-width: 768px) {
+    .system-section {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .dashboard-cards {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

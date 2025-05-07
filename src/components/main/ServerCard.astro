@@ -1,0 +1,181 @@
+---
+import type { Server } from 'src/types/server';
+import StatusIndicator from './StatusIndicator.astro';
+
+interface Props {
+  server: Server;
+}
+
+const { server } = Astro.props;
+---
+
+<div class="server-card">
+  <div class="server-card-header">
+    <div class="server-info">
+      <div class="server-icon">
+        <span class="material-symbols-rounded">dns</span>
+      </div>
+      <div class="server-title">
+        <h3>{server.name}</h3>
+        <p class="server-type">{server.type}</p>
+      </div>
+    </div>
+    
+    <div class="server-actions">
+      <StatusIndicator status={server.status} />
+      <button class="more-options">
+        <span class="material-symbols-rounded">more_vert</span>
+      </button>
+    </div>
+  </div>
+  
+  <div class="server-details">
+    <div class="server-metrics">
+      <div class="metric">
+        <p class="metric-label">Players Online</p>
+        <p class="metric-value">{server.players}</p>
+      </div>
+      <div class="metric">
+        <p class="metric-label">Uptime</p>
+        <p class="metric-value">{server.uptime}</p>
+      </div>
+      <div class="metric">
+        <p class="metric-label">Size</p>
+        <p class="metric-value">{server.size}</p>
+      </div>
+      <div class="metric">
+        <p class="metric-label">Ping</p>
+        <p class="metric-value ping">{server.ping}</p>
+      </div>
+    </div>
+    
+    <div class="server-controls">
+      <button class="btn btn-primary">
+        <span class="material-symbols-rounded">play_arrow</span>
+        Start
+      </button>
+      <button class="btn btn-outline">
+        <span class="material-symbols-rounded">backup</span>
+        Backup
+      </button>
+      <button class="btn btn-outline">
+        <span class="material-symbols-rounded">settings</span>
+        Settings
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .server-card {
+    background-color: var(--color-dark-900);
+    border: 1px solid var(--color-gray-800);
+    border-radius: var(--border-radius-xl);
+    overflow: hidden;
+    margin-bottom: var(--space-6);
+  }
+  
+  .server-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-6);
+    margin-bottom: var(--space-6);
+  }
+  
+  .server-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  
+  .server-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-dark-800);
+    padding: var(--space-2);
+    border-radius: var(--border-radius-lg);
+  }
+  
+  .server-icon span {
+    font-size: 2rem;
+    color: var(--color-primary-500);
+  }
+  
+  .server-title h3 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+  }
+  
+  .server-type {
+    font-size: var(--font-size-sm);
+    color: var(--color-gray-400);
+  }
+  
+  .server-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+  
+  .more-options {
+    color: var(--color-gray-400);
+    transition: color 0.2s ease;
+  }
+  
+  .more-options:hover {
+    color: var(--color-white);
+  }
+  
+  .server-details {
+    background-color: var(--color-dark-800);
+    border-radius: var(--border-radius-lg);
+    margin: 0 var(--space-6) var(--space-6);
+    padding: var(--space-4);
+  }
+  
+  .server-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+  
+  @media (min-width: 768px) {
+    .server-metrics {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  
+  .metric-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-gray-400);
+    margin-bottom: var(--space-1);
+  }
+  
+  .metric-value {
+    font-weight: 600;
+  }
+  
+  .metric-value.ping {
+    color: var(--color-green-500);
+  }
+  
+  .server-controls {
+    display: flex;
+    gap: var(--space-2);
+  }
+  
+  .server-controls .btn {
+    flex: 1;
+    justify-content: center;
+    font-size: var(--font-size-sm);
+  }
+  
+  @media (max-width: 480px) {
+    .server-controls {
+      flex-direction: column;
+    }
+  }
+</style>

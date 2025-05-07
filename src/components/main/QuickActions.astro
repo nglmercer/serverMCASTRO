@@ -1,0 +1,71 @@
+---
+import type { QuickAction } from 'src/types/server';
+
+interface Props {
+  actions: QuickAction[];
+}
+
+const { actions } = Astro.props;
+---
+
+<div class="quick-actions-card">
+  <h2>Quick Actions</h2>
+  
+  <div class="actions-grid">
+    {actions.map(action => (
+      <a href={action.link} class="action-item">
+        <span class="material-symbols-rounded action-icon">{action.icon}</span>
+        <span class="action-name">{action.name}</span>
+      </a>
+    ))}
+  </div>
+</div>
+
+<style>
+  .quick-actions-card {
+    background-color: var(--color-dark-900);
+    border: 1px solid var(--color-gray-800);
+    border-radius: var(--border-radius-xl);
+    padding: var(--space-6);
+  }
+  
+  h2 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-4);
+  }
+  
+  .actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+  }
+  
+  .action-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    background-color: var(--color-dark-800);
+    border-radius: var(--border-radius-lg);
+    transition: background-color 0.2s ease;
+  }
+  
+  .action-item:hover {
+    background-color: var(--color-dark-700);
+  }
+  
+  .action-icon {
+    color: var(--color-primary-500);
+  }
+  
+  .action-name {
+    font-size: var(--font-size-sm);
+  }
+  
+  @media (max-width: 480px) {
+    .actions-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
