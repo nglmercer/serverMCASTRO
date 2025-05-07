@@ -1,4 +1,4 @@
-interface Coreversions {
+interface coreVersion {
     name: "paper",
     displayName: "PaperMC",
     versionsMethod: "paper",
@@ -12,7 +12,7 @@ interface SelectOption {
     html?: string;
     state?: string;
 }
-function parseCoreversions(data: Record<string, Coreversions>): SelectOption[] {
+function parseCoreversions(data: Record<string, coreVersion>): SelectOption[] {
     const mapValues = Object.values(data).map(item => ({
         value: item.versionsMethod || item.urlGetMethod,
         label: item.displayName || item.name,

@@ -87,7 +87,7 @@ function initializenewServer() {
 // Validate form inputs
 function validateNewServerInputs() {
     const inputs = {
-        serverName: document.querySelector('#server_name_input').getInputValues(),
+        serverName: document.querySelector('#serverName').getInputValues(),
         coreGrid: document.querySelector('#cores-grids').selected,
         coreUpload: document.querySelector('#core_upload').style.display !== "none",
         version: document.querySelector('#customselect_versions').getSelectedOptions(),
@@ -197,7 +197,7 @@ function prepareServerCreation() {
     
     const serverData = {
         serverName: cleanFolderName(
-        document.querySelector('#server_name_input').getInputValues()),
+        document.querySelector('#serverName').getInputValues()),
         memory: document.querySelector('#server-mem').value,
         port: document.querySelector('#server-port').value,
         core: globalvars.currentSelectedCore,
@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const { formData, fileName } = e.detail;
         const file = [...formData.entries()][0][1];
         formData.append("file", file);
-        const serverName = document.querySelector('#server_name_input').getInputValues();
+        const serverName = document.querySelector('#serverName').getInputValues();
         uploadFile(serverName);
     });
     if (!globalvars.initialized) initializenewServer();

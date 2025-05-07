@@ -200,6 +200,12 @@ class ServerApi {
             headers: this._authHeaders()
         }));
     }
+    //POST /newserver
+    postNewserver(formData){
+        return this._interceptor(http.post(`${this.host}/newserver`,formData, {
+            headers: this._authHeaders()
+        }));
+    }
 }
 const fetchapi = new FetchApi(actualBaseApi);
 const serverapi = new ServerApi(actualBaseApi)

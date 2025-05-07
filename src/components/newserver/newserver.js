@@ -68,9 +68,9 @@ async function fetchJavav() {
  */
 async function setcoreversions(arrayV) {
   try {
-    const coreSelect = document.querySelector(".coreversions");
+    const coreSelect = document.querySelector(".coreVersion");
     if (!coreSelect) {
-      console.warn("Elemento .coreversions no encontrado");
+      console.warn("Elemento .coreVersion no encontrado");
       return;
     }
     
@@ -94,9 +94,9 @@ async function setjavaversions(objV) {
       return;
     }
     
-    const javaSelect = document.querySelector(".javaversions");
+    const javaSelect = document.querySelector(".javaVersion");
     if (!javaSelect) {
-      console.warn("Elemento .javaversions no encontrado");
+      console.warn("Elemento .javaVersion no encontrado");
       return;
     }
     

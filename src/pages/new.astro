@@ -15,6 +15,7 @@ const steps = [
 <link rel="stylesheet" href="/materialSymbols.css"/>
 <link rel="stylesheet" href="/src/components/newserver/steps/step.css">
 <script src="/src/components/newserver/newserver.js"></script>
+<script src="/src/globalSignals.ts"></script>
 <task-notifications id="notificaciones"></task-notifications>
 <StepForm steps={steps} title="Crear un nuevo Servidor de Minecraft">
 <Step1 />
@@ -23,24 +24,26 @@ const steps = [
 </StepForm>
 </Layout>
 <script>
+import { serverapi } from "src/fetch/fetchapi";
+import generateNewServerStart from "@components/newserver/startscript";
 const formElemNames = [
-  "server_name_input",
-  "selecttab", // Corregido de "window.selecttab"
-  "coreselection",
-  "coreversions",
+  "serverName",
+  "selecttab",
+  "coreName",
+  "coreVersion",
   "filecoreupload",
-  "javaversions",
+  "javaVersion",
   "Ramsize",
-  "serverport",
+  "serverPort",
   "optiflags"
 ];
 
 const formElements: Element[] = [];
-const formData: Record<string, any> = {};
+const formOBJ: Record<string, any> = {};
 
-// Función para establecer valores en formData
+// Función para establecer valores en formOBJ
 function setValue(id: string, value: any) {
-  formData[id] = value;
+  formOBJ[id] = value;
 }
 
 // Función para configurar listeners en elementos
@@ -81,9 +84,14 @@ document.addEventListener('formSubmit', async function(e) {
       setValue(id, (element as any).value);
     }
   });
-  
-  console.log(formData);
+  //startParameters is optimization === default string if (optiflags) 
+  const params = ["serverName", "coreName", "coreVersion", "startParameters", "javaVersion", "serverPort", "fileName", "formOBJ"]
+  formOBJ.startParameters = generateNewServerStart(formOBJ.Ramsize, formOBJ.optiflags);
+  console.log(formOBJ);
   console.log(formElements);
   console.log(window.selecttab);
+
+  const result = await serverapi.postNewserver(formOBJ);
+  console.log(result);
 });
 </script>
