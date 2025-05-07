@@ -74,67 +74,80 @@ const finalActiveButtonClass = activeButtonClass || 'active-tab-button-default';
   </div>
 </div>
 
-<script is:inline define:vars={{tabs}}>
-  function initializeTabbedContent(container) {
-    const buttons = container.querySelectorAll('.tab-button');
-    const panels = container.querySelectorAll('.tab-content-panel');
-    const activeButtonClass = container.dataset.activeClass || 'active-tab-button-default';
+<script>
+import { tabsSignal, signals } from "src/globalSignals";
 
-    function switchTab(targetIndex) {
-      buttons.forEach((button, index) => {
-        const panel = container.querySelector(`.tab-content-panel[data-panel-index="${index}"]`);
-        const isActive = index === targetIndex;
+interface TabButtonData {
+  index: number;
+  item: HTMLElement;
+}
 
-        button.setAttribute('aria-selected', isActive ? 'true' : 'false');
-        button.classList.remove(...activeButtonClass.split(' ').filter(Boolean));
-        if (isActive) {
-           button.classList.add(...activeButtonClass.split(' ').filter(Boolean));
-        }
-
-        if (panel) {
-          panel.classList.toggle('hidden', !isActive);
-        }
-      });
-    }
-
-    buttons.forEach((button) => {
-      button.addEventListener('click', () => {
-        const targetIndex = parseInt(button.dataset.tabIndex);
-        if (!isNaN(targetIndex)) {
-            switchTab(targetIndex);
-            window.selecttab = {
-              index: targetIndex,
-              item: button,
-              tabs: tabs
-            }
-            console.log(window.selecttab)
-        }
-      });
-
-      button.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          const targetIndex = parseInt(button.dataset.tabIndex);
-          if (!isNaN(targetIndex)) {
-              switchTab(targetIndex);
-          }
-        }
-      });
+function initializeTabbedContent(container: HTMLElement): void {
+  const buttons = container.querySelectorAll<HTMLElement>('.tab-button');
+  const panels = container.querySelectorAll<HTMLElement>('.tab-content-panel');
+  const activeButtonClass = container.dataset.activeClass || 'active-tab-button-default';
+  
+  function switchTab(targetIndex: number): void {
+    buttons.forEach((button, index) => {
+      const panel = container.querySelector<HTMLElement>(`.tab-content-panel[data-panel-index="${index}"]`);
+      const isActive = index === targetIndex;
+      
+      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      button.classList.remove(...activeButtonClass.split(' ').filter(Boolean));
+      
+      if (isActive) {
+        button.classList.add(...activeButtonClass.split(' ').filter(Boolean));
+      }
+      
+      if (panel) {
+        panel.classList.toggle('hidden', !isActive);
+      }
     });
   }
-
-  document.querySelectorAll('.tabbed-content-wrapper').forEach(initializeTabbedContent);
-
-  document.addEventListener('astro:after-swap', () => {
-    document.querySelectorAll('.tabbed-content-wrapper:not([data-initialized])').forEach(container => {
-      initializeTabbedContent(container);
-      container.setAttribute('data-initialized', 'true');
+  
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const targetIndex = parseInt(button.dataset.tabIndex || '', 10);
+      if (!isNaN(targetIndex)) {
+        switchTab(targetIndex);
+        const data: TabButtonData = {
+          index: targetIndex,
+          item: button,
+        };
+        console.log(data);
+        tabsSignal.value = data;
+      }
+    });
+    
+    button.addEventListener('keydown', (event: KeyboardEvent) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        const targetIndex = parseInt(button.dataset.tabIndex || '', 10);
+        if (!isNaN(targetIndex)) {
+          switchTab(targetIndex);
+        }
+      }
     });
   });
+}
 
-  document.querySelectorAll('.tabbed-content-wrapper').forEach(container => {
+// Initialize all tabbed content on the page
+document.querySelectorAll<HTMLElement>('.tabbed-content-wrapper').forEach(container => {
+  initializeTabbedContent(container);
+});
+
+// Handle dynamically loaded content (Astro view transitions)
+document.addEventListener('astro:after-swap', () => {
+  document.querySelectorAll<HTMLElement>('.tabbed-content-wrapper:not([data-initialized])').forEach(container => {
+    initializeTabbedContent(container);
     container.setAttribute('data-initialized', 'true');
   });
+});
+
+// Mark all existing tabbed content as initialized
+document.querySelectorAll<HTMLElement>('.tabbed-content-wrapper').forEach(container => {
+  container.setAttribute('data-initialized', 'true');
+});
 </script>
 
 <style>

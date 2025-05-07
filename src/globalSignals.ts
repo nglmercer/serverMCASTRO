@@ -120,7 +120,7 @@ class Signal<T> {
     fn();
   }
   // Inicializar la API global
-  window.$signals = {
+var signals = window.$signals = {
     store: new Map(),
     
     create<T>(name: string, initialValue: T): Signal<T> {
@@ -160,10 +160,13 @@ class Signal<T> {
     }
   };
   
-  // Ejemplo de uso:
-  
+const tabsSignal = window.$signals.create('tabs', {});
+export {
+  tabsSignal,
+  signals
+}
   // Crear un signal
-  window.$signals.create('counter', 0);
+/*   window.$signals.create('counter', 0);
   
   // Crear un signal computado
   window.$signals.computed('doubleCounter', () => {
@@ -184,6 +187,7 @@ class Signal<T> {
   console.log(counterSignal?.value); // 1
   
   // Dejar de escuchar cambios
-  unsubscribe();
- 
   
+  window.$signals.set('counter', "100");
+  unsubscribe();
+ */

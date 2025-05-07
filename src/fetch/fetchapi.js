@@ -10,15 +10,40 @@ const http = {
         }).then(res => res.json());
     },
     post: (url, body = {}, options = {}) => {
-        return fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                ...(options.headers || {})
-            },
-            body: JSON.stringify(body),
-            ...options
-        }).then(res => res.json());
+        // Verificamos si body es una instancia de FormData
+        if (body instanceof FormData) {
+            // Para FormData, no debemos JSON.stringify() el cuerpo
+            // Y no establecemos Content-Type (el navegador lo hará)
+            return fetch(url, {
+                method: 'POST',
+                headers: {
+                    // Omitimos Content-Type para FormData
+                    ...Object.fromEntries(
+                        Object.entries(options.headers || {})
+                            .filter(([key]) => key.toLowerCase() !== 'content-type')
+                    )
+                },
+                body: body, // Enviamos el FormData directamente
+                ...Object.fromEntries(
+                    Object.entries(options)
+                        .filter(([key]) => key !== 'headers')
+                )
+            }).then(res => res.json());
+        } else {
+            // Para JSON normal
+            return fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(options.headers || {})
+                },
+                body: JSON.stringify(body),
+                ...Object.fromEntries(
+                    Object.entries(options)
+                        .filter(([key]) => key !== 'headers')
+                )
+            }).then(res => res.json());
+        }
     },
     put: (url, body = {}, options = {}) => {
         return fetch(url, {
@@ -201,9 +226,16 @@ class ServerApi {
         }));
     }
     //POST /newserver
-    postNewserver(formData){
-        return this._interceptor(http.post(`${this.host}/newserver`,formData, {
-            headers: this._authHeaders()
+    postNewserver(formData) {
+        // Cuando se envía FormData, NO debemos establecer Content-Type
+        // El navegador lo configurará automáticamente con el boundary correcto
+        const headers = {
+        'Authorization': `${this.token}`
+        // No incluir 'Content-Type' aquí
+        };
+        
+        return this._interceptor(http.post(`${this.host}/newserver`, formData, {
+        headers: headers
         }));
     }
 }

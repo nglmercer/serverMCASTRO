@@ -15,7 +15,6 @@ const steps = [
 <link rel="stylesheet" href="/materialSymbols.css"/>
 <link rel="stylesheet" href="/src/components/newserver/steps/step.css">
 <script src="/src/components/newserver/newserver.js"></script>
-<script src="/src/globalSignals.ts"></script>
 <task-notifications id="notificaciones"></task-notifications>
 <StepForm steps={steps} title="Crear un nuevo Servidor de Minecraft">
 <Step1 />
@@ -24,14 +23,18 @@ const steps = [
 </StepForm>
 </Layout>
 <script>
-import { serverapi } from "src/fetch/fetchapi";
 import generateNewServerStart from "@components/newserver/startscript";
+import { type TabButtonData } from "src/types/elements";
+import { serverapi } from "src/fetch/fetchapi";
+import { tabsSignal,signals } from "src/globalSignals";
+import { CInput } from "src/litcomponents/CInput";
+
 const formElemNames = [
   "serverName",
   "selecttab",
   "coreName",
   "coreVersion",
-  "filecoreupload",
+  "fileName",
   "javaVersion",
   "Ramsize",
   "serverPort",
@@ -55,7 +58,11 @@ function setListeners(element: Element, id: string) {
     setValue(id, data.value);
   });
 }
-
+function getFileForm(id: string) {
+  const inputFile = document.getElementById(id) as CInput;
+  const fileInput = inputFile.shadowRoot?.querySelector('input');
+  return fileInput?.files?.[0] || null;
+}
 // Inicializar elementos y configurar listeners
 formElemNames.forEach((id) => {
   const element = document.getElementById(id);
@@ -79,19 +86,46 @@ document.addEventListener('formSubmit', async function(e) {
   formElemNames.forEach((id) => {
     const element = document.getElementById(id);
     if (!element) return;
-    
     if ('value' in element) {
       setValue(id, (element as any).value);
     }
   });
-  //startParameters is optimization === default string if (optiflags) 
-  const params = ["serverName", "coreName", "coreVersion", "startParameters", "javaVersion", "serverPort", "fileName", "formOBJ"]
+  
+  //startParameters is optimization === default string if (optiflags)
   formOBJ.startParameters = generateNewServerStart(formOBJ.Ramsize, formOBJ.optiflags);
   console.log(formOBJ);
   console.log(formElements);
-  console.log(window.selecttab);
-
-  const result = await serverapi.postNewserver(formOBJ);
-  console.log(result);
+  
+  // Crear un nuevo FormData
+  const formData = new FormData();
+  
+  // Añadir todos los campos del formulario
+  Object.entries(formOBJ).forEach(([key, value]) => {
+    if (key !== 'fileName') { // Omitir el campo del nombre del archivo
+      formData.append(key, String(value));
+    }
+  });
+  
+  // Añadir el archivo
+  const file = getFileForm("fileName");
+  if (file) {
+    formData.append("file", file);
+  }
+  
+  try {
+    // Enviar el FormData al servidor
+    const result = await serverapi.postNewserver(formData);
+    console.log(result);
+  } catch (error) {
+    console.error("Error al enviar el formulario:", error);
+  }
 });
+/*
+  const { index, item } = tabsSignal.value as TabButtonData;
+  console.log(index, item);
+*/
+signals.subscribe('tabs', (value, oldValue) => {
+  console.log(`Counter cambió`,value,oldValue);
+});
+
 </script>
