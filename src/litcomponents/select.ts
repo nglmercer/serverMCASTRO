@@ -16,7 +16,7 @@ export interface SelectOption {
 
 export abstract class BaseSelectorElement extends LitElement {
   @property({ type: Array }) options: SelectOption[] = [];
-  @property({ type: Array }) selectedValues: string[] = [];
+  @property({ type: Array }) Values: string[] = [];
   @property({ type: Boolean, reflect: true }) multiple = false;
   @property({ type: Boolean, reflect: true }) grid = false;
 
@@ -24,25 +24,25 @@ export abstract class BaseSelectorElement extends LitElement {
     if (changedProperties.has('multiple')) {
       const oldValue = changedProperties.get('multiple');
       if (oldValue !== undefined && this.multiple !== oldValue) {
-        this.selectedValues = [];
+        this.Values = [];
         this._dispatchChange([]);
       }
     }
 
-    if (changedProperties.has('options') || changedProperties.has('selectedValues')) {
+    if (changedProperties.has('options') || changedProperties.has('Values')) {
       this._validateSelection();
     }
   }
 
   private _validateSelection(): void {
     const validValues = new Set(this.options.map(opt => String(opt.value)));
-    const currentv = Array.isArray(this.selectedValues) ? this.selectedValues : [this.selectedValues]
+    const currentv = Array.isArray(this.Values) ? this.Values : [this.Values]
     const currentSelected = currentv.map(String);
 
     const newSelectedValues = currentSelected.filter(val => validValues.has(val));
-
-    if (newSelectedValues.length !== this.selectedValues.length) {
-      this.selectedValues = newSelectedValues;
+    console.log("newSelectedValues", newSelectedValues);
+    if (newSelectedValues.length !== this.Values?.length) {
+      this.Values = newSelectedValues;
       this._dispatchChange(this.getSelectedOptions());
     }
   }
@@ -58,24 +58,24 @@ export abstract class BaseSelectorElement extends LitElement {
   }
 
   private _toggleOption(value: string): void {
-    const index = this.selectedValues.indexOf(value);
+    const index = this.Values.indexOf(value);
     let newSelectedValues: string[];
 
     if (index === -1) {
-      newSelectedValues = [...this.selectedValues, value];
+      newSelectedValues = [...this.Values, value];
     } else {
-      newSelectedValues = this.selectedValues.filter(v => v !== value);
+      newSelectedValues = this.Values.filter(v => v !== value);
     }
-    this.selectedValues = newSelectedValues;
+    this.Values = newSelectedValues;
     this._dispatchChange(this.getSelectedOptions());
   }
 
   private _selectOption(value: string): void {
-    if (this.selectedValues.length === 1 && this.selectedValues[0] === value) {
+    if (this.Values.length === 1 && this.Values[0] === value) {
       return;
     }
 
-    this.selectedValues = [value];
+    this.Values = [value];
     this._dispatchChange(this.getSelectedOptions());
   }
 
@@ -90,7 +90,7 @@ export abstract class BaseSelectorElement extends LitElement {
   public getSelectedOptions(): SelectOption[] | SelectOption | null {
     if (!this.options || this.options.length === 0) return this.multiple ? [] : null;
 
-    const selectedSet = new Set(this.selectedValues.map(String));
+    const selectedSet = new Set(this.Values?.map(String));
     const selected = this.options.filter(opt => selectedSet.has(String(opt.value)));
 
     return this.multiple ? selected : (selected[0] || null);
@@ -100,17 +100,17 @@ export abstract class BaseSelectorElement extends LitElement {
     this.options = newOptions || [];
   }
 
-  public setSelectedValues(values: string[] | string | null): void {
-    const newValues = Array.isArray(values) ? values : (values != null ? [String(values)] : []);
+  public setSelectedValues(Values: string[] | string | null): void {
+    const newValues = Array.isArray(Values) ? Values : (Values != null ? [String(Values)] : []);
     const validOptionValues = new Set(this.options.map(opt => String(opt.value)));
-    this.selectedValues = newValues.map(String).filter(v => validOptionValues.has(v));
+    this.Values = newValues.map(String).filter(v => validOptionValues.has(v));
   }
 
   public getValue(): string[] | string | null {
     if (this.multiple) {
-      return [...this.selectedValues];
+      return [...this.Values];
     } else {
-      return this.selectedValues.length > 0 ? this.selectedValues[0] : null;
+      return this.Values.length > 0 ? this.Values[0] : null;
     }
   }
 
@@ -226,7 +226,7 @@ export class ListSelectorElement extends BaseSelectorElement {
 
   protected generateSelectorOptions(): TemplateResult[] {
     return map(this.options, (option) => {
-      const isSelected = this.selectedValues.includes(String(option.value));
+      const isSelected = this.Values?.includes(String(option.value));
       const optionClasses = classMap({
         option: true,
         selected: isSelected,
@@ -309,7 +309,7 @@ export class GridSelectorElement extends BaseSelectorElement {
 
   protected generateSelectorOptions(): TemplateResult[] {
     return map(this.options, (option) => {
-      const isSelected = this.selectedValues.includes(String(option.value));
+      const isSelected = this.Values.includes(String(option.value));
       return html`
         <div
           class="card ${isSelected ? 'active' : ''}"

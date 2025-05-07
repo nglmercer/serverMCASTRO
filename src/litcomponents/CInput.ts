@@ -137,7 +137,6 @@ export class CInput extends LitElement {
         }
 
         if (this.type === 'number') {
-            // Fixed: Better handling of number values
             if (val === '' || val === null || val === undefined) {
                 return null;
             }

@@ -165,29 +165,3 @@ export {
   tabsSignal,
   signals
 }
-  // Crear un signal
-/*   window.$signals.create('counter', 0);
-  
-  // Crear un signal computado
-  window.$signals.computed('doubleCounter', () => {
-    const counter = window.$signals.get('counter');
-    return counter ? (counter as Signal<number>).value * 2 : 0;
-  });
-  
-  // Suscribirse a cambios
-  const unsubscribe = window.$signals.subscribe('counter', (value, oldValue) => {
-    console.log(`Counter cambió de ${oldValue} a ${value}`);
-  });
-  
-  // Actualizar un valor
-  window.$signals.set('counter', 1);
-  
-  // Obtener un valor
-  const counterSignal = window.$signals.get('counter');
-  console.log(counterSignal?.value); // 1
-  
-  // Dejar de escuchar cambios
-  
-  window.$signals.set('counter', "100");
-  unsubscribe();
- */

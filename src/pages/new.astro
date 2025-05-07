@@ -95,20 +95,15 @@ document.addEventListener('formSubmit', async function(e) {
   formOBJ.startParameters = generateNewServerStart(formOBJ.Ramsize, formOBJ.optiflags);
   console.log(formOBJ);
   console.log(formElements);
-  
-  // Crear un nuevo FormData
   const formData = new FormData();
+  // Crear un nuevo FormData
   
   // Añadir todos los campos del formulario
-  Object.entries(formOBJ).forEach(([key, value]) => {
-    if (key !== 'fileName') { // Omitir el campo del nombre del archivo
-      formData.append(key, String(value));
-    }
-  });
+  formData.append("jsonData", JSON.stringify(formOBJ));
   
   // Añadir el archivo
   const file = getFileForm("fileName");
-  if (file) {
+  if (file && tabsSignal.value.index === 1) {
     formData.append("file", file);
   }
   
@@ -124,8 +119,18 @@ document.addEventListener('formSubmit', async function(e) {
   const { index, item } = tabsSignal.value as TabButtonData;
   console.log(index, item);
 */
-signals.subscribe('tabs', (value, oldValue) => {
-  console.log(`Counter cambió`,value,oldValue);
+
+signals.subscribe('tabs', (value:TabButtonData, oldValue:TabButtonData) => {
+  const { index } = value;
+  if (index === 1) {
+    const element = document.getElementById("coreVersion")
+    console.log(`tabs cambió`,{value,oldValue},formOBJ, element);
+        if (element && 'Values' in element) {
+          element.Values = null;
+          formOBJ.coreVersion = null;
+        }
+
+  }
 });
 
 </script>

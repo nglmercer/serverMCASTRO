@@ -1301,7 +1301,7 @@ customElements.define('custom-dialog', CustomDialog);
               input.value = value;
             }
           
-            // Dispatch event when setting values programmatically
+            // Dispatch event when setting Values programmatically
             this.handleInputChange();
           }
       
@@ -1315,7 +1315,7 @@ customElements.define('custom-dialog', CustomDialog);
               input.value = '';
             }
       
-            // Dispatch event when resetting values
+            // Dispatch event when resetting Values
             this.handleInputChange();
           }
       
@@ -2674,7 +2674,7 @@ class EnhancedSelect extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open', delegatesFocus: true });
-    this.selectedValues = [];
+    this.Values = [];
     this.options = [];
     this.multiple = false;
   }
@@ -2687,7 +2687,7 @@ class EnhancedSelect extends HTMLElement {
     if (name === 'multiple') {
       this.multiple = newValue !== null;
       // Reset selections when switching modes
-      this.selectedValues = [];
+      this.Values = [];
       this.render();
       this.updateSelections();
     }
@@ -2821,17 +2821,17 @@ class EnhancedSelect extends HTMLElement {
 
   toggleOption(optionElement) {
     const value = optionElement.dataset.value;
-    const index = this.selectedValues.indexOf(value);
+    const index = this.Values.indexOf(value);
     
     if (index === -1) {
-      this.selectedValues.push(value);
+      this.Values.push(value);
     } else {
-      this.selectedValues.splice(index, 1);
+      this.Values.splice(index, 1);
     }
     
     this.updateSelections();
     
-    const selectedOptions = this.options.filter(opt => this.selectedValues.includes(opt.value));
+    const selectedOptions = this.options.filter(opt => this.Values.includes(opt.value));
     this.updatePreview(selectedOptions);
 
     this.dispatchEvent(new CustomEvent('change', {
@@ -2845,7 +2845,7 @@ class EnhancedSelect extends HTMLElement {
     console.log("selectedOption", selectedOption, value);
     if (!selectedOption) return;
     
-    this.selectedValues = [value];
+    this.Values = [value];
     this.updateSelections();
     this.updatePreview(selectedOption);
 
@@ -2853,14 +2853,14 @@ class EnhancedSelect extends HTMLElement {
       detail: selectedOption
     }));
   }
-  setSelectedValues(values) {
-    this.selectedValues = values;
+  setSelectedValues(Values) {
+    this.Values = Values;
     this.updateSelections();
   }
   updateSelections() {
     const options = this.shadowRoot.querySelectorAll('.option');
     options.forEach(option => {
-      option.classList.toggle('selected', this.selectedValues.includes(option.dataset.value));
+      option.classList.toggle('selected', this.Values.includes(option.dataset.value));
     });
   }
 
@@ -2881,7 +2881,7 @@ class EnhancedSelect extends HTMLElement {
       optionContent += `<span>${option.label}</span>`;
 
       return `
-        <div class="option ${this.selectedValues.includes(option.value) ? 'selected' : ''}" 
+        <div class="option ${this.Values.includes(option.value) ? 'selected' : ''}" 
              data-value="${option.value}">
           ${optionContent}
           ${optionState}
@@ -2889,12 +2889,12 @@ class EnhancedSelect extends HTMLElement {
       `;
     }).join('');
 
-    if (this.selectedValues.length > 0) {
+    if (this.Values.length > 0) {
       if (this.multiple) {
-        const selectedOptions = options.filter(opt => this.selectedValues.includes(opt.value));
+        const selectedOptions = options.filter(opt => this.Values.includes(opt.value));
         this.updatePreview(selectedOptions);
       } else {
-        const selectedOption = options.find(opt => opt.value === this.selectedValues[0]);
+        const selectedOption = options.find(opt => opt.value === this.Values[0]);
         if (selectedOption) {
           this.updatePreview(selectedOption);
         }
@@ -2903,11 +2903,11 @@ class EnhancedSelect extends HTMLElement {
   }
 
   getValue() {
-    return this.multiple ? this.selectedValues : this.selectedValues[0] || null;
+    return this.multiple ? this.Values : this.Values[0] || null;
   }
 
   getSelectedOptions() {
-    const selected = this.options.filter(opt => this.selectedValues.includes(opt.value));
+    const selected = this.options.filter(opt => this.Values.includes(opt.value));
     return this.multiple ? selected : selected[0] || null;
   }
 }

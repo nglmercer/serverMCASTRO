@@ -25,7 +25,7 @@ async function fetchCores() {
     
     // Es mejor usar Promise en lugar de setTimeout para operaciones asíncronas
     setTimeout(() => {
-      gridElement.selectedValues = "vanilla";
+      gridElement.Values = "vanilla";
     }, 1000);
     
     gridElement.addEventListener('change', async (e) => {
