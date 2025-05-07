@@ -225,28 +225,30 @@ export class ListSelectorElement extends BaseSelectorElement {
   }
 
   protected generateSelectorOptions(): TemplateResult[] {
-    return map(this.options, (option) => {
-      const isSelected = this.Values?.includes(String(option.value));
-      const optionClasses = classMap({
-        option: true,
-        selected: isSelected,
-      });
-
-      return html`
-        <div
-          class=${optionClasses}
-          data-value=${option.value}
-          @click=${this._handleOptionClick}
-          role="option"
-          aria-selected=${isSelected}
-          tabindex="0"
-        >
-          ${when(option.img, () => html`<img src="${option.img}" alt="">`)}
-          <span class="option-label">${option.label}</span>
-          ${when(option.state, () => html`<span class="option-state">${option.state}</span>`)}
-        </div>
-      `;
-    });
+    return Array.from(
+      map(this.options, (option) => {
+        const isSelected = this.Values?.includes(String(option.value));
+        const optionClasses = classMap({
+          option: true,
+          selected: isSelected,
+        });
+    
+        return html`
+          <div
+            class=${optionClasses}
+            data-value=${option.value}
+            @click=${this._handleOptionClick}
+            role="option"
+            aria-selected=${isSelected}
+            tabindex="0"
+          >
+            ${when(option.img, () => html`<img src="${option.img}" alt="">`)}
+            <span class="option-label">${option.label}</span>
+            ${when(option.state, () => html`<span class="option-state">${option.state}</span>`)}
+          </div>
+        `;
+      })
+    ) as TemplateResult[];    
   }
 
   private _renderPreview(selectedOptions: SelectOption[] | SelectOption | null) {
@@ -308,20 +310,22 @@ export class GridSelectorElement extends BaseSelectorElement {
   }
 
   protected generateSelectorOptions(): TemplateResult[] {
-    return map(this.options, (option) => {
-      const isSelected = this.Values.includes(String(option.value));
-      return html`
-        <div
-          class="card ${isSelected ? 'active' : ''}"
-          data-value="${option.value}"
-          @click="${() => this.selectCard(String(option.value))}"
-        >
-          <img class="icon" src="${option.img || ''}" alt="${option.label}" />
-          <span class="title">${option.label}</span>
-        </div>
-      `;
-    });
-  }
+    return Array.from(
+      map(this.options, (option) => {
+        const isSelected = this.Values.includes(String(option.value));
+        return html`
+          <div
+            class="card ${isSelected ? 'active' : ''}"
+            data-value="${option.value}"
+            @click="${() => this.selectCard(String(option.value))}"
+          >
+            <img class="icon" src="${option.img || ''}" alt="${option.label}" />
+            <span class="title">${option.label}</span>
+          </div>
+        `;
+      })
+    ) as TemplateResult[];
+  }  
 }
 
 // Register custom elements

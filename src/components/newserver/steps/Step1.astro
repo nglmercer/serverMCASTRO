@@ -4,11 +4,18 @@
 
 <div class="step-content">
   <div class="form-container">
-  <label>
-      <c-input type="text" id="serverName" style="background-color: #222c3a;  border-radius: 4px; color: white; font-size: 15pt;"
-      name="server-name-input" placeholder="{{newServerWizard.serverNameInput}}"  value="nombre_del_servidor"
-      required>
+    <label>
+      <c-input
+        type="text"
+        id="serverName"
+        style="background-color: #222c3a;  border-radius: 4px; color: white; font-size: 15pt;"
+        name="server-name-input"
+        placeholder="{{newServerWizard.serverNameInput}}"
+        value="NombreServidor"
+        pattern="[a-zA-Z0-9]*"
+        required
+      >
       </c-input>
-  </label>
+    </label>
   </div>
 </div>

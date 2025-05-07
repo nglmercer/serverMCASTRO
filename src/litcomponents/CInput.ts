@@ -390,6 +390,7 @@ export class CInput extends LitElement {
             title=${ifDefined(this.title)}
             pattern=${ifDefined(this.pattern)}
             @change=${this._handleInputChange}
+            @input=${this._handleInputEvent}
           >`;
         }
     }
@@ -400,6 +401,14 @@ export class CInput extends LitElement {
             composed: true
         }));
     }
+    private _handleInputEvent(evt: Event) {
+        const inputElement = evt.target as HTMLInputElement | HTMLTextAreaElement;
+        if (inputElement instanceof HTMLInputElement && inputElement.pattern) {
+            const allowedPattern = new RegExp(inputElement.pattern, 'g');
+            const matches = inputElement.value.match(allowedPattern);
+            inputElement.value = matches ? matches.join('') : '';
+        }
+    }    
     // Event handlers and utility methods
     private _handleInputChange(evt: Event) {
         const inputElement = evt.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
@@ -415,7 +424,6 @@ export class CInput extends LitElement {
         } else {
             newValue = inputElement.value;
         }
-        
         // Update internal value first
         this._internalValue = this._parseValueForInternal(newValue);
         // Update public 'value' property (as string for attribute)
