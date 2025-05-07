@@ -337,36 +337,45 @@ export class CustomPopup extends LitElement {
       display: none;
       z-index: 1000;
       justify-content: center;
-      align-items: stretch;
       flex-direction: column;
       min-width: inherit;
       width: 100%;
-      max-width: 200px;
-      border-radius: 4px;
+      max-width: min(300px, 100%);
       overflow: hidden;
+      * {
+        padding: 0;
+        margin: 0;
+        border-radius: 4px;
+      }
     }
-    
-    .material-symbols-rounded {
-      font-family: inherit;
-      font-size: 24px;
-      margin-right: 10px;
-    }
-    
+  
     .popup-option {
       cursor: pointer;
       transition: background-color 0.2s;
       display: flex;
       align-items: center;
       user-select: none;
+      filter: contrast(200%) brightness(150%);
     }
     
-    .popup-option:hover {
+    .popup-option:hover { 
       background-color: rgba(0, 0, 0, 0.05);
     }
     
     .default-font {
-      font-family: Arial, sans-serif;
+      font-family: sans-serif, Arial, Helvetica;
+      font-size: 1.2rem;
     }
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      border-radius: 4px;
+    }
+    
+
     
     @media (prefers-color-scheme: dark) {
       .popup-option:hover {

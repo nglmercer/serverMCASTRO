@@ -1,15 +1,14 @@
 ---
 import type { Server } from 'src/types/server';
 import StatusIndicator from './StatusIndicator.astro';
-
+import CPopup from '../solid/solid.tsx';
 interface Props {
   server: Server;
 }
 
 const { server } = Astro.props;
 ---
-<custom-popup class="serverModal_0">
-</custom-popup>
+
 <div class="server-card">
   <div class="p-10 m-auto">
     <server-item
@@ -30,72 +29,84 @@ const { server } = Astro.props;
     </server-item>
   </div>
   
-  <div class="server-details">
-    <div class="server-metrics">
-      <div class="metric">
-        <p class="metric-label">Players Online</p>
-        <p class="metric-value">{server.players}</p>
-      </div>
-      <div class="metric">
-        <p class="metric-label">Uptime</p>
-        <p class="metric-value">{server.uptime}</p>
-      </div>
-      <div class="metric">
-        <p class="metric-label">Size</p>
-        <p class="metric-value">{server.size}</p>
-      </div>
-      <div class="metric">
-        <p class="metric-label">Ping</p>
-        <p class="metric-value ping">{server.ping}</p>
-      </div>
-    </div>
-    
-    <div class="server-controls">
-      <button class="btn btn-primary">
-        <span class="material-symbols-rounded">play_arrow</span>
-        Start
-      </button>
-      <button class="btn btn-outline">
-        <span class="material-symbols-rounded">backup</span>
-        Backup
-      </button>
-      <button class="btn btn-outline">
-        <span class="material-symbols-rounded">settings</span>
-        Settings
-      </button>
-    </div>
-  </div>
+
 </div>
-<script define:vars={{ server }}>
-  console.log("Server", server);
+<CPopup id="serverOptions" class="serverModal_0 material-symbols-rounded server-card" client:load />
+
+<script>
+  import { type EDetails } from 'src/litcomponents/mc/serveritem.js';
+  interface OptionModal {
+      icon: string;
+      text: string;
+      id?:string;
+      class?: {
+          font?: string;
+          container?: string;
+      };
+  }
+
+  const optionsModal = (option: OptionModal) => {
+      return /*html*/ `
+  <div class="${option.class?.container || 'dropdown-item'}" ${option.id ? `id="${option.id}"` : ''}>
+    <span class="material-symbols-rounded">${option.icon}</span>
+    <span class="${option.class?.font || 'default-font'}">${option.text}</span>
+  </div>`;
+  };
+
+  const popup = document.getElementById('serverOptions');
   document.querySelectorAll('server-item').forEach(element => {
-    element.addEventListener('selected', function(e) {
-      console.log("selected", e.detail);
+      element.addEventListener('selected', function(e) {
+        if (!('detail' in e)) return;
+        console.log("selected", e.detail);
+      });
+
+      element.addEventListener('menu', function(e) {
+        if (!('detail' in e)) return;
+        const detail = (e as CustomEvent).detail as EDetails;
+        console.log("menu", detail);
+        
+        // Initialize popup with options
+        if (popup && 'setOptions' in popup) {
+          // Use the component methods directly
+          (popup as any).setOptions(getOptions());
+          (popup as any).show(detail.event);
+        } else {
+          // Fallback to window.solidComponents
+          const solidPopup = (window as any).solidComponents?.serverOptions;
+          if (solidPopup) {
+            solidPopup.setOptions(getOptions());
+            solidPopup.show(detail.event);
+          }
+        }
+      });
     });
-    element.addEventListener('menu', function(e) {
-      console.log("menu", e.detail);
-      const cpopup = document.querySelector('custom-popup');
-      const options = getOptions();
-      cpopup.setOptions(options);
-      if (cpopup) {
-        cpopup.show(e.detail.event);
-      }
-    });
-  });
+  
   function getOptions() {
     const options = [
       {
-        html: "<div>Option 1</div>",
-        callback: function(event) {
+        html: optionsModal({id:"create-backup",icon:"backup",text:"Create Backup"}),
+        callback: function() {
           console.log("Option 1 clicked");
         }
       },
       {
-        html: "<div>Option 2</div>",
-        callback: function(event) {
+        html: optionsModal({id:"restore-backup",icon:"restore",text:"Restore Backup"}),
+        callback: function() {
           console.log("Option 2 clicked");
         }
-      }
+      },
+      {
+        html: optionsModal({id:"delete-server",icon:"delete",text:"Delete Server"}),
+        callback: function() {
+          console.log("Option 3 clicked");
+        }
+      },
+      {
+        html: optionsModal({id:"download-server",icon:"download",text:"Download Server"}),
+        callback: function() {
+          console.log("Option 4 clicked");
+        }
+      },
     ]
     return options;
   }
@@ -188,22 +199,5 @@ const { server } = Astro.props;
   
   .metric-value.ping {
     color: var(--color-green-500);
-  }
-  
-  .server-controls {
-    display: flex;
-    gap: var(--space-2);
-  }
-  
-  .server-controls .btn {
-    flex: 1;
-    justify-content: center;
-    font-size: var(--font-size-sm);
-  }
-  
-  @media (max-width: 480px) {
-    .server-controls {
-      flex-direction: column;
-    }
   }
 </style>

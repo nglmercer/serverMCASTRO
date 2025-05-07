@@ -1,7 +1,7 @@
 import { LitElement, html, css,type PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-interface ServerDetails {
+export interface ServerDetails {
   server: string | null;
   size: number;
   modified: string | null;
@@ -10,7 +10,10 @@ interface ServerDetails {
   title: string | null;
   icon: string | null;
 }
-
+export interface EDetails {
+  data: ServerDetails;
+  event: MouseEvent;
+}
 @customElement('server-item')
 export class ServerItem extends LitElement {
   // Propiedades reactivas
@@ -171,7 +174,7 @@ export class ServerItem extends LitElement {
     console.log("menu", e);
     this.emitEvent('menu', {data:this.getDetails(), event: e});
   }
-  private emitEvent(eventName: string, detail: any): void {
+  private emitEvent(eventName: string, detail: EDetails): void {
     this.dispatchEvent(new CustomEvent(eventName, {
       detail,
       bubbles: true,
