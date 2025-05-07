@@ -63,6 +63,7 @@ const quickActions: QuickAction[] = [
         <SystemStatus metrics={systemMetrics} />
         <ServerStatistics metrics={systemMetrics} />
         <QuickActions actions={quickActions} />
+		
       </div>
       
       <!-- Alerta de rendimiento -->
@@ -73,11 +74,13 @@ const quickActions: QuickAction[] = [
         {servers.map(server => (
           <ServerCard server={server} />
         ))}
+		
       </div>
       
       <!-- Sección de salud del sistema -->
       <div class="system-section">
         <RecentBackups />
+		
         <SystemHealth />
       </div>
     </main>
