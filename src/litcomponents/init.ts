@@ -5,7 +5,7 @@ import {
     DlgCont,
     CInp
 } from './modal';
-import { DialogContent, DialogContainer } from './custom-modal.js';
+import { DialogContent, DialogContainer,CustomPopup } from './custom-modal.js';
 import {CInput} from './CInput.js';
 import {ListSelectorElement,GridSelectorElement } from './select.js'
 // Declare custom elements for improved autocompletion in HTML templates
@@ -21,6 +21,7 @@ declare global {
         'c-input': CInput;
         'list-selector': ListSelectorElement;
         'grid-selector':GridSelectorElement;
+        'custom-popup': CustomPopup;
     }
 }
 

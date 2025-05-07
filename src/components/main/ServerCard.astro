@@ -8,25 +8,26 @@ interface Props {
 
 const { server } = Astro.props;
 ---
-
+<custom-popup class="serverModal_0">
+</custom-popup>
 <div class="server-card">
-  <div class="server-card-header">
-    <div class="server-info">
-      <div class="server-icon">
-        <span class="material-symbols-rounded">dns</span>
-      </div>
-      <div class="server-title">
-        <h3>{server.name}</h3>
-        <p class="server-type">{server.type}</p>
-      </div>
-    </div>
-    
-    <div class="server-actions">
-      <StatusIndicator status={server.status} />
-      <button class="more-options">
-        <span class="material-symbols-rounded">more_vert</span>
-      </button>
-    </div>
+  <div class="p-10 m-auto">
+    <server-item
+    data-server="server-01"
+    data-size="1048576"
+    data-version="1.2.3"
+    data-modified="2023-05-15"
+    data-status="active"
+    icon="/favicon.svg"
+    title="Production Server">
+    <!-- Contenido personalizado para el slot -->
+     <div class="flex center">
+       <StatusIndicator status="stopped" />
+       <button class="more-options">
+         <span class="material-symbols-rounded">more_vert</span>
+       </button>
+     </div>
+    </server-item>
   </div>
   
   <div class="server-details">
@@ -65,21 +66,48 @@ const { server } = Astro.props;
     </div>
   </div>
 </div>
-
+<script define:vars={{ server }}>
+  console.log("Server", server);
+  document.querySelectorAll('server-item').forEach(element => {
+    element.addEventListener('selected', function(e) {
+      console.log("selected", e.detail);
+    });
+    element.addEventListener('menu', function(e) {
+      console.log("menu", e.detail);
+      const cpopup = document.querySelector('custom-popup');
+      const options = getOptions();
+      cpopup.setOptions(options);
+      if (cpopup) {
+        cpopup.show(e.detail.event);
+      }
+    });
+  });
+  function getOptions() {
+    const options = [
+      {
+        html: "<div>Option 1</div>",
+        callback: function(event) {
+          console.log("Option 1 clicked");
+        }
+      },
+      {
+        html: "<div>Option 2</div>",
+        callback: function(event) {
+          console.log("Option 2 clicked");
+        }
+      }
+    ]
+    return options;
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+  });
+</script>
 <style>
   .server-card {
     background-color: var(--color-dark-900);
     border: 1px solid var(--color-gray-800);
     border-radius: var(--border-radius-xl);
     overflow: hidden;
-    margin-bottom: var(--space-6);
-  }
-  
-  .server-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-6);
     margin-bottom: var(--space-6);
   }
   

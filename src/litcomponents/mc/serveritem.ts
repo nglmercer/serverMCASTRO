@@ -28,7 +28,7 @@ export class ServerItem extends LitElement {
     :host {
       display: block;
       --primary-color: #5865F2;
-      --active-bg: #5865F2;
+      --active-bg: #5865F280;
       --hover-bg: rgba(88, 101, 242, 0.1);
       --text-color: inherit;
     }
@@ -147,31 +147,37 @@ export class ServerItem extends LitElement {
 
   // Maneja el clic en el elemento
   private handleClick(e: MouseEvent): void {
-    // Si el clic fue en server-actions o sus elementos hijos, no seleccionar el servidor
-    if ((e.target as HTMLElement).closest('.server-actions')) {
+    const path = e.composedPath();
+    const actionsContainer = this.shadowRoot?.querySelector('.server-actions');
+    const slot = this.shadowRoot?.querySelector('slot');
+    
+    const clickedOnSlotted = slot && Array.from(slot.assignedNodes()).some(node => 
+      path.includes(node) || 
+      (node instanceof Element && node.contains(e.target as Node))
+    );
+    
+    const clickedOnActions = actionsContainer && path.includes(actionsContainer);
+    
+    if (clickedOnSlotted || clickedOnActions) {
       return;
     }
     
     this.setActive(true);
-    
-    // Dispatch custom event with server data
-    this.dispatchEvent(new CustomEvent('server-selected', {
-      detail: this.getDetails(),
-      bubbles: true,
-      composed: true
-    }));
+    this.emitEvent('selected', {data:this.getDetails(), event: e});
   }
   
-  // Maneja el clic derecho en el elemento
   private handleContextMenu(e: MouseEvent): void {
     e.preventDefault();
-    this.dispatchEvent(new CustomEvent('server-contextmenu', {
-      detail: this.getDetails(),
+    console.log("menu", e);
+    this.emitEvent('menu', {data:this.getDetails(), event: e});
+  }
+  private emitEvent(eventName: string, detail: any): void {
+    this.dispatchEvent(new CustomEvent(eventName, {
+      detail,
       bubbles: true,
       composed: true
     }));
   }
-
   // Se llama cuando se conecta el componente
   firstUpdated(): void {
     this.addEventListener('click', this.handleClick);

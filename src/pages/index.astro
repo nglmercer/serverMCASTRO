@@ -8,6 +8,7 @@ import ServerCard from '@components/main/ServerCard.astro';
 import RecentBackups from '@components/main/RecentBackups.astro';
 import SystemHealth from '@components/main/SystemHealth.astro';
 import type { Server, SystemMetrics, QuickAction } from '../types/server';
+import StatusIndicator from '@components/main/StatusIndicator.astro';
 
 // Datos de servidores
 const servers: Server[] = [
@@ -55,6 +56,7 @@ const quickActions: QuickAction[] = [
 ---
 
 <Layout title="Server Overview - ServerManager">
+<script src="/src/litcomponents/mcinit.ts"></script>
   <div class="app-container">
     
     <main>
@@ -74,7 +76,7 @@ const quickActions: QuickAction[] = [
         {servers.map(server => (
           <ServerCard server={server} />
         ))}
-		
+
       </div>
       
       <!-- Sección de salud del sistema -->
