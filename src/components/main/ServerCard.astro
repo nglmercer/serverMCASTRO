@@ -12,27 +12,29 @@ const { server } = Astro.props;
 <div class="server-card">
   <div class="p-10 m-auto">
     <server-item
-    data-server="server-01"
-    data-size="1048576"
-    data-version="1.2.3"
-    data-modified="2023-05-15"
-    data-status="active"
+    id={server.id}
+    data-server={server.name}
+    data-size={server.size}
+    data-version={server.version}
+    data-modified={server.lastModified}
+    data-status={server.status}
     icon="/favicon.svg"
-    title="Production Server">
+    title={server.name}
+    >
     <!-- Contenido personalizado para el slot -->
      <div class="flex center">
-       <StatusIndicator status="stopped" />
+       <StatusIndicator status={server.status} />
        <button class="more-options">
          <span class="material-symbols-rounded">more_vert</span>
        </button>
      </div>
     </server-item>
   </div>
-  
-
 </div>
 <CPopup id="serverOptions" class="serverModal_0 material-symbols-rounded server-card" client:load />
-
+<script define:vars={{ server }}>
+  console.log("server", server);
+</script>
 <script>
   import { type EDetails } from 'src/litcomponents/mc/serveritem.js';
   interface OptionModal {
@@ -68,20 +70,20 @@ const { server } = Astro.props;
         // Initialize popup with options
         if (popup && 'setOptions' in popup) {
           // Use the component methods directly
-          (popup as any).setOptions(getOptions());
+          (popup as any).setOptions(getOptions(detail));
           (popup as any).show(detail.event);
         } else {
           // Fallback to window.solidComponents
           const solidPopup = (window as any).solidComponents?.serverOptions;
           if (solidPopup) {
-            solidPopup.setOptions(getOptions());
+            solidPopup.setOptions(getOptions(detail));
             solidPopup.show(detail.event);
           }
         }
       });
     });
   
-  function getOptions() {
+  function getOptions({data}: EDetails) {
     const options = [
       {
         html: optionsModal({id:"create-backup",icon:"backup",text:"Create Backup"}),
@@ -122,82 +124,4 @@ const { server } = Astro.props;
     margin-bottom: var(--space-6);
   }
   
-  .server-info {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-  }
-  
-  .server-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--color-dark-800);
-    padding: var(--space-2);
-    border-radius: var(--border-radius-lg);
-  }
-  
-  .server-icon span {
-    font-size: 2rem;
-    color: var(--color-primary-500);
-  }
-  
-  .server-title h3 {
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-  }
-  
-  .server-type {
-    font-size: var(--font-size-sm);
-    color: var(--color-gray-400);
-  }
-  
-  .server-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-  }
-  
-  .more-options {
-    color: var(--color-gray-400);
-    transition: color 0.2s ease;
-  }
-  
-  .more-options:hover {
-    color: var(--color-white);
-  }
-  
-  .server-details {
-    background-color: var(--color-dark-800);
-    border-radius: var(--border-radius-lg);
-    margin: 0 var(--space-6) var(--space-6);
-    padding: var(--space-4);
-  }
-  
-  .server-metrics {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-4);
-    margin-bottom: var(--space-4);
-  }
-  
-  @media (min-width: 768px) {
-    .server-metrics {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-  
-  .metric-label {
-    font-size: var(--font-size-sm);
-    color: var(--color-gray-400);
-    margin-bottom: var(--space-1);
-  }
-  
-  .metric-value {
-    font-weight: 600;
-  }
-  
-  .metric-value.ping {
-    color: var(--color-green-500);
-  }
 </style>

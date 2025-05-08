@@ -171,7 +171,6 @@ export class ServerItem extends LitElement {
   
   private handleContextMenu(e: MouseEvent): void {
     e.preventDefault();
-    console.log("menu", e);
     this.emitEvent('menu', {data:this.getDetails(), event: e});
   }
   private emitEvent(eventName: string, detail: EDetails): void {

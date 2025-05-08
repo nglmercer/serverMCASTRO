@@ -238,6 +238,12 @@ class ServerApi {
         headers: headers
         }));
     }
+    // get servers
+    async getServers() {
+        return this._interceptor(http.get(`${this.host}/servers`, {
+            headers: this._authHeaders()
+        }));
+    }
 }
 const fetchapi = new FetchApi(actualBaseApi);
 const serverapi = new ServerApi(actualBaseApi)

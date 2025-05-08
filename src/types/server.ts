@@ -1,13 +1,14 @@
 export interface Server {
     id: string;
     name: string;
-    status: string;
-    type: string;
-    size: string;
+    size: number;
     lastModified: string;
-    players: string;
-    uptime: string;
-    ping: string;
+    status: string;
+    type?: string;
+    players?: string;
+    uptime?: string;
+    ping?: string;
+    version?: string;
   }
   
   export interface SystemMetrics {

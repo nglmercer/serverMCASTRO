@@ -9,32 +9,25 @@ import RecentBackups from '@components/main/RecentBackups.astro';
 import SystemHealth from '@components/main/SystemHealth.astro';
 import type { Server, SystemMetrics, QuickAction } from '../types/server';
 import StatusIndicator from '@components/main/StatusIndicator.astro';
-
+import { serverapi } from 'src/fetch/fetchapi';
+const serversfetch = await serverapi.getServers();
+interface filedata {
+  name: string;
+  path: string;
+  size: number;
+  lastModified: string;
+  status?: string;
+}
+const mapedServers = serversfetch.data.files.map((server: filedata) => ({
+  id: server.name,
+  name: server.name,
+  size: server.size,
+  lastModified: server.lastModified,
+  status: server.status || 'stopped',
+}));
+console.log("serversfetch", serversfetch,serversfetch.data.files);
 // Datos de servidores
-const servers: Server[] = [
-  {
-    id: '213',
-    name: 'Server 213',
-    status: 'STOPPED',
-    type: 'vpaper-1.21.5.jar',
-    size: '49.02 MB',
-    lastModified: '4/5/2025',
-    players: '24/32',
-    uptime: '23 days 4 hours',
-    ping: '18ms'
-  },
-  {
-    id: 'server2',
-    name: 'NombreServidor',
-    status: 'stopped',
-    type: 'vpaper-1.21.5.jar',
-    size: '49.03 MB',
-    lastModified: '7/5/2025',
-    players: '15/20',
-    uptime: '15 days 8 hours',
-    ping: '22ms'
-  }
-];
+const servers: Server[] = mapedServers;
 
 // Métricas del sistema
 const systemMetrics: SystemMetrics = {

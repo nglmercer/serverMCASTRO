@@ -1,6 +1,6 @@
 // ../config/pages.js (o como se llamen tus archivos)
 
-export const pagesConfigA = {
+export const defaultpages = {
   // Mapeo de Font Awesome a Material Symbols:
   // fas fa-home          -> home
   // fas fa-search        -> search
@@ -23,3 +23,41 @@ export const pagesConfigB = {
   0: { name: "infoPlayer", slot: "page-info", icon: "info" },
   1: { name: "videoPlayer", slot: "page-video", icon: "play_circle" },
 };
+
+export const pagesConfigA = {
+  0: {
+    name: '{{console}}',
+    icon: "terminal",
+    slot: 'console'
+  },
+  1: {
+    name: '{{fileManager}}',
+    icon: "folder",
+    slot: 'fileManager'
+  },
+  2: {
+    name: '{{plugins}}',
+    icon: "extension",
+    slot: 'plugins'
+  },
+  3: {
+    name: '{{serverSettings}}',
+    icon: "tune",
+    slot: 'serverSettings'
+  },
+  4: {
+    name: 'server.properties',
+    icon: "settings_ethernet",
+    slot: 'server.properties'
+  },
+  5: {
+    name: '{{kubekSettings}}',
+    icon: "settings",
+    slot: 'kubekSettings'
+  },
+  6: {
+    name: '{{systemMonitor}}',
+    icon: "area_chart",
+    slot: 'systemMonitor'
+  },
+}
