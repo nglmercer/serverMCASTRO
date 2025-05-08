@@ -5,10 +5,21 @@ import Actiontest from '@components/menu/actiontest.astro';
 interface Props {
   title?: string;
   activeConfig?: 'A' | 'B';
+  prefix?: string;
 }
 
-const { title = "Default Title", activeConfig = 'A' } = Astro.props;
+const { title = "Default Title", activeConfig = 'A', prefix = '/' } = Astro.props;
 const currentConfig = activeConfig === 'A' ? pagesConfigA : pagesConfigB;
+function ensureSlashes(text: string) {
+  if (!text.startsWith('/')) {
+    text = '/' + text;
+  }
+  if (!text.endsWith('/')) {
+    text = text + '/';
+  }
+  return text;
+}
+const validPrefix = ensureSlashes(prefix);
 ---
 
 <html lang="en">
@@ -48,7 +59,7 @@ const currentConfig = activeConfig === 'A' ? pagesConfigA : pagesConfigB;
           <div class="nav-buttons">
             {
               Object.entries(currentConfig).map(([key, page]) => (
-                <a href={`/${page.slot}`} class="nav-link">
+                <a href={validPrefix+ page.slot} class="nav-link">
                   {/* CHANGE: Usar span con la clase y el nombre del icono como contenido */}
                   <span class="material-symbols-outlined">{page.icon}</span>
                   <span class="nav-text">{page.name}</span>
@@ -71,7 +82,7 @@ const currentConfig = activeConfig === 'A' ? pagesConfigA : pagesConfigB;
           <div class="nav-buttons">
             {
               Object.entries(currentConfig).map(([key, page]) => (
-                <a href={`/${page.slot}`} class="nav-link">
+                <a href={validPrefix + page.slot} class="nav-link">
                   {/* CHANGE: Usar span con la clase y el nombre del icono como contenido */}
                   <span class="material-symbols-outlined">{page.icon}</span>
                   <span class="nav-text">{page.name}</span>

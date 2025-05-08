@@ -7,7 +7,7 @@ import Userheader from "./userheader.astro"
     <Userheader imageUrl="/favicon.svg" name="ServerName" initialStatus="Stopped"></Userheader>
     </div>
     <div class="actions">
-        <action-buttons-lit id="myActions"></action-buttons-lit>
+        <action-buttons-lit id="serverActions"></action-buttons-lit>
     </div>
 </div>
 <script>
@@ -16,7 +16,7 @@ import Userheader from "./userheader.astro"
     type ValidAction = 'start' | 'stop' | 'restart' | 'send' | 'log' | 'info' | 'players' | 'metrics' | 'kill';
 
     document.addEventListener("DOMContentLoaded", function () {
-        const actionsElement = document.getElementById("myActions");
+        const actionsElement = document.getElementById("serverActions");
         if (!actionsElement) return;
         if (!(actionsElement instanceof ActionButtonsLit)) return;
         // Initial buttons
@@ -126,7 +126,7 @@ import Userheader from "./userheader.astro"
         return SERVER_STATUSES_TRANSLATE[status] || status;
     }
 function setServerStatus(status: string) {
-    const actionButtons = document.getElementById("myActions");
+    const actionButtons = document.getElementById("serverActions");
 
     if (!actionButtons || !(actionButtons instanceof ActionButtonsLit)) return;
 

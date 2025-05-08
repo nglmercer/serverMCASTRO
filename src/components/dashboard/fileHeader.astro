@@ -1,0 +1,99 @@
+---
+---
+
+<div class="content-header">
+        <action-buttons-lit id="FileActions"></action-buttons-lit>
+</div>
+<script>
+    import { ActionButtonsLit } from "src/litcomponents/mc/barstatus.js";
+    import { serverapi,servermanagerapi } from "src/fetch/fetchapi";
+    type ValidAction = 'start' | 'stop' | 'restart' | 'send' | 'log' | 'info' | 'players' | 'metrics' | 'kill';
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const actionsElement = document.getElementById("FileActions");
+        if (!actionsElement) return;
+        if (!(actionsElement instanceof ActionButtonsLit)) return;
+        // Initial buttons
+        const buttonsConfig = [
+            {
+                id: "start-server",
+                label: translate("START"),
+                icon: "play_arrow",
+                action: "start-server",
+            },
+            {
+                id: "stop-server",
+                label: translate("STOP"),
+                icon: "stop",
+                action: "stop-server",
+            },
+            {
+                id: "restart-server",
+                label: translate("RESTART"),
+                icon: "restart_alt",
+                iconOnly: true,
+                action: "restart-server",
+            },
+            {
+                id: "more-server-actions",
+                label: translate("MORE"),
+                icon: "more_horiz",
+                iconOnly: true,
+                action: "more-server-actions",
+            },
+            {
+                id: "kill-server",
+                label: "Force Quit",
+                icon: "dangerous",
+                iconOnly: true,
+                action: "kill-server",
+            }
+        ];
+        buttonsConfig.forEach((button) => {
+            actionsElement.addButton(button);
+        });
+
+        actionsElement.addEventListener("button-clicked", (event) => {
+            if (!("detail" in event)) return;
+            if (!(event instanceof CustomEvent)) return;    
+            const isValidEvent = buttonsConfig.find(button => button.id === event.detail.id);
+
+        });
+
+    });
+
+
+    const SERVER_STATUSES_TRANSLATE: { [key: string]: string } = {
+        STARTING: "Iniciando",
+        STOPPING: "Deteniendo",
+        RUNNING: "En ejecución",
+        STOPPED: "Detenido",
+        START: "Iniciar",
+        STOP: "Detener",
+        RESTART: "Reiniciar",
+        MORE: "Más",
+    };
+
+        // Función de traducción
+    function translate(status: string): string {
+    // Devuelve la traducción si existe, o el estado original como fallback
+        return SERVER_STATUSES_TRANSLATE[status] || status;
+    }
+
+</script>
+<style>
+     .content-header {
+        width: 100%;
+        height: max-content;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, auto));
+        gap: 1rem
+    }
+     .content-header .actions {
+        justify-self: center;
+        align-self: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>

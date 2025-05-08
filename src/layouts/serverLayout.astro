@@ -3,7 +3,7 @@ import SidebarLayout from '@layouts/SidebarLayout.astro';
 import ServerHeader from '@components/header/serverHeader.astro';
 const { server } = Astro.params;
 ---
-<SidebarLayout title="Mi Aplicación" activeConfig="A">
+<SidebarLayout title="Mi Aplicación" activeConfig="A" prefix={server}>
 	<div slot="logo">
 		<h1 class="logo-text">Logo</h1>
 	</div>
