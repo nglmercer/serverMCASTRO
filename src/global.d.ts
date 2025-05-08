@@ -19,5 +19,8 @@ declare global {
         tabs: string[];
       };
     }
+    interface Window {
+      selectedServer: string;
+    }
   }
 // Implementación minimalista de signals

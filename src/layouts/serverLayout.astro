@@ -1,0 +1,20 @@
+---
+import SidebarLayout from '@layouts/SidebarLayout.astro';
+import ServerHeader from '@components/header/serverHeader.astro';
+const { server } = Astro.params;
+---
+<SidebarLayout title="Mi Aplicación" activeConfig="A">
+	<div slot="logo">
+		<h1 class="logo-text">Logo</h1>
+	</div>
+	<div class="content">
+		<ServerHeader/>
+    <div class="console-layout">
+        <slot/>
+    </div>
+	</div>
+</SidebarLayout>
+<script define:vars={{server}}>
+    window.selectedServer = server;
+	console.log("server", server);
+</script>

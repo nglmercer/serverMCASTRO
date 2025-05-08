@@ -130,7 +130,7 @@
   }
 
   /* Responsive Design */
-  @media (max-width: 768px) {
+  @media (max-width: 1200px) {
     .sidebar {
       display: none;
     }
@@ -173,7 +173,7 @@
     }
   }
 
-  @media (max-width: 576px) {
+  @media (max-width: 768px) {
      .mobile-nav .nav-link .nav-text {
         display: none;
       }

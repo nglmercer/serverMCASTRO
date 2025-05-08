@@ -1,0 +1,171 @@
+---
+import Userheader from "./userheader.astro"
+---
+
+<div class="content-header">
+    <div class="status">
+    <Userheader imageUrl="/favicon.svg" name="ServerName" initialStatus="Stopped"></Userheader>
+    </div>
+    <div class="actions">
+        <action-buttons-lit id="myActions"></action-buttons-lit>
+    </div>
+</div>
+<script>
+    import { ActionButtonsLit } from "src/litcomponents/mc/barstatus.js";
+    import { serverapi } from "src/fetch/fetchapi";
+    document.addEventListener("DOMContentLoaded", function () {
+        const actionsElement = document.getElementById("myActions");
+        if (!actionsElement) return;
+        if (!(actionsElement instanceof ActionButtonsLit)) return;
+        // Initial buttons
+        const buttonsConfig = [
+            {
+                id: "start-server",
+                label: translate("START"),
+                icon: "play_arrow",
+                action: "start-server",
+            },
+            {
+                id: "stop-server",
+                label: translate("STOP"),
+                icon: "stop",
+                action: "stop-server",
+            },
+            {
+                id: "restart-server",
+                label: translate("RESTART"),
+                icon: "restart_alt",
+                iconOnly: true,
+                action: "restart-server",
+            },
+            {
+                id: "more-server-actions",
+                label: translate("MORE"),
+                icon: "more_horiz",
+                iconOnly: true,
+                action: "more-server-actions",
+            },
+            {
+                id: "kill-server",
+                label: "Force Quit",
+                icon: "dangerous",
+                iconOnly: true,
+                action: "kill-server",
+            }
+        ];
+        buttonsConfig.forEach((button) => {
+            actionsElement.addButton(button);
+        });
+        defaultstatus(actionsElement);
+
+        actionsElement.addEventListener("button-clicked", (event) => {
+            if (!("detail" in event)) return;
+            if (!(event instanceof CustomEvent)) return;    
+            const isValidEvent = buttonsConfig.find(button => button.id === event.detail.id);
+            switch (event.detail.id) {
+                case buttonsConfig[0].id:
+                    console.log("Start server");
+                    break;
+                case buttonsConfig[1].id:
+                    console.log("Stop server");
+                    break;
+                case buttonsConfig[2].id:
+                    console.log("Restart server");
+                    break;
+                case buttonsConfig[3].id:
+                    console.log("More server actions");
+                    break;
+                case buttonsConfig[4].id:
+                    console.log("Kill server");
+                    break;
+                default:
+                console.log("Button clicked:", event.detail, isValidEvent);
+                    break;
+            }
+        });
+        if (window.selectedServer) {
+        //    setInterval(getServerInfo, 1000, window.selectedServer)
+        }
+    });
+    interface ServerInfo {
+        success: boolean;
+        data: string;
+        message?: string;
+    }
+    async function getServerInfo(server:string) {
+        const serverInfo:ServerInfo = await serverapi.getServerInfo(server);
+        console.log("serverInfo", serverInfo);
+        setServerStatus(serverInfo.data);
+    }
+    function defaultstatus(actionsElement:ActionButtonsLit) {
+        actionsElement.hideButton("more-server-actions");
+        actionsElement.hideButton("kill-server");
+        actionsElement.hideButton("restart-server");
+        actionsElement.hideButton("stop-server");
+    }
+    const SERVER_STATUSES_TRANSLATE: { [key: string]: string } = {
+        STARTING: "Iniciando",
+        STOPPING: "Deteniendo",
+        RUNNING: "En ejecución",
+        STOPPED: "Detenido",
+        START: "Iniciar",
+        STOP: "Detener",
+        RESTART: "Reiniciar",
+        MORE: "Más",
+    };
+
+        // Función de traducción
+    function translate(status: string): string {
+    // Devuelve la traducción si existe, o el estado original como fallback
+        return SERVER_STATUSES_TRANSLATE[status] || status;
+    }
+function setServerStatus(status: string) {
+    const statusElement = document.querySelector('status-element');
+    const actionButtons = document.getElementById("myActions");
+
+    if (!actionButtons || !(actionButtons instanceof ActionButtonsLit)) return;
+    if (!statusElement) return;
+
+    actionButtons.hideAllButtons();
+    const statusUPPER = status.toUpperCase();
+    // Mostrar botones relevantes según el estado
+    switch (statusUPPER) {
+        case "STARTING":
+        case "STOPPING":
+        //    statusElement.updateStatus(status, translate(status));
+            actionButtons.showButton("more-server-actions");
+            break;
+
+        case "RUNNING":
+        //    statusElement.updateStatus(status, translate(status));
+            actionButtons.showButton("restart-server");
+            actionButtons.showButton("stop-server");
+            actionButtons.showButton("more-server-actions");
+            break;
+
+        case "STOPPED":
+        //    statusElement.updateStatus(status, translate(status));
+            actionButtons.showButton("start-server");
+            break;
+    }
+
+    return true;
+}
+
+</script>
+<style>
+     .content-header {
+        width: 100%;
+        height: max-content;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, auto));
+        gap: 1rem
+    }
+     .content-header .actions {
+        justify-self: center;
+        align-self: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>

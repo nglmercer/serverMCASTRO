@@ -1,0 +1,100 @@
+---
+interface Props {
+  imageUrl: string;
+  name: string;
+  initialStatus: string;
+}
+
+const { imageUrl, name, initialStatus } = Astro.props;
+---
+
+<div id="status-component" data-initial-status={initialStatus}>
+    <div class="first-box">
+        <img src={imageUrl} alt="icon" />
+    </div>
+    <div class="second-box">
+        <span>{name}</span>
+        <span class="status">
+          <span class="dot"></span>
+          <span class="status-text">{initialStatus}</span>
+        </span>
+    </div>
+</div>
+
+<style>
+/* Contenedor del componente */
+#status-component {
+  display: flex;
+  gap: 10px;
+  border-radius: 8px;
+  max-width: 300px;
+  flex-wrap: wrap;
+}
+
+/* Estilo de la imagen */
+#status-component img {
+  width: 3.4rem;
+  height: 3.4rem;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Estilo del nombre */
+#status-component span {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Contenedor del estado */
+#status-component .status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Punto de estado */
+#status-component .dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+</style>
+
+<script>
+  const component = document.getElementById('status-component') as HTMLDivElement;
+  const initialStatus = component.dataset.initialStatus || '';
+  const statusText = component.querySelector('.status-text') as HTMLSpanElement;
+  const dot = component.querySelector('.dot') as HTMLSpanElement;
+
+  function getColor(status: string): string {
+    switch (status.toLowerCase()) {
+      case 'stopping':
+      case 'starting':
+        return 'yellow';
+      case 'running':
+        return 'green';
+      case 'stopped':
+        return 'red';
+      default:
+        return 'gray';
+    }
+  }
+
+  function updateStatus(newStatus: string): void {
+    statusText.textContent = newStatus;
+    dot.style.backgroundColor = getColor(newStatus);
+  }
+
+  // Set initial status
+  updateStatus(initialStatus);
+
+  // Listen for status change events
+  window.addEventListener('change-status', (event) => {
+    if (!(event instanceof CustomEvent)) return;
+    const newStatus = event.detail.status;
+    updateStatus(newStatus);
+  });
+</script>

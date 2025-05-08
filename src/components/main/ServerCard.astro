@@ -59,7 +59,8 @@ const { server } = Astro.props;
   document.querySelectorAll('server-item').forEach(element => {
       element.addEventListener('selected', function(e) {
         if (!('detail' in e)) return;
-        console.log("selected", e.detail);
+        if (!(e instanceof CustomEvent)) return;
+        window.location.href = `/${e.detail.data.server}/console`;
       });
 
       element.addEventListener('menu', function(e) {

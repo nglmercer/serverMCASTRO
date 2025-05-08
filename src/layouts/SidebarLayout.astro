@@ -32,12 +32,12 @@ const currentConfig = activeConfig === 'A' ? pagesConfigA : pagesConfigB;
     <script src="/src/litcomponents/init"></script>
     <title>{title}</title>
   </head>
+  <dialog-container id="ActionDialog">
+    <div class="modal__container">
+      <Actiontest/>
+    </div>
+  </dialog-container>
   <body>
-    <dialog-container id="ActionDialog">
-      <div class="modal__container">
-        <Actiontest/>
-      </div>
-    </dialog-container>
     <div class="layout">
       {/* Mobile Navbar */}
       <nav class="mobile-nav">
