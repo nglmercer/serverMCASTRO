@@ -1,0 +1,214 @@
+---
+// No server-side props needed for this component based on the original
+// If you needed to pass, for example, a default placeholder:
+// export interface Props {
+//   placeholder?: string;
+// }
+// const { placeholder = "Enter command" } = Astro.props;
+
+// Generate a unique ID for the component instance to help scope event listeners
+// and queries if multiple instances are on the page.
+// However, for this specific implementation relying on element IDs within,
+// we'll ensure the script targets elements within its specific wrapper.
+const componentInstanceId = `input-command-${Math.random().toString(36).substring(2, 9)}`;
+---
+
+<div class:list={["input-command-wrapper", componentInstanceId]}>
+  <div class="input">
+    <input type="text" id={`cmd-input-${componentInstanceId}`} class="cmd-input" placeholder="Enter command"/>
+    <button class="dark-btn icon-only send-button">
+      <span class="material-symbols-outlined">send</span>
+    </button>
+  </div>
+</div>
+
+<style>
+  /* Styles applied to the wrapper div of this component instance */
+  .input-command-wrapper {
+    width: 100%;
+    border-radius: 8px;
+    box-sizing: border-box;
+    /* The original :host border was likely for the custom element itself.
+       If you need a border around the whole thing, apply it here.
+       The example below assumes the inner ".input" div has the visual border. */
+    /* border: 1px solid #333; */
+    font-family: 'Material Symbols Outlined'; /* This might be better on specific icon elements */
+  }
+
+  .material-symbols-outlined {
+    font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  }
+
+  .input {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    padding: 8px;
+    background: var(--bg-darker, #2a2a2a); /* Fallback color */
+    border-radius: 8px;
+    box-sizing: border-box;
+    border: 1px solid var(--border-color, #333); /* Moved border here for visual */
+  }
+
+  .cmd-input { /* Changed from ID to class for better reusability if needed, though script uses unique ID */
+    flex: 1;
+    background: var(--bg-dark, #1e1e1e); /* Fallback color */
+    border: 1px solid var(--border-color, #444); /* Fallback color */
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: var(--text-primary, #f0f0f0); /* Fallback color */
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+
+  .cmd-input:focus {
+    border-color: var(--primary-color, #007acc); /* Fallback color */
+  }
+
+  .cmd-input::placeholder {
+    color: var(--text-secondary, #888); /* Fallback color */
+  }
+
+  .dark-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-dark, #1e1e1e); /* Fallback color */
+    border: 1px solid var(--border-color, #444); /* Fallback color */
+    border-radius: 4px;
+    padding: 8px;
+    color: var(--text-primary, #f0f0f0); /* Fallback color */
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .dark-btn:hover {
+    background: var(--bg-dark-accent, #333); /* Fallback color */
+    border-color: var(--primary-color, #007acc); /* Fallback color */
+  }
+
+  /* Original .dark-btn .material-symbols-rounded - assuming it's .material-symbols-outlined now */
+  .dark-btn .material-symbols-outlined {
+    font-size: 20px;
+  }
+
+  .icon-only {
+    /* width: 36px; Fixed width might not be ideal if padding is used for sizing */
+    /* height: 36px; */
+    padding: 8px; /* Ensure consistent padding for icon buttons */
+    aspect-ratio: 1 / 1; /* Makes it square if only padding is there */
+    min-width: 36px; /* Ensure it's at least this wide/tall */
+    min-height: 36px;
+  }
+</style>
+
+<script define:vars={{ componentId: componentInstanceId }}>
+  // This script runs on the client
+  const componentWrapper = document.querySelector(`.${componentId}`);
+  if (componentWrapper) {
+    const commandInput = componentWrapper.querySelector(`#cmd-input-${componentId}`);
+    const sendButton = componentWrapper.querySelector('.send-button');
+    window.commandWrapper = componentWrapper;
+    let commandHistory = []; // Array to store command history
+    let historyIndex = -1;   // Index to track position in history, -1 means nothing from history selected
+
+    const sendCommand = () => {
+      if (!commandInput || !(commandInput instanceof HTMLInputElement)) return;
+      const command = commandInput.value.trim();
+      if (command) {
+        // Add command to history
+        // If navigating history and then typing a new command,
+        // new command should effectively "branch" or overwrite future history.
+        // For simplicity, new commands are always added to the end.
+        // Consider if you want to truncate history if editing an old command.
+        if (commandHistory.length === 0 || commandHistory[commandHistory.length - 1] !== command) {
+             // Avoid adding duplicates if re-sending the last command immediately
+            commandHistory.push(command);
+        }
+        historyIndex = commandHistory.length; // Point after the last item for new entries
+
+        // Dispatch custom event from the component's wrapper element
+        componentWrapper.dispatchEvent(new CustomEvent('command', {
+          detail: { command },
+          bubbles: true, // Allows event to bubble up the DOM tree
+          composed: true // Allows event to cross shadow DOM boundaries (though not using shadow DOM here)
+        }));
+        commandInput.value = ''; // Clear the input
+      }
+    };
+
+    const navigateHistory = (direction) => {
+      if (!commandInput || !(commandInput instanceof HTMLInputElement)) return;
+      if (commandHistory.length === 0) return;
+
+      const newIndex = historyIndex + direction;
+
+      if (direction === 1) { // ArrowDown
+        if (historyIndex < commandHistory.length -1) {
+            historyIndex++;
+            commandInput.value = commandHistory[historyIndex];
+        } else if (historyIndex === commandHistory.length -1) {
+            // If at the newest item and pressing down, go to "new command" state
+            historyIndex++;
+            commandInput.value = "";
+        }
+      } else if (direction === -1) { // ArrowUp
+        if (historyIndex > 0) {
+            historyIndex--;
+            commandInput.value = commandHistory[historyIndex];
+        } else if (historyIndex === 0) {
+            // Already at the oldest, do nothing or keep current value
+            commandInput.value = commandHistory[historyIndex]; // Stays on the oldest
+        } else if (historyIndex === commandHistory.length) { // Coming from "new command" state
+            historyIndex = commandHistory.length - 1;
+            commandInput.value = commandHistory[historyIndex];
+        }
+      }
+      // Ensure cursor is at the end of the input
+      commandInput.selectionStart = commandInput.selectionEnd = commandInput.value.length;
+    };
+
+    if (sendButton) {
+      sendButton.addEventListener('click', sendCommand);
+    }
+
+    if (commandInput) {
+      commandInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault(); // Prevent form submission if it's in a form
+          sendCommand();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault(); // Prevent cursor from moving to beginning of input
+          navigateHistory(-1); // Older
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault(); // Prevent cursor from moving to end of input
+          navigateHistory(1);  // Newer
+        }
+      });
+    }
+  } else {
+    console.error("Input command wrapper not found for ID:", componentId);
+  }
+</script>
+<script>
+import {GameConsole} from 'src/litcomponents/mc/Console.js';
+const commandElement = (window as any).commandWrapper; // Assuming this is some external command wrapper
+const commandContainer = document.querySelector('game-console') as GameConsole; // Cast to GameConsole
+
+if (commandElement && commandContainer) {
+    commandElement.addEventListener('command', function (e: CustomEvent) {
+        if (commandContainer instanceof GameConsole) {
+            console.log("detail", e.detail);
+            commandContainer.refreshlogs(e.detail.command);
+        } else {
+            console.error('commandContainer is not a GameConsole instance');
+        }
+    });
+}
+</script>

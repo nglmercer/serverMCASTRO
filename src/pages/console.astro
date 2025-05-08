@@ -1,6 +1,6 @@
 ---
 import SidebarLayout from '@layouts/SidebarLayout.astro';
-
+import Inputcommand from '@components/dashboard/inputcommand.astro';
 // Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
 // Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
@@ -11,7 +11,141 @@ import SidebarLayout from '@layouts/SidebarLayout.astro';
 	</div>
 	<div class="content">
 		<h1>Contenido Principal</h1>
+    
+  <action-buttons-lit id="myActions"></action-buttons-lit>
+  <action-buttons-lit id="myIconActions"></action-buttons-lit>
+    <div class="console-layout">
+      <div class="console">
+        <game-console> </game-console>
+      </div>
+      <div class="input">
+        <Inputcommand />
+      </div>
+    </div>
 	</div>
 </SidebarLayout>
 
+<script>
+  import  {ActionButtonsLit} from 'src/litcomponents/mc/barstatus.js';
+  document.addEventListener('DOMContentLoaded', function() {
+    const actionsElement = document.getElementById('myActions');
+  const iconActionsElement = document.getElementById('myIconActions');
+    if (!actionsElement || !iconActionsElement) return;
+    if (!(actionsElement instanceof ActionButtonsLit)) return;
+  if (!(iconActionsElement instanceof ActionButtonsLit)) return;
+  // Initial buttons
+  actionsElement.addButton({ id: 'edit', label: 'Edit', icon: 'edit', action: 'EDIT_ITEM' });
+  actionsElement.addButton({ id: 'save', label: 'Save', icon: 'save', action: 'SAVE_ITEM', disabled: true });
+  actionsElement.addButton({ id: 'delete', label: 'Delete', icon: 'delete', action: 'DELETE_ITEM', tooltip: 'Remove this item permanently' });
+  actionsElement.addButton({ id: 'cancel', label: 'Cancel', icon: 'cancel', action: 'CANCEL_ACTION', hidden: true });
 
+  iconActionsElement.addButton({ id: 'settings', icon: 'settings', iconOnly: true, action: 'OPEN_SETTINGS'});
+  iconActionsElement.addButton({ id: 'refresh', icon: 'refresh', iconOnly: true, action: 'REFRESH_DATA'});
+  iconActionsElement.addButton({ id: 'info', icon: 'info', iconOnly: true, action: 'SHOW_INFO', disabled: true});
+
+
+  actionsElement.addEventListener('button-clicked', (event) => {
+    console.log('Button clicked:', event.detail);
+    alert(`Action: ${event.detail.action} (ID: ${event.detail.id})`);
+    if (event.detail.id === 'edit') {
+      actionsElement.disableButton('edit');
+      actionsElement.enableButton('save');
+      actionsElement.showButton('cancel');
+    }
+    if (event.detail.id === 'save' || event.detail.id === 'cancel') {
+      actionsElement.enableButton('edit');
+      actionsElement.disableButton('save');
+      actionsElement.hideButton('cancel');
+    }
+  });
+
+  iconActionsElement.addEventListener('button-clicked', (event) => {
+    console.log('Icon Button clicked:', event.detail);
+    alert(`Icon Action: ${event.detail.action} (ID: ${event.detail.id})`);
+  });
+
+  });
+</script>
+<style>
+  .console-layout {
+    margin-top: 16px;
+    width: 100%;
+    height: 100%;
+
+    display: grid;
+    grid-template-columns: 1fr max-content;
+    grid-template-rows: 1fr max-content;
+    grid-auto-columns: 1fr;
+    gap: 0.7em 1.3em;
+    grid-auto-flow: row;
+    grid-template-areas:
+    "console settings"
+    "input settings";
+}
+
+.console-layout .console {
+    grid-area: console;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-dark-accent);
+    border-radius: 10px;
+    padding: 12px;
+    overflow-y: auto;
+}
+
+.console-layout .console * {
+    font-family: 'Roboto Mono', monospace, sans-serif;
+    font-size: 11pt;
+}
+
+.console-layout .input {
+    grid-area: input;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.console-layout .input button {
+    height: 48px;
+}
+
+.console-layout .input input {
+    flex-grow: 1;
+    margin-right: 8px;
+    height: 48px;
+}
+
+.console-layout .settings {
+    grid-area: settings;
+}
+
+.console-layout .settings .layout-accent-box:not(:first-child) {
+    margin-top: 8px;
+}
+
+.console-layout .settings .layout-accent-box .lds-spinner {
+    width: 100px;
+    height: 100px;
+}
+
+.console-layout .settings .layout-accent-box .lds-spinner * {
+    width: 64px;
+    height: 64px;
+}
+
+.console-layout .settings .layout-accent-box .lds-spinner * {
+    border-color: var(--bg-dark-accent-light) transparent transparent transparent;
+}
+
+.console-layout .settings .layout-accent-box .desc-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin-top: 6px;
+}
+
+.console-layout .settings .layout-accent-box .desc-text * {
+    margin: 4px 0;
+}
+</style>
