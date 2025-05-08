@@ -198,6 +198,7 @@ const componentInstanceId = `input-command-${Math.random().toString(36).substrin
 </script>
 <script>
 import {GameConsole} from 'src/litcomponents/mc/Console.js';
+import { servermanagerapi } from 'src/fetch/fetchapi';
 const commandElement = (window as any).commandWrapper; // Assuming this is some external command wrapper
 const commandContainer = document.querySelector('game-console') as GameConsole; // Cast to GameConsole
 
@@ -211,4 +212,13 @@ if (commandElement && commandContainer) {
         }
     });
 }
+setInterval(async function () {
+    if (window.selectedServer && window.serverStatus !== 'stopped') {
+      const logs = await servermanagerapi.getServerLog(window.selectedServer);
+      console.log("logs", logs);
+      if (logs.data) {
+        commandContainer.refreshlogs(logs.data);
+      }
+    }
+    }, 1000);
 </script>

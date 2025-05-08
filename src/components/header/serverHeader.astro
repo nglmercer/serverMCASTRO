@@ -64,7 +64,6 @@ import Userheader from "./userheader.astro"
             if (!("detail" in event)) return;
             if (!(event instanceof CustomEvent)) return;    
             const isValidEvent = buttonsConfig.find(button => button.id === event.detail.id);
-            let result;
             switch (event.detail.id) {
                 case buttonsConfig[0].id:
                     servermanagerapi.sendCommandToServer(window.selectedServer, "start");
@@ -91,7 +90,7 @@ import Userheader from "./userheader.astro"
             }
         });
         if (window.selectedServer) {
-            setInterval(getServerInfo, 1000, window.selectedServer)
+            setInterval(getServerInfo, 2000, window.selectedServer)
         }
     });
     interface ServerInfo {

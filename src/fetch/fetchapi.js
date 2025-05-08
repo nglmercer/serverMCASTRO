@@ -243,6 +243,18 @@ class ServermanagerApi extends BaseApi  {
             headers: this._authHeaders()
         }));
     }
+    // GET "/servermanager/" + server + "/info"
+    async getServerInfo(server) {
+        return this.request(http.get(`${this.host}/servermanager/${server}/info`, {
+            headers: this._authHeaders()
+        }));
+    }
+    // GET "/servermanager/" + server + "/logs"
+    async getServerLog(server) {
+        return this.request(http.get(`${this.host}/servermanager/${server}/log`, {
+            headers: this._authHeaders()
+        }));
+    }
 }
 const fetchapi = new FetchApi(actualBaseApi);
 const serverapi = new ServerApi(actualBaseApi)
