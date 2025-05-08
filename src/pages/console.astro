@@ -45,6 +45,8 @@ import Inputcommand from '@components/dashboard/inputcommand.astro';
 
 
   actionsElement.addEventListener('button-clicked', (event) => {
+    if (!('detail' in event)) return;
+    if (!(event instanceof CustomEvent)) return;
     console.log('Button clicked:', event.detail);
     alert(`Action: ${event.detail.action} (ID: ${event.detail.id})`);
     if (event.detail.id === 'edit') {
@@ -60,6 +62,8 @@ import Inputcommand from '@components/dashboard/inputcommand.astro';
   });
 
   iconActionsElement.addEventListener('button-clicked', (event) => {
+    if (!('detail' in event)) return;
+    if (!(event instanceof CustomEvent)) return;
     console.log('Icon Button clicked:', event.detail);
     alert(`Icon Action: ${event.detail.action} (ID: ${event.detail.id})`);
   });
