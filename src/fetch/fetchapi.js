@@ -236,9 +236,6 @@ class ServermanagerApi extends BaseApi  {
     // GET "/servermanager/" + server + "/"+ action
     async sendCommandToServer(server, action) {
         const validActions = ['start', 'stop', 'restart', 'send', 'log', 'info', 'players', 'metrics', 'kill'];
-        if (!validActions.includes(action)) {
-            return { success: false, message: "Invalid action" };
-        }
         return this.request(http.get(`${this.host}/servermanager/${server}/${action}`, {
             headers: this._authHeaders()
         }));

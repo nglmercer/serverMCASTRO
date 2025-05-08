@@ -206,19 +206,29 @@ if (commandElement && commandContainer) {
     commandElement.addEventListener('command', function (e: CustomEvent) {
         if (commandContainer instanceof GameConsole) {
             console.log("detail", e.detail);
-            commandContainer.refreshlogs(e.detail.command);
+            sendCommand(e.detail.command);
         } else {
             console.error('commandContainer is not a GameConsole instance');
         }
     });
 }
 setInterval(async function () {
-    if (window.selectedServer && window.serverStatus !== 'stopped') {
+    await fetchLogs();
+    }, 1000);
+async function fetchLogs(){
+  if (isValidstatus()) {
       const logs = await servermanagerapi.getServerLog(window.selectedServer);
-      console.log("logs", logs);
+//      console.log("logs", logs);
       if (logs.data) {
         commandContainer.refreshlogs(logs.data);
       }
     }
-    }, 1000);
+}
+function isValidstatus(){
+  return window.selectedServer && (window.serverStatus !== 'stopped' && window.serverStatus !== 'STOPPED');
+}
+async function sendCommand(command: string) {
+    const result = await servermanagerapi.sendCommandToServer(window.selectedServer, "send?cmd=" + command);
+    console.log("result", result);
+}
 </script>

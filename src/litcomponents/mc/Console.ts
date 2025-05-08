@@ -1,25 +1,13 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 
-interface StyleMap {
-    [key: string]: string;
-}
-
-interface ParsedAnsiSegment {
-    text: string;
-    bold?: boolean;
-    foreground?: string;
-}
-
 @customElement('game-console')
 export class GameConsole extends LitElement {
     private obfuscators: Record<number, number[]> = {};
-    private alreadyParsed: HTMLPreElement[] = [];
     private currId: number = 0;
-    private isItFirstLogRefresh: boolean = false;
-    private previousConsoleUpdateLength: number = 0;
+    private lastProcessedText: string = '';
 
-    private styleMap: StyleMap = {
+    private styleMap: Record<string, string> = {
         '§0': 'color:#000000',
         '§1': 'color:#0000AA',
         '§2': 'color:#00AA00',
@@ -99,32 +87,30 @@ export class GameConsole extends LitElement {
     }
 
     private obfuscate(elem: HTMLElement, text: string): void {
-        const randInt = (min: number, max: number): number => Math.floor(Math.random() * (max - min + 1)) + min;
-
+        const randChar = () => String.fromCharCode(Math.floor(Math.random() * 32) + 64);
+        
         const replaceRand = (str: string, i: number): string => {
-            const randChar = String.fromCharCode(randInt(64, 95));
-            return str.substring(0, i) + randChar + str.substring(i + 1);
+            return str.substring(0, i) + randChar() + str.substring(i + 1);
         };
     
-        const initMagic = (el: HTMLElement, strToObfuscate: string) => {
-            let i = 0;
-            const originalHTML = strToObfuscate || el.innerHTML;
-            const strLen = originalHTML.replace(/<[^>]*>?/gm, '').length;
-    
+        const startObfuscation = (el: HTMLElement, originalText: string) => {
+            const strLen = originalText.replace(/<[^>]*>?/gm, '').length;
             if (!strLen) return;
-    
+            
             if (!this.obfuscators[this.currId]) {
                 this.obfuscators[this.currId] = [];
             }
-    
+            
+            let i = 0;
             const intervalId = window.setInterval(() => {
                 if (i >= strLen) i = 0;
-                let currentText = el.textContent || "";
+                const currentText = el.textContent || "";
                 if (currentText.length > i) {
                     el.textContent = replaceRand(currentText, i);
                 }
                 i++;
             }, 50);
+            
             this.obfuscators[this.currId].push(intervalId);
         };
     
@@ -137,19 +123,18 @@ export class GameConsole extends LitElement {
                     const span = document.createElement('span');
                     span.textContent = node.nodeValue;
                     (node.parentNode as HTMLElement).replaceChild(span, node);
-                    initMagic(span, span.textContent!);
+                    startObfuscation(span, span.textContent!);
                 }
             }
         } else {
             elem.textContent = text;
-            initMagic(elem, text);
+            startObfuscation(elem, text);
         }
     }
     
     private applyCode(text: string, codes: string[]): HTMLSpanElement {
         const elem = document.createElement('span');
         let obfuscated = false;
-    
         const cleanText = text.replace(/\x00/g, '');
     
         codes.forEach(code => {
@@ -169,8 +154,8 @@ export class GameConsole extends LitElement {
         return elem;
     }
 
-    private mineParse(text: string): { parsed: HTMLPreElement; raw: string } {
-        const finalPre = document.createElement('pre');
+    private parseLine(text: string): HTMLPreElement {
+        const pre = document.createElement('pre');
         const codes = text.match(/§./g) || [];
         const indexes: number[] = [];
         let activeCodes: string[] = [];
@@ -181,6 +166,7 @@ export class GameConsole extends LitElement {
     
         let processedText = text.replace(/\n|\\n/g, '<br>');
     
+        // Find all code positions
         let tempText = processedText;
         codes.forEach(code => {
             const index = tempText.indexOf(code);
@@ -190,11 +176,13 @@ export class GameConsole extends LitElement {
             }
         });
     
+        // Add text before first code
         const textBeforeFirstCode = processedText.substring(0, indexes.length > 0 ? indexes[0] : processedText.length);
         if (textBeforeFirstCode) {
-            finalPre.appendChild(this.applyCode(textBeforeFirstCode, []));
+            pre.appendChild(this.applyCode(textBeforeFirstCode, []));
         }
     
+        // Process each code segment
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             
@@ -204,9 +192,18 @@ export class GameConsole extends LitElement {
                 if (!activeCodes.includes(code)) {
                     activeCodes.push(code);
                 }
-                if (Object.keys(this.styleMap).filter(k => k.length === 2 && k !== '§k' && k !== '§l' && k !== '§m' && k !== '§n' && k !== '§o').includes(code)) {
+                
+                // Handle color codes (only one color at a time)
+                const isColorCode = Object.keys(this.styleMap).some(k => 
+                    k === code && k.length === 2 && !['§k', '§l', '§m', '§n', '§o'].includes(k)
+                );
+                
+                if (isColorCode) {
                     activeCodes = activeCodes.filter(c => {
-                        return !(Object.keys(this.styleMap).filter(k => k.length === 2 && k !== '§k' && k !== '§l' && k !== '§m' && k !== '§n' && k !== '§o').includes(c) && c !== code);
+                        const isOtherColorCode = Object.keys(this.styleMap).some(k => 
+                            k === c && k.length === 2 && !['§k', '§l', '§m', '§n', '§o'].includes(k)
+                        );
+                        return !(isOtherColorCode && c !== code);
                     });
                 }
             }
@@ -216,30 +213,24 @@ export class GameConsole extends LitElement {
             const segment = processedText.substring(startIndex, endIndex);
     
             if (segment) {
-                finalPre.appendChild(this.applyCode(segment, [...activeCodes]));
+                pre.appendChild(this.applyCode(segment, [...activeCodes]));
             }
         }
     
-        this.alreadyParsed.push(finalPre);
         this.currId++;
-    
-        return {
-            parsed: finalPre,
-            raw: finalPre.innerHTML,
-        };
+        return pre;
     }
 
     public clearObfuscators(id?: number): void {
         if (id !== undefined && this.obfuscators[id]) {
             this.obfuscators[id].forEach(interval => clearInterval(interval));
             delete this.obfuscators[id];
-        } else if (id === undefined) {
+        } else {
             Object.keys(this.obfuscators).forEach(key => {
                 const numericKey = parseInt(key, 10);
                 this.obfuscators[numericKey].forEach(interval => clearInterval(interval));
             });
             this.obfuscators = {};
-            this.alreadyParsed = [];
         }
     }
     
@@ -249,59 +240,47 @@ export class GameConsole extends LitElement {
             return;
         }
 
-        if (serverLog.length === this.previousConsoleUpdateLength && this.isItFirstLogRefresh) {
+        // Evitar procesamiento duplicado si el texto no ha cambiado
+        if (serverLog === this.lastProcessedText) {
             return;
         }
-
-        this.previousConsoleUpdateLength = serverLog.length;
-        const parsedServerLogLines = serverLog.split(/\r?\n/);
         
+        // Guardar el texto actual para comparar en futuras llamadas
+        this.lastProcessedText = serverLog;
+        
+        // Limpiar el contenido existente
+        this.clearObfuscators();
+        this.consoleTextElem.innerHTML = '';
+        
+        // Procesar todas las líneas
+        const lines = serverLog.split(/\r?\n/);
         const fragment = document.createDocumentFragment();
-
-        parsedServerLogLines.forEach(line => {
+        
+        lines.forEach(line => {
             if (line.trim() === '') {
-                const br = document.createElement('br');
-                fragment.appendChild(br);
-                return;
+                fragment.appendChild(document.createElement('br'));
+            } else {
+                const parsedLine = this.parseLine(line);
+                while (parsedLine.firstChild) {
+                    fragment.appendChild(parsedLine.firstChild);
+                }
+                fragment.appendChild(document.createElement('br'));
             }
-            const parsedLine = this.mineParse(line);
-            
-            while (parsedLine.parsed.firstChild) {
-                fragment.appendChild(parsedLine.parsed.firstChild);
-            }
-            fragment.appendChild(document.createElement('br'));
         });
         
         this.consoleTextElem.appendChild(fragment);
-
+        
+        // Desplazar al final si estamos cerca del final
         requestAnimationFrame(() => {
             if (!this.consoleTextElem) return;
             const scrollHeight = this.consoleTextElem.scrollHeight;
             const clientHeight = this.consoleTextElem.clientHeight;
+            const scrollTop = this.consoleTextElem.scrollTop;
             
-            const pixelsToBottom = scrollHeight - clientHeight - this.consoleTextElem.scrollTop;
-
-            if (!this.isItFirstLogRefresh) {
-                this.isItFirstLogRefresh = true;
-                this.consoleTextElem.scrollTop = scrollHeight - clientHeight;
-            } else if (pixelsToBottom < 200) {
-                this.consoleTextElem.scrollTop = scrollHeight - clientHeight;
+            // Si estamos a menos de 200px del fondo, seguir el scroll
+            if (scrollHeight - clientHeight - scrollTop < 200) {
+                this.consoleTextElem.scrollTop = scrollHeight;
             }
-        });
-    }
-
-    private parseANSI(text: string): ParsedAnsiSegment[] {
-        return [{ text, bold: false }];
-    }
-
-    private linkify(text: string): string {
-        const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])|(\bwww\.[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig;
-        return text.replace(urlRegex, (url) => {
-            let Href = url;
-            if (!url.startsWith('http') && !url.startsWith('ftp') && !url.startsWith('file')) {
-                Href = 'http://' + url;
-            }
-            return `<a href="${Href}" target="_blank" rel="noopener noreferrer">${url}</a>`;
         });
     }
 
