@@ -126,7 +126,7 @@ function safeParse(value) {
         return value; // Retorna el valor original si no se puede parsear
     }
 }
-class FetchApi {
+class BaseApi {
     constructor(baseApi) {
         this.host = baseApi;
         this.http = http;
@@ -136,92 +136,67 @@ class FetchApi {
     }
 
     _authHeaders(contentType = 'application/json') {
-        const defaultHeaders = {
+        const headers = {
             'Authorization': `${this.token}`
         };
         if (contentType) {
-            defaultHeaders['Content-Type'] = contentType;
+            headers['Content-Type'] = contentType;
         }
-        return defaultHeaders;
+        return headers;
     }
 
-    async _interceptor(promise) {
+    async request(promise) {
         try {
-            const response = await promise;
-            return response;
+            return await promise;
         } catch (error) {
             console.error('Error en la llamada a la API:', error);
             throw error;
         }
     }
+}
+
+class FetchApi extends BaseApi  {
 
     agregar(formulario) {
-        return this._interceptor(http.post(`${this.host}/catalogo`, formulario, {
+        return this.request(http.post(`${this.host}/catalogo`, formulario, {
             headers: this._authHeaders()
         }));
     }
 
     actualizar(formulario) {
-        return this._interceptor(http.put(`${this.host}/catalogo/`, formulario, {
+        return this.request(http.put(`${this.host}/catalogo/`, formulario, {
             headers: this._authHeaders()
         }));
     }
 
     eliminar(modalUpdate) {
-        return this._interceptor(http.delete(`${this.host}/catalogo/${modalUpdate.idCatalogo}`, {
+        return this.request(http.delete(`${this.host}/catalogo/${modalUpdate.idCatalogo}`, {
             headers: this._authHeaders()
         }));
     }
 }
-class ServerApi {
-    constructor(baseApi) {
-        this.host = baseApi;
-        this.http = http;
-        const info = safeParse(localStorage.getItem("info")) || {};
-        this.token = info.token || localStorage.getItem("token");
-        this.user = safeParse(info.user || safeParse(localStorage.getItem("user"))) || {};
-    }
-
-    _authHeaders(contentType = 'application/json') {
-        const defaultHeaders = {
-            'Authorization': `${this.token}`
-        };
-        if (contentType) {
-            defaultHeaders['Content-Type'] = contentType;
-        }
-        return defaultHeaders;
-    }
-
-    async _interceptor(promise) {
-        try {
-            const response = await promise;
-            return response;
-        } catch (error) {
-            console.error('Error en la llamada a la API:', error);
-            throw error;
-        }
-    }
+class ServerApi extends BaseApi {
       // GET /java/all
-    getVSJava(){
-        return this._interceptor(http.get(`${this.host}/java/all`, {
+      getVSJava() {
+        return this.request(http.get(`${this.host}/java/all`, {
             headers: this._authHeaders()
         }));
     }
       // GET /cores/all
     getALLCores(){
-        return this._interceptor(http.get(`${this.host}/cores/all`, {
+        return this.request(http.get(`${this.host}/cores/all`, {
             headers: this._authHeaders()
         }));
     }
     //GET /api/cores
     getCores(){
-        return this._interceptor(http.get(`${this.host}/cores`, {
+        return this.request(http.get(`${this.host}/cores`, {
             headers: this._authHeaders()
         }));
     }
     //GET /core/:core
     getcore(name){
-        return this._interceptor(http.get(`${this.host}/cores/${name}`, {
+        return this.request(http.get(`${this.host}/cores/${name}`, {
             headers: this._authHeaders()
         }));
     }
@@ -234,36 +209,46 @@ class ServerApi {
         // No incluir 'Content-Type' aquí
         };
         
-        return this._interceptor(http.post(`${this.host}/newserver`, formData, {
+        return this.request(http.post(`${this.host}/newserver`, formData, {
         headers: headers
         }));
     }
     // get servers
     async getServers() {
-        return this._interceptor(http.get(`${this.host}/servers`, {
+        return this.request(http.get(`${this.host}/servers`, {
             headers: this._authHeaders()
         }));
     }
     // GET "/servermanager/" + server + "/info"
     async getServerInfo(server) {
-        return this._interceptor(http.get(`${this.host}/servermanager/${server}/info`, {
+        return this.request(http.get(`${this.host}/servermanager/${server}/info`, {
             headers: this._authHeaders()
         }));
     }
     // GET "/servermanager/" + server + "/logs"
     async getServerLog(server) {
-        return this._interceptor(http.get(`${this.host}/servermanager/${server}/log`, {
+        return this.request(http.get(`${this.host}/servermanager/${server}/log`, {
+            headers: this._authHeaders()
+        }));
+    }
+}
+class ServermanagerApi extends BaseApi  {
+    // GET "/servermanager/" + server + "/"+ action
+    async sendCommandToServer(server, action) {
+        const validActions = ['start', 'stop', 'restart', 'send', 'log', 'info', 'players', 'metrics', 'kill'];
+        if (!validActions.includes(action)) {
+            return { success: false, message: "Invalid action" };
+        }
+        return this.request(http.get(`${this.host}/servermanager/${server}/${action}`, {
             headers: this._authHeaders()
         }));
     }
 }
 const fetchapi = new FetchApi(actualBaseApi);
 const serverapi = new ServerApi(actualBaseApi)
-async function fetchCores() {
-
-}
-fetchCores()
+const servermanagerapi = new ServermanagerApi(actualBaseApi)
 export {
     fetchapi,
-    serverapi
+    serverapi,
+    servermanagerapi
 }

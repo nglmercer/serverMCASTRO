@@ -12,7 +12,9 @@ import Userheader from "./userheader.astro"
 </div>
 <script>
     import { ActionButtonsLit } from "src/litcomponents/mc/barstatus.js";
-    import { serverapi } from "src/fetch/fetchapi";
+    import { serverapi,servermanagerapi } from "src/fetch/fetchapi";
+    type ValidAction = 'start' | 'stop' | 'restart' | 'send' | 'log' | 'info' | 'players' | 'metrics' | 'kill';
+
     document.addEventListener("DOMContentLoaded", function () {
         const actionsElement = document.getElementById("myActions");
         if (!actionsElement) return;
@@ -62,20 +64,25 @@ import Userheader from "./userheader.astro"
             if (!("detail" in event)) return;
             if (!(event instanceof CustomEvent)) return;    
             const isValidEvent = buttonsConfig.find(button => button.id === event.detail.id);
+            let result;
             switch (event.detail.id) {
                 case buttonsConfig[0].id:
+                    servermanagerapi.sendCommandToServer(window.selectedServer, "start");
                     console.log("Start server");
                     break;
                 case buttonsConfig[1].id:
+                    servermanagerapi.sendCommandToServer(window.selectedServer, "stop");
                     console.log("Stop server");
                     break;
                 case buttonsConfig[2].id:
+                    servermanagerapi.sendCommandToServer(window.selectedServer, "restart");
                     console.log("Restart server");
                     break;
                 case buttonsConfig[3].id:
                     console.log("More server actions");
                     break;
                 case buttonsConfig[4].id:
+                    servermanagerapi.sendCommandToServer(window.selectedServer, "kill");
                     console.log("Kill server");
                     break;
                 default:
@@ -84,7 +91,7 @@ import Userheader from "./userheader.astro"
             }
         });
         if (window.selectedServer) {
-        //    setInterval(getServerInfo, 1000, window.selectedServer)
+            setInterval(getServerInfo, 1000, window.selectedServer)
         }
     });
     interface ServerInfo {
@@ -94,7 +101,7 @@ import Userheader from "./userheader.astro"
     }
     async function getServerInfo(server:string) {
         const serverInfo:ServerInfo = await serverapi.getServerInfo(server);
-        console.log("serverInfo", serverInfo);
+    //    console.log("serverInfo", serverInfo);
         setServerStatus(serverInfo.data);
     }
     function defaultstatus(actionsElement:ActionButtonsLit) {
@@ -120,38 +127,38 @@ import Userheader from "./userheader.astro"
         return SERVER_STATUSES_TRANSLATE[status] || status;
     }
 function setServerStatus(status: string) {
-    const statusElement = document.querySelector('status-element');
     const actionButtons = document.getElementById("myActions");
 
     if (!actionButtons || !(actionButtons instanceof ActionButtonsLit)) return;
-    if (!statusElement) return;
 
     actionButtons.hideAllButtons();
     const statusUPPER = status.toUpperCase();
     // Mostrar botones relevantes según el estado
+    setStatus(status);
+
     switch (statusUPPER) {
         case "STARTING":
         case "STOPPING":
-        //    statusElement.updateStatus(status, translate(status));
             actionButtons.showButton("more-server-actions");
             break;
 
         case "RUNNING":
-        //    statusElement.updateStatus(status, translate(status));
             actionButtons.showButton("restart-server");
             actionButtons.showButton("stop-server");
             actionButtons.showButton("more-server-actions");
             break;
 
         case "STOPPED":
-        //    statusElement.updateStatus(status, translate(status));
             actionButtons.showButton("start-server");
             break;
     }
 
     return true;
 }
-
+function setStatus(status: string) {
+    window.dispatchEvent(new CustomEvent('change-status', { detail: { status: status } }));
+    window.serverStatus = status;
+}
 </script>
 <style>
      .content-header {
