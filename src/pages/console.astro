@@ -13,7 +13,6 @@ import Inputcommand from '@components/dashboard/inputcommand.astro';
 		<h1>Contenido Principal</h1>
     
   <action-buttons-lit id="myActions"></action-buttons-lit>
-  <action-buttons-lit id="myIconActions"></action-buttons-lit>
     <div class="console-layout">
       <div class="console">
         <game-console> </game-console>
@@ -29,26 +28,45 @@ import Inputcommand from '@components/dashboard/inputcommand.astro';
   import  {ActionButtonsLit} from 'src/litcomponents/mc/barstatus.js';
   document.addEventListener('DOMContentLoaded', function() {
     const actionsElement = document.getElementById('myActions');
-  const iconActionsElement = document.getElementById('myIconActions');
-    if (!actionsElement || !iconActionsElement) return;
+    if (!actionsElement) return;
     if (!(actionsElement instanceof ActionButtonsLit)) return;
-  if (!(iconActionsElement instanceof ActionButtonsLit)) return;
   // Initial buttons
-  actionsElement.addButton({ id: 'edit', label: 'Edit', icon: 'edit', action: 'EDIT_ITEM' });
-  actionsElement.addButton({ id: 'save', label: 'Save', icon: 'save', action: 'SAVE_ITEM', disabled: true });
-  actionsElement.addButton({ id: 'delete', label: 'Delete', icon: 'delete', action: 'DELETE_ITEM', tooltip: 'Remove this item permanently' });
-  actionsElement.addButton({ id: 'cancel', label: 'Cancel', icon: 'cancel', action: 'CANCEL_ACTION', hidden: true });
-
-  iconActionsElement.addButton({ id: 'settings', icon: 'settings', iconOnly: true, action: 'OPEN_SETTINGS'});
-  iconActionsElement.addButton({ id: 'refresh', icon: 'refresh', iconOnly: true, action: 'REFRESH_DATA'});
-  iconActionsElement.addButton({ id: 'info', icon: 'info', iconOnly: true, action: 'SHOW_INFO', disabled: true});
+  actionsElement.addButton({
+    id: 'start-server',
+    label: '{{commons.start}}',
+    icon: 'play_arrow',
+    action: 'start-server'
+});
+actionsElement.addButton({
+    id: 'stop-server',
+    label: '{{commons.stop}}',
+    icon: 'stop',
+    action: 'stop-server'
+});
+actionsElement.addButton({
+    id: 'restart-server',
+    label: '{{commons.restart}}',
+    icon: 'restart_alt',
+    iconOnly: true,
+    action: 'restart-server'
+});
+actionsElement.addButton({
+    id: 'more-server-actions',
+    label: '{{commons.more}}',
+    icon: 'more_horiz',
+    iconOnly: true,
+    action: 'more-server-actions'   
+});
+actionsElement.hideButton('more-server-actions');
+actionsElement.hideButton('kill-server');
+actionsElement.hideButton('restart-server');
+actionsElement.hideButton('stop-server');
 
 
   actionsElement.addEventListener('button-clicked', (event) => {
     if (!('detail' in event)) return;
     if (!(event instanceof CustomEvent)) return;
     console.log('Button clicked:', event.detail);
-    alert(`Action: ${event.detail.action} (ID: ${event.detail.id})`);
     if (event.detail.id === 'edit') {
       actionsElement.disableButton('edit');
       actionsElement.enableButton('save');
@@ -61,12 +79,7 @@ import Inputcommand from '@components/dashboard/inputcommand.astro';
     }
   });
 
-  iconActionsElement.addEventListener('button-clicked', (event) => {
-    if (!('detail' in event)) return;
-    if (!(event instanceof CustomEvent)) return;
-    console.log('Icon Button clicked:', event.detail);
-    alert(`Icon Action: ${event.detail.action} (ID: ${event.detail.id})`);
-  });
+
 
   });
 </script>
