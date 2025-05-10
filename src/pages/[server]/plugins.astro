@@ -1,0 +1,39 @@
+---
+export const prerender = false;
+import ServerLayout from '@layouts/serverLayout.astro';
+const { server } = Astro.params;    
+import SideBySideRow from '@components/Sidec.astro';
+import ModSearch from '@components/store/ModSearch';
+
+---
+<ServerLayout title={server + " server"} activeConfig="A" prefix={server}>
+    <h2>Plugins and mods</h2>
+        <div class="config-section">
+            <SideBySideRow gap="20px" alignItems="center">
+                <div slot="left" class="flex gap-10">
+                    <h3>Modificaciones</h3>
+                    <button class="dark-btn icon-only" id="uploadItem_mod">
+                        <span class="material-symbols-rounded">upload</span>
+                    </button>
+                </div>
+                <div slot="right" class="flex  gap-10">
+                    <h3>Plugins</h3>
+                    <button class="dark-btn icon-only" id="uploadItem_plugin">
+                        <span class="material-symbols-rounded">upload</span>
+                    </button>
+                </div>
+            </SideBySideRow>
+            <ModSearch client:only="solid-js"/>
+      </div>
+</ServerLayout>
+<script>
+    import { BaseApi, actualBaseApi } from "src/fetch/fetchapi.js";
+    class SettingsApi extends BaseApi {
+
+    }
+    const settingsApi = new SettingsApi(actualBaseApi);
+
+    document.addEventListener("DOMContentLoaded",async function () {
+
+    });
+</script>

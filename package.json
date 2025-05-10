@@ -13,7 +13,9 @@
     "@astrojs/solid-js": "^5.0.10",
     "@webcomponents/template-shadowroot": "^0.2.1",
     "astro": "^5.7.1",
+    "dompurify": "^3.2.5",
     "lit": "^3.2.1",
+    "marked": "^15.0.11",
     "socket.io-client": "^4.8.1",
     "solid-js": "^1.9.6",
     "sweetalert2": "^11.17.2"

@@ -41,9 +41,9 @@ export const pagesConfigA = {
     slot: 'plugins'
   },
   3: {
-    name: '{{serverSettings}}',
+    name: '{{serversettings}}',
     icon: "tune",
-    slot: 'serverSettings'
+    slot: 'serversettings'
   },
   4: {
     name: 'server.properties',
@@ -53,7 +53,7 @@ export const pagesConfigA = {
   5: {
     name: '{{Settings}}',
     icon: "settings",
-    slot: 'Settings'
+    slot: 'settings'
   },
   6: {
     name: '{{systemMonitor}}',
