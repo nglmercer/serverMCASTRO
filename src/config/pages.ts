@@ -51,9 +51,9 @@ export const pagesConfigA = {
     slot: 'server.properties'
   },
   5: {
-    name: '{{kubekSettings}}',
+    name: '{{Settings}}',
     icon: "settings",
-    slot: 'kubekSettings'
+    slot: 'Settings'
   },
   6: {
     name: '{{systemMonitor}}',

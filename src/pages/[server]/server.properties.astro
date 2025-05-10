@@ -1,0 +1,15 @@
+---
+export const prerender = false;
+import ServerLayout from '@layouts/serverLayout.astro';
+const { server } = Astro.params;    
+---
+<script src="/src/litcomponents/mcinit.js"></script>
+<ServerLayout title={server + " server"} activeConfig="A" prefix={server}>
+    <h2>Server Properties</h2>
+    <server-properties server-id={server}></server-properties>
+</ServerLayout>
+
+
+<style>
+
+</style>

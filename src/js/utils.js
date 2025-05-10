@@ -559,7 +559,7 @@ var uiDebugger = DebuggerGroupManager.create('UI');
               const iconElement = document.querySelector('.content-header .icon-bg img');
               if (iconElement) {
                 //  iconElement.src = `/api/servers/${server}/icon?${Date.now()}`;
-                iconElement.src = `../assets/kubek_icon.png `;
+                iconElement.src = `../assets/icon.png `;
               }
 
               callback(true);

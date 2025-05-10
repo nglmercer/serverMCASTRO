@@ -55,6 +55,7 @@ import Userheader from "./userheader.astro"
                 action: "kill-server",
             }
         ];
+        
         buttonsConfig.forEach((button) => {
             actionsElement.addButton(button);
         });
@@ -90,8 +91,9 @@ import Userheader from "./userheader.astro"
             }
         });
         if (window.selectedServer) {
-            setInterval(getServerInfo, 2000, window.selectedServer)
+        //    setInterval(getServerInfo, 2000, window.selectedServer)
         }
+        
     });
     interface ServerInfo {
         success: boolean;

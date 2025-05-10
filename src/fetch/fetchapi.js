@@ -1,5 +1,5 @@
-const baseApi = "productionUrl";
-const baseTestApi = "http://localhost:3000"; // Original test API
+const baseurlApi = "productionUrl";
+const baseurlTestApi = "http://localhost:3000"; // Original test API
 const mockApi = "http://localhost:3000/api"; // Mock API endpoint
 const actualBaseApi = mockApi; // Use mock API for development
 const http = {
@@ -279,5 +279,7 @@ export {
     fetchapi,
     serverapi,
     servermanagerapi,
-    filemanagerapi
+    filemanagerapi,
+    BaseApi,
+    actualBaseApi
 }
