@@ -37,24 +37,7 @@ const { server } = Astro.props;
 </script>
 <script>
   import { type EDetails } from 'src/litcomponents/mc/serveritem.js';
-  interface OptionModal {
-      icon: string;
-      text: string;
-      id?:string;
-      class?: {
-          font?: string;
-          container?: string;
-      };
-  }
-
-  const optionsModal = (option: OptionModal) => {
-      return /*html*/ `
-  <div class="${option.class?.container || 'dropdown-item'}" ${option.id ? `id="${option.id}"` : ''}>
-    <span class="material-symbols-rounded">${option.icon}</span>
-    <span class="${option.class?.font || 'default-font'}">${option.text}</span>
-  </div>`;
-  };
-
+  import { optionsModal, setPopupOptions } from 'src/utils/dropdown.js';
   const popup = document.getElementById('serverOptions');
   document.querySelectorAll('server-item').forEach(element => {
       element.addEventListener('selected', function(e) {
@@ -67,20 +50,8 @@ const { server } = Astro.props;
         if (!('detail' in e)) return;
         const detail = (e as CustomEvent).detail as EDetails;
         console.log("menu", detail);
-        
-        // Initialize popup with options
-        if (popup && 'setOptions' in popup) {
-          // Use the component methods directly
-          (popup as any).setOptions(getOptions(detail));
-          (popup as any).show(detail.event);
-        } else {
-          // Fallback to window.solidComponents
-          const solidPopup = (window as any).solidComponents?.serverOptions;
-          if (solidPopup) {
-            solidPopup.setOptions(getOptions(detail));
-            solidPopup.show(detail.event);
-          }
-        }
+        const popupOptions = getOptions(detail);
+        setPopupOptions(popup, popupOptions, detail.event);
       });
     });
   

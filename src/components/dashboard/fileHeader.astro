@@ -20,37 +20,31 @@
         // Initial buttons
         const buttonsConfig = [
             {
-                id: "start-server",
-                label: translate("START"),
-                icon: "play_arrow",
-                action: "start-server",
+                id: 'new-file',
+                label: '{{create}} {{file}}',
+                icon: 'add_circle',
+                action: 'new-file'
             },
             {
-                id: "stop-server",
-                label: translate("STOP"),
-                icon: "stop",
-                action: "stop-server",
+                id: 'upload-file',
+                label: '{{uploadFile}}',
+                icon: 'upload_file',
+                action: 'upload-file',
+                iconOnly: true
             },
             {
-                id: "restart-server",
-                label: translate("RESTART"),
-                icon: "restart_alt",
-                iconOnly: true,
-                action: "restart-server",
+                id: 'new-folder',
+                label: '{{create}} {{folder}}',
+                icon: 'create_new_folder',
+                action: 'new-folder',
+                iconOnly: true
             },
             {
-                id: "more-server-actions",
-                label: translate("MORE"),
-                icon: "more_horiz",
-                iconOnly: true,
-                action: "more-server-actions",
-            },
-            {
-                id: "kill-server",
-                label: "Force Quit",
-                icon: "dangerous",
-                iconOnly: true,
-                action: "kill-server",
+                id: 'refresh-folder',
+                label: '{{refresh}}',
+                icon: 'refresh',
+                action: 'refresh-folder',
+                iconOnly: true
             }
         ];
         buttonsConfig.forEach((button) => {
@@ -61,9 +55,49 @@
             if (!("detail" in event)) return;
             if (!(event instanceof CustomEvent)) return;    
             const isValidEvent = buttonsConfig.find(button => button.id === event.detail.id);
-
+            console.log("isValidEvent", isValidEvent);
+            if (isValidEvent) {
+                switch (event.detail.id) {
+                    case buttonsConfig[0].id:
+                        break;
+                    case buttonsConfig[1].id:
+                        break;
+                    case buttonsConfig[2].id:
+                        break;
+                    case buttonsConfig[3].id:
+                        refreshFolder();
+                        break;
+                    default:
+                        console.log("Button clicked:", event.detail, isValidEvent);
+                        break;
+                }
+            }
         });
-
+        const fileDoptions = [
+            {
+                id: 'download-file',
+                label: '{{download}}',
+                icon: 'download',
+                action: 'download-file',
+                iconOnly: true
+            },
+            {
+                id: 'rename-file',
+                label: '{{rename}}',
+                icon: 'bookmark_manager',
+                action: 'rename-file',
+                iconOnly: true
+            },
+            {
+                id: 'delete-file',
+                label: '{{delete}}',
+                icon: 'delete',
+                action: 'delete-file',
+                iconOnly: true
+            }
+        ];
+        const directoryDoptions = ["rename-folder", "delete-folder"];
+        const fileOptions = ["download-file", "rename-file", "delete-file"];
     });
 
 
@@ -83,7 +117,7 @@
     // Devuelve la traducción si existe, o el estado original como fallback
         return SERVER_STATUSES_TRANSLATE[status] || status;
     }
-    fetchFiles(window.selectedServer);
+    refreshFolder()
     async function fetchFiles(path:string) {
         const pathENCODED = encodeURIComponent(path);
         const result = await filemanagerapi.getFolderInfo(pathENCODED);
@@ -95,13 +129,17 @@
         }
     }
     async function initListener(){
-        const events = ["dblclick", "contextmenu", "path-updated"];
-        events.forEach(event => {
+        const events = ["selected", "menu", "path-updated"];
+        events.forEach(Evname => {
             if (!filemanager) return;
-            filemanager.addEventListener(event, (e) => {
-                console.log("event", event, e);
+            (filemanager as FileExplorer).addEventListener(Evname, (e) => {
+                console.log("event", Evname, e, typeof e);
             });
         });
+    }
+    async function refreshFolder() {
+        console.log("refreshFolder");
+        fetchFiles(window.selectedServer);
     }
 </script>
 <style>
