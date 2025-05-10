@@ -253,11 +253,31 @@ class ServermanagerApi extends BaseApi  {
         }));
     }
 }
+class FileManagerApi extends BaseApi  {
+    // GET "/folder-info/:folderName(.*)"
+    async getFolderInfo(folderName) {
+        return this.request(http.get(`${this.host}/folder-info/${folderName}`, {
+            headers: this._authHeaders()
+        }));
+    }
+}
 const fetchapi = new FetchApi(actualBaseApi);
 const serverapi = new ServerApi(actualBaseApi)
 const servermanagerapi = new ServermanagerApi(actualBaseApi)
+const filemanagerapi = new FileManagerApi(actualBaseApi)
+// test
+async function test() {
+    const pathENCODED = encodeURIComponent(window.selectedServer);
+    const folderInfo = await filemanagerapi.getFolderInfo(pathENCODED);
+    console.log("folderInfo", folderInfo);
+}
+test();
+/*
+
+*/
 export {
     fetchapi,
     serverapi,
-    servermanagerapi
+    servermanagerapi,
+    filemanagerapi
 }
