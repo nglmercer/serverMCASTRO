@@ -1,18 +1,22 @@
 ---
 ---
-
+<script src="/src/litcomponents/mcinit.js"></script>
 <div class="content-header">
         <action-buttons-lit id="FileActions"></action-buttons-lit>
-</div>
+    </div>
+    <p id="current-path-display">Current Path: ./</p>
+<file-explorer current-path="/" id="filemanager"></file-explorer>
 <script>
     import { ActionButtonsLit } from "src/litcomponents/mc/barstatus.js";
-    import { serverapi,servermanagerapi } from "src/fetch/fetchapi";
+    import { filemanagerapi } from "src/fetch/fetchapi";
+    import { FileExplorer } from "src/litcomponents/mc/files.js";
     type ValidAction = 'start' | 'stop' | 'restart' | 'send' | 'log' | 'info' | 'players' | 'metrics' | 'kill';
-
+    const filemanager = document.getElementById("filemanager") as FileExplorer | null;
     document.addEventListener("DOMContentLoaded", function () {
         const actionsElement = document.getElementById("FileActions");
         if (!actionsElement) return;
         if (!(actionsElement instanceof ActionButtonsLit)) return;
+        initListener();
         // Initial buttons
         const buttonsConfig = [
             {
@@ -79,7 +83,26 @@
     // Devuelve la traducción si existe, o el estado original como fallback
         return SERVER_STATUSES_TRANSLATE[status] || status;
     }
-
+    fetchFiles(window.selectedServer);
+    async function fetchFiles(path:string) {
+        const pathENCODED = encodeURIComponent(path);
+        const result = await filemanagerapi.getFolderInfo(pathENCODED);
+        console.log("result", result);
+        if (result && result.data) {
+            if (!filemanager) return;
+            filemanager.data = result.data?.files;
+            filemanager.currentPath = path;
+        }
+    }
+    async function initListener(){
+        const events = ["dblclick", "contextmenu", "path-updated"];
+        events.forEach(event => {
+            if (!filemanager) return;
+            filemanager.addEventListener(event, (e) => {
+                console.log("event", event, e);
+            });
+        });
+    }
 </script>
 <style>
      .content-header {

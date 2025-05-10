@@ -271,8 +271,8 @@ async function test() {
     const folderInfo = await filemanagerapi.getFolderInfo(pathENCODED);
     console.log("folderInfo", folderInfo);
 }
-test();
 /*
+test();
 
 */
 export {
