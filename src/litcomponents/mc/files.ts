@@ -1,5 +1,5 @@
 import { LitElement, html, css, type PropertyValueMap } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 
 export interface FileSystemItem {
   name: string;
@@ -172,19 +172,118 @@ export class FileExplorer extends LitElement {
     }));
   }
 
+  @property({ type: String })
+  public sortColumn: string = 'name';
+  
+  @property({ type: String })
+  public sortDirection: 'asc' | 'desc' = 'asc';
+  
+  @state()
+  private _headerIcons = {
+    name: '↕️',
+    path: '↕️',
+    size: '↕️',
+    lastModified: '↕️'
+  };
+  
+  private get sortedData(): FileSystemItem[] {
+    const data = [...this.processedData];
+    
+    return data.sort((a, b) => {
+      let valueA, valueB;
+      
+      switch (this.sortColumn) {
+        case 'name':
+          valueA = a.name.toLowerCase();
+          valueB = b.name.toLowerCase();
+          break;
+        case 'path':
+          valueA = a.path.toLowerCase();
+          valueB = b.path.toLowerCase();
+          break;
+        case 'size':
+          // Always sort directories before files when sorting by size
+          if (a.type === 'directory' && b.type !== 'directory') return -1;
+          if (a.type !== 'directory' && b.type === 'directory') return 1;
+          
+          valueA = a.size || 0;
+          valueB = b.size || 0;
+          break;
+        case 'lastModified':
+          valueA = new Date(a.lastModified).getTime();
+          valueB = new Date(b.lastModified).getTime();
+          break;
+        default:
+          valueA = a.name.toLowerCase();
+          valueB = b.name.toLowerCase();
+      }
+      
+      // Apply sort direction
+      if (this.sortDirection === 'asc') {
+        return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
+      } else {
+        return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
+      }
+    });
+  }
+  
+  private _handleSort(column: string): void {
+    if (this.sortColumn === column) {
+      // Toggle sort direction if clicking on the same column
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      // Set new sort column with default ascending direction
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    
+    // Update header icons
+    this._updateHeaderIcons();
+    
+    // Trigger a re-render
+    this.requestUpdate();
+    
+    // Emit sort event
+    this._emitEvent('sort', { column: this.sortColumn, direction: this.sortDirection });
+  }
+  
+  private _updateHeaderIcons(): void {
+    // Reset all icons
+    const icons = {
+      name: '↕️',
+      path: '↕️',
+      size: '↕️',
+      lastModified: '↕️'
+    };
+    
+    // Set the icon for the sorted column
+    icons[this.sortColumn as keyof typeof icons] = this.sortDirection === 'asc' ? '⬆️' : '⬇️';
+    
+    this._headerIcons = icons;
+  }
+  
+  // Replace the render method's table header section with this:
   render() {
     return html`
       <table>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Path</th>
-            <th>Size</th>
-            <th>Modified</th>
+            <th @click="${() => this._handleSort('name')}">
+              Name ${this._headerIcons.name}
+            </th>
+            <th @click="${() => this._handleSort('path')}">
+              Path ${this._headerIcons.path}
+            </th>
+            <th @click="${() => this._handleSort('size')}">
+              Size ${this._headerIcons.size}
+            </th>
+            <th @click="${() => this._handleSort('lastModified')}">
+              Modified ${this._headerIcons.lastModified}
+            </th>
           </tr>
         </thead>
         <tbody>
-          ${this.processedData.map((item) => html`
+          ${this.sortedData.map((item) => html`
             <tr
               class="${item.type}"
               tabindex="0" 
