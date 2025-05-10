@@ -1,6 +1,7 @@
 export interface OptionModal {
     icon: string;
     text: string;
+    label?: string;
     id?:string;
     class?: {
         font?: string;
@@ -15,7 +16,7 @@ export const optionsModal = (option: OptionModal) => {
     return /*html*/ `
 <div class="${option.class?.container || 'dropdown-item'}" ${option.id ? `id="${option.id}"` : ''}>
   <span class="material-symbols-rounded">${option.icon}</span>
-  <span class="${option.class?.font || 'default-font'}">${option.text}</span>
+  <span class="${option.class?.font || 'default-font'}">${option.text || option.label}</span>
 </div>`;
 };
 export function setPopupOptions(popup:any,popupOptions: Modaltemplate[], event: Event) {

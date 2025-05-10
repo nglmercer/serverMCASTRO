@@ -161,7 +161,9 @@ var signals = window.$signals = {
   };
   
 const tabsSignal = window.$signals.create('tabs', {});
+const pathSignal = window.$signals.create('path', '/');
 export {
   tabsSignal,
+  pathSignal,
   signals
 }

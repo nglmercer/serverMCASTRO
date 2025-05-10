@@ -74,7 +74,7 @@ export class FileExplorer extends LitElement {
   `;
 
   @property({ type: String, attribute: 'current-path' })
-  private _rawCurrentPath: string = './';
+  private _rawCurrentPath: string = '/';
 
   public get currentPath(): string {
     return this.normalizePath(this._rawCurrentPath);
@@ -103,7 +103,7 @@ export class FileExplorer extends LitElement {
   protected updated(changedProperties: PropertyValueMap<any>): void {
     if (changedProperties.has('_rawCurrentPath')) {
       const newPath = this.currentPath;
-      this._emitEvent('updated', { path: newPath });
+      this._emitEvent('updated', { data: newPath, path: newPath });
     }
   }
 
@@ -116,11 +116,11 @@ export class FileExplorer extends LitElement {
       normalized = normalized.slice(0, -1);
     }
     
-    if (!normalized.startsWith('/') && !normalized.startsWith('./') && !normalized.startsWith('../')) {
-      normalized = './' + normalized;
+    if (!normalized.startsWith('/') && !normalized.startsWith('./')) {
+      normalized = '/' + normalized;
     }
     
-    if (normalized === '') return './';
+    if (normalized === '') return '/';
     
     return normalized;
   }

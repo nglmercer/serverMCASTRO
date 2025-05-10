@@ -8,14 +8,15 @@
   .custom-popup .container {
     position: fixed;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    background-color: inherit;
+    background-color: var(--primary-bg);
+    color: var(--primary-text);
     display: none;
     z-index: 1000;
     justify-content: center;
     flex-direction: column;
     min-width: inherit;
     width: 100%;
-    max-width: min(300px, 100%);
+    max-width: min(220px, 100%);
     overflow: hidden;
     border-radius: 4px;
   }
@@ -51,6 +52,7 @@
     cursor: pointer;
     transition: background-color 0.2s ease;
     border-radius: 4px;
+    width: 100%;
   }
   
   @media (prefers-color-scheme: dark) {
