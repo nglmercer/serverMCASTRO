@@ -26,7 +26,6 @@ const { server } = Astro.params;
         const systemInfo = await systemApi.getSystemInfo();
         return systemInfo;
     }
-    getSystemInfo();
     document.addEventListener("DOMContentLoaded",async function () {
         const systemMonitor = document.getElementById("system-monitor") as SystemMonitorLit;
         if (!systemMonitor) return;

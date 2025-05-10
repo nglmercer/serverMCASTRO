@@ -1,0 +1,38 @@
+---
+// No se necesitan props aquí, todo vendrá de los slots.
+---
+
+<div class="side-by-side-container">
+  <div class="slot-wrapper left-slot">
+    <slot name="left" />
+  </div>
+  <div class="slot-wrapper right-slot">
+    <slot name="right" />
+  </div>
+</div>
+
+<style>
+  .side-by-side-container {
+    display: flex; /* Activa Flexbox */
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;     /* Espacio entre los dos elementos */
+    margin-block: 1rem;
+  }
+
+  .slot-wrapper {
+    flex: 1; /* Cada slot tomará el 50% del espacio disponible */
+    /* Si quieres que un lado sea más grande que el otro, puedes ajustar flex-grow o flex-basis.
+       Por ejemplo:
+       .left-slot { flex: 2; } .right-slot { flex: 1; } (el izquierdo sería el doble de ancho)
+    */
+    /* Puedes añadir más estilos aquí si es necesario, como un borde o padding */
+    font-size: large;
+    font-weight: bold;
+  }
+
+  /* Opcional: Estilos para asegurar que el contenido dentro del slot se vea bien */
+  .slot-wrapper > :global(*) { /* Aplica a los hijos directos del slot-wrapper */
+    height: 100%;
+  }
+</style>
