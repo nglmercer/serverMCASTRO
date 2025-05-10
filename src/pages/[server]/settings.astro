@@ -1,0 +1,70 @@
+---
+export const prerender = false;
+import ServerLayout from '@layouts/serverLayout.astro';
+import SideBySideRow from '@components/Sideb.astro';
+const { server } = Astro.params;    
+const defaultConfig = {
+  startScript: "start.sh",
+  restartOnError: true,
+  restartAttempts: 3,
+  stopCommand: "stop",
+};
+---
+<ServerLayout title={server + " server"} activeConfig="A" prefix={server}>
+    <h2>Server Properties</h2>
+        <div class="config-section">
+        <SideBySideRow gap="20px" alignItems="center">
+            <div slot="left">
+            <div>
+                <strong>Script de Inicio</strong>
+            </div>
+            </div>
+            <div slot="right">
+            <c-input type="textarea" id="start-script" name="start-script" value="start.sh" rows={2}> </c-input>
+            </div>
+        </SideBySideRow>
+    
+        <SideBySideRow gap="20px" alignItems="center">
+            <div slot="left">
+            <div>
+                <strong>Reiniciar en Error</strong>
+            </div>
+            </div>
+            <div slot="right">
+            <c-input  type="boolean" id="restart-on-error" name="restart-on-error" value={true}></c-input>
+            </div>
+        </SideBySideRow>
+        <button class="btn btn-primary">Guardar</button>
+      </div>
+</ServerLayout>
+<script>
+    import { BaseApi, actualBaseApi } from "src/fetch/fetchapi.js";
+    class SettingsApi extends BaseApi {
+
+    }
+    const settingsApi = new SettingsApi(actualBaseApi);
+
+    document.addEventListener("DOMContentLoaded",async function () {
+
+    });
+</script>
+
+<style>
+  
+    .danger-btn {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .danger-btn:hover {
+      background-color: #c0392b;
+    }
+  
+    .hidden {
+      display: none !important;
+    }
+  </style>
