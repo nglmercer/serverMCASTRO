@@ -1,6 +1,14 @@
 // globalSignals.ts
 export {};
-
+export interface Editortype {
+  editorId: string; 
+  initialLanguage?: string;
+  initialContentProp?: string;
+  instanceNameProp?: string;
+  componentId?: string;
+  initialContent?: string;
+  IDS?: string[];
+}
 declare global {
   interface Window {
     $signals: {
@@ -19,5 +27,6 @@ declare global {
     };
     selectedServer: string;
     serverStatus: string;
+    EditorConfig:Editortype;
   }
 }

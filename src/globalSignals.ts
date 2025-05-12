@@ -165,5 +165,6 @@ const pathSignal = window.$signals.create('path', '/');
 export {
   tabsSignal,
   pathSignal,
-  signals
+  signals,
+  Signal
 }

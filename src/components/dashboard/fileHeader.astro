@@ -1,7 +1,7 @@
 ---
 import CPopup from "@components/solid/solid.tsx";
 import PathNavigator from "@components/solid/PathNavigator.tsx";
-import CodeEditor from "./codeEditor.astro";
+import CodeEditor from "@components/dashboard/CodeEditor.astro";
 ---
 
 <script src="/src/litcomponents/mcinit.js"></script>
@@ -16,7 +16,12 @@ import CodeEditor from "./codeEditor.astro";
     <div class="modal__base">
       <c-input type="text" name="name" id="file-name" placeholder="Nombre del archivo" required style="--padding: 0; border: 0; background-color: var(--bg-dark-accent-light);"></c-input>
       <c-input type="textarea" name="content" id="file-content" placeholder="Contenido del archivo"  required style="--padding: 0; border: 0; background-color: var(--bg-dark-accent);"></c-input>
-      <CodeEditor editorId="file-Editor-editor" initialLanguage="plaintext" initialContent="" instanceName="fileEditor"></CodeEditor>
+      <CodeEditor 
+        id="fileEditor" 
+        initialContent="" 
+        initialLanguage="json"
+        height="200px"
+      />
       <div class="actions-bg flex center p-2">
             <button class="btn btn-primary" id="save-file">Guardar</button>
             <button class="btn btn-primary" id="cancel-file">Cancelar</button>
@@ -31,6 +36,7 @@ import CodeEditor from "./codeEditor.astro";
         type ItemMenuEventDetail,
         type FileSystemItem,
     } from "src/litcomponents/mc/files.js";
+    import { DialogContainer } from "src/litcomponents/custom-modal.js";
     import { optionsModal, setPopupOptions } from "src/utils/dropdown.js";
     import { pathSignal, signals } from "src/globalSignals";
     type ValidAction =
@@ -47,6 +53,8 @@ import CodeEditor from "./codeEditor.astro";
         "filemanager",
     ) as FileExplorer | null;
     const filepopup = document.getElementById("fileOptions");
+    const newFile = document.getElementById("file-Editor") as DialogContainer;
+
     document.addEventListener("DOMContentLoaded", function () {
         const actionsElement = document.getElementById("FileActions");
         if (!actionsElement) return;
@@ -97,7 +105,6 @@ import CodeEditor from "./codeEditor.astro";
             if (isValidEvent) {
                 switch (event.detail.id) {
                     case buttonsConfig[0].id:
-                        const newFile = document.getElementById("file-Editor") as HTMLDialogElement;
                         newFile.show();
                         break;
                     case buttonsConfig[1].id:
@@ -138,7 +145,13 @@ import CodeEditor from "./codeEditor.astro";
                 if (!("detail" in e)) return;
                 const { data, event } = e.detail as ItemMenuEventDetail;
                 if (Evname === "selected") {
-                    if (data.type !== "directory") return;
+                    if (data.type !== "directory") {
+                        newFile.show();
+                        const editorContent = signals.set("fileEditor-content", "text=false");
+                        const editorLang = signals.set("fileEditor-lang", "plaintext");
+
+                        return;
+                    }
                     pathSignal.value = window.selectedServer + "/" + data.path;
                     //    fetchFiles(window.selectedServer + "/" + data.path);
                 } else if (Evname === "menu") {
