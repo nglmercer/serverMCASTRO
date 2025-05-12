@@ -44,7 +44,7 @@ export class CInput extends LitElement {
     // Properties with decorators
     @property({ type: String, reflect: true }) type: InputType = 'text';
     @property({ type: String, reflect: true }) name?: string;
-    @property({ type: String }) value?: string;
+    @property({ type: String }) value?: string = '';
     @property({ type: String, reflect: true }) placeholder?: string;
     @property({ type: Boolean, reflect: true }) disabled: boolean = false;
     @property({ type: Boolean, reflect: true }) readonly: boolean = false;
@@ -162,6 +162,8 @@ export class CInput extends LitElement {
       --inp-disabled-color: #888;
       --inp-slider-bg: #ccc;
       --inp-slider-knob: white;
+      --padding: 0.5rem;
+      --border: 1px solid var(--inp-border-color);
     }
     
     :host([darkmode]) {
@@ -176,7 +178,7 @@ export class CInput extends LitElement {
     .inp-cont {
       display: flex;
       flex-direction: column;
-      padding: 0.5rem;
+      padding: var(--padding);
     }
     
     label {
@@ -188,7 +190,7 @@ export class CInput extends LitElement {
 
     input, textarea, select {
       padding: 0.5rem;
-      border: 1px solid var(--inp-border-color);
+      border: border: var(--border);
       border-radius: 4px;
       font-size: 14px;
       background-color: inherit;

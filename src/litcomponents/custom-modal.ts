@@ -266,27 +266,9 @@ export class DialogContainer extends LitElement {
                     visibility var(--dlg-transition-duration) ease;
       }
 
-      .dlg-cnt {
-        max-height: var(--dlg-content-max-height);
-        overflow-y: auto;
-
-        background: var(--dlg-content-bg);
-        color: var(--dlg-content-color);
-        border-radius: var(--dlg-content-border-radius);
-        padding: var(--dlg-content-padding);
-
-        transform: scale(0.95);
-        transition: transform var(--dlg-transition-duration) ease;
-        transition-property: transform;
-      }
-
       .dlg-ov.visible {
         opacity: 1;
         visibility: visible;
-      }
-
-      .dlg-ov.visible .dlg-cnt {
-        transform: scale(1);
       }
     `;
   }
@@ -294,9 +276,7 @@ export class DialogContainer extends LitElement {
   render() {
     return html`
       <div class="dlg-ov ${this.visible ? 'visible' : ''}" @click="${this._handleOverlayClick}">
-        <div class="dlg-cnt">
           <slot></slot>
-        </div>
       </div>
     `;
   }

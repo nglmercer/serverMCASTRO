@@ -1,0 +1,340 @@
+---
+// src/components/CodeEditor.astro
+export interface Props {
+    editorId: string; // Obligatorio: ID para el elemento del editor
+    initialLanguage?: string;
+    initialContent?: string;
+    instanceName?: string; // Opcional: nombre para la instancia en window (ej: "myEditor")
+}
+
+const {
+    editorId,
+    initialLanguage = 'plaintext',
+    initialContent = '',
+    instanceName // Si no se provee, se generará uno
+} = Astro.props;
+
+// DEBES ASEGURARTE DE QUE HIGHLIGHT.JS ESTÉ CARGADO EN TU PÁGINA
+// Puedes hacerlo en tu layout principal o en la página donde uses este componente:
+// <head>
+//   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+//   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+//   <!-- Opcional: cargar lenguajes específicos si no usas el paquete completo -->
+//   <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script> -->
+//   <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script> -->
+//   <!-- <script>hljs.highlightAll(); // Opcional, si tienes otros bloques <pre><code> que necesiten resaltado inicial</script> -->
+// </head>
+---
+
+<div id={editorId} class="code-editor-container" tabindex="0">
+    <!-- El editor se inicializará aquí por el script del cliente -->
+</div>
+
+<style>
+.code-editor-container {
+    border: 1px solid #ccc;
+    padding: 10px;
+    min-height: 150px; /* Altura mínima para el editor */
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    font-size: 0.9em;
+    white-space: pre; /* HLJS maneja los saltos de línea, pre es mejor para el contenedor */
+    overflow: auto;   /* Scroll si el contenido es muy largo */
+    line-height: 1.4;
+}
+.code-editor-container:focus {
+    outline: 2px solid dodgerblue;
+    outline-offset: -1px;
+}
+
+/* ¡NO OLVIDES AÑADIR LOS ESTILOS DE UN TEMA DE HIGHLIGHT.JS! */
+/* Por ejemplo, si instalaste highlight.js vía npm:
+   @import 'highlight.js/styles/github.css';
+   O enlaza un CDN en tu <head>
+*/
+</style>
+<script define:vars={{ editorId, initialLanguage, initialContentProp: initialContent, instanceNameProp: instanceName }}>
+    window.EditorConfig = {
+        editorId,
+        initialLanguage,
+        initialContentProp,
+        instanceNameProp
+    };
+</script>
+<script>
+import hljs from 'highlight.js';
+import { signals} from 'src/globalSignals.ts';
+// Extender la interfaz Window para incluir nuestra propiedad EditorConfig
+interface Editortype {
+    editorId: string; // Obligatorio: ID para el elemento del editor
+    initialLanguage?: string;
+    initialContentProp?: string;
+    instanceNameProp?: string; // Opcional: nombre para la instancia en window (ej: "myEditor")
+}
+declare global {
+    interface Window {
+        EditorConfig:Editortype;
+        Editors: {
+            [key: string]: any;
+        }
+    }
+}
+
+
+
+const {
+    editorId,
+    initialLanguage,
+    initialContentProp,
+    instanceNameProp
+}: Editortype = window.EditorConfig;
+
+class CodeEditor {
+    private editorElement: HTMLElement;
+    private initialContent: string;
+    private initialLanguage: string;
+    private currentContent: string;
+    private currentLanguage: string;
+    private debouncedUpdateHighlight: (...args: any[]) => void = () => {}; // Inicialización por defecto
+    constructor(editorId: string, initialLanguage: string = 'plaintext', initialContent: string = "") {
+        this.editorElement = document.getElementById(editorId) as HTMLElement;
+        this.initialContent = initialContent;
+        this.initialLanguage = initialLanguage;
+        this.currentContent = this.initialContent;
+        this.currentLanguage = this.initialLanguage;
+
+        if (this.editorElement) {
+            this.initializeEditor();
+        } else {
+            console.error(`CodeEditor: Elemento con ID '${editorId}' no encontrado.`);
+        }
+    }
+
+    initializeEditor(): void {
+        this.editorElement.contentEditable = 'true';
+        this.editorElement.innerText = this.initialContent;
+
+        // Resaltado inicial si hay contenido
+        if (this.initialContent.trim() !== "") {
+            this.updateHighlightSync(this.initialLanguage);
+        }
+
+        this.debouncedUpdateHighlight = this.debounce(this.updateHighlight.bind(this), 500);
+        this.editorElement.addEventListener('input', this.debouncedUpdateHighlight);
+        this.editorElement.addEventListener('paste', this.handlePaste.bind(this));
+        this.editorElement.addEventListener('keydown', this.handleKeyDown.bind(this));
+    }
+
+    debounce(func: (...args: any[]) => void, wait: number): (...args: any[]) => void {
+        let timeout: number | undefined;
+        return function(this: CodeEditor, ...args: any[]): void {
+            clearTimeout(timeout);
+            timeout = window.setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    saveCursorPosition(element: HTMLElement): number {
+        const selection = window.getSelection();
+        if (!selection || !selection.rangeCount) return 0;
+
+        const range = selection.getRangeAt(0);
+        if (!element.contains(range.startContainer)) return 0; // Cursor no está en el elemento
+
+        const preCaretRange = range.cloneRange();
+        preCaretRange.selectNodeContents(element);
+        preCaretRange.setEnd(range.endContainer, range.endOffset);
+        return preCaretRange.toString().length;
+    }
+
+    restoreCursorPosition(element: HTMLElement, cursorPosition: number): void {
+        const walker = document.createTreeWalker(
+            element, 
+            NodeFilter.SHOW_TEXT, 
+            null
+        );
+        let currentPosition = 0;
+        let targetNode: Node | null = null;
+        let targetOffset = 0;
+
+        while (walker.nextNode()) {
+            const node = walker.currentNode;
+            const nodeLength = node.nodeValue?.length || 0;
+
+            if (currentPosition + nodeLength >= cursorPosition) {
+                targetNode = node;
+                targetOffset = cursorPosition - currentPosition;
+                break;
+            }
+            currentPosition += nodeLength;
+        }
+
+        if (targetNode) {
+            try {
+                const range = document.createRange();
+                range.setStart(targetNode, targetOffset);
+                range.collapse(true);
+                const selection = window.getSelection();
+                if (selection) {
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            } catch (e) {
+                console.warn("Error al restaurar la posición del cursor:", e);
+                // Fallback: colocar el cursor al final si la restauración falla
+                element.focus();
+                const range = document.createRange();
+                range.selectNodeContents(element);
+                range.collapse(false); // false para colapsar al final
+                const selection = window.getSelection();
+                if (selection) {
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            }
+        }
+    }
+
+    // Resaltado síncrono, útil para inicialización y setContent
+    updateHighlightSync(languageHint?: string): void {
+        if (typeof hljs === 'undefined') return; // No hacer nada si hljs no está
+        const cursorPosition = this.saveCursorPosition(this.editorElement);
+        this.currentContent = this.editorElement.innerText;
+
+        if (this.currentContent.trim() === "") {
+            this.editorElement.innerHTML = ""; // Limpiar si está vacío
+            this.currentLanguage = 'plaintext';
+            this.restoreCursorPosition(this.editorElement, 0); // Cursor al inicio
+            return;
+        }
+
+        let result;
+        if (languageHint && languageHint !== 'plaintext' && hljs.getLanguage(languageHint)) {
+            result = hljs.highlight(this.currentContent, { language: languageHint, ignoreIllegals: true });
+        } else {
+            result = hljs.highlightAuto(this.currentContent);
+        }
+
+        this.editorElement.innerHTML = result.value;
+        this.currentLanguage = result.language || languageHint || 'plaintext';
+        this.restoreCursorPosition(this.editorElement, cursorPosition);
+    }
+
+    updateHighlight(): void {
+        if (typeof hljs === 'undefined') return;
+        // Usar updateHighlightSync para la lógica real, debounce solo controla la frecuencia
+        this.updateHighlightSync(); // Sin languageHint para que autodetecte
+    }
+
+    handleKeyDown(event: KeyboardEvent): void {
+        if (event.key === 'Tab') {
+            event.preventDefault();
+            document.execCommand('insertText', false, '    '); // Insertar 4 espacios (o '\t')
+        }
+        // Podrías añadir manejo para Enter para mantener indentación, pero es más complejo.
+    }
+
+    handlePaste(event: ClipboardEvent): void {
+        event.preventDefault();
+        const text = (event.clipboardData || (window as any).clipboardData).getData('text/plain'); // Preferir text/plain
+
+        // Usar document.execCommand para mejor compatibilidad con el historial de deshacer/rehacer
+        if (document.queryCommandSupported('insertText')) {
+            document.execCommand('insertText', false, text);
+        } else {
+            // Fallback para navegadores antiguos (menos común)
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount) {
+                const range = selection.getRangeAt(0);
+                range.deleteContents();
+                range.insertNode(document.createTextNode(text));
+                range.collapse(false); // Mover cursor al final del texto pegado
+            }
+        }
+        // El evento 'input' ya no es necesario aquí porque execCommand lo dispara
+        // o porque el cambio es directo y el debounce lo capturará.
+        // Forzar actualización si es necesario, pero usualmente el 'input' del debouncer es suficiente.
+        this.debouncedUpdateHighlight();
+    }
+
+    getContent(): string {
+        return this.editorElement.innerText; // Siempre obtener el texto plano actual
+    }
+
+    getLanguage(): string {
+        return this.currentLanguage;
+    }
+
+    resetToInitial(newInitialContent?: string, newInitialLanguage?: string): void {
+        this.initialContent = newInitialContent !== undefined ? newInitialContent : this.initialContent;
+        this.initialLanguage = newInitialLanguage !== undefined ? newInitialLanguage : this.initialLanguage;
+
+        this.currentContent = this.initialContent;
+        // this.currentLanguage = this.initialLanguage; // Se actualizará en updateHighlightSync
+
+        this.editorElement.innerText = this.currentContent;
+
+        if (this.currentContent.trim() !== "") {
+            this.updateHighlightSync(this.initialLanguage);
+        } else {
+            this.editorElement.innerHTML = "";
+            this.currentLanguage = 'plaintext';
+        }
+    }
+
+    setContent(content: string, language?: string): void {
+        this.currentContent = content;
+        this.editorElement.innerText = content; // Establecer como texto plano primero
+
+        if (content.trim() !== "") {
+            this.updateHighlightSync(language || this.currentLanguage);
+        } else {
+            this.editorElement.innerHTML = "";
+            this.currentLanguage = 'plaintext';
+        }
+    }
+}
+
+// --- Lógica de inicialización del script del cliente ---
+
+function initializeAstroCodeEditor(): void {
+    if (typeof hljs === 'undefined') {
+        console.error("Highlight.js (hljs) no está cargado. Por favor, inclúyelo en tu proyecto.");
+        const editorDiv = document.getElementById(editorId);
+        if (editorDiv) {
+            editorDiv.innerHTML = `<div style="color: red; padding: 10px; border: 1px solid red;">Error: Highlight.js (hljs) no está cargado. El editor de código no funcionará.</div>`;
+        }
+        return;
+    }
+
+    // Inicializar el editor con props pasadas desde el frontmatter de Astro
+    const editorInstance = new CodeEditor(editorId, initialLanguage, initialContentProp);
+
+    // Exponer la instancia del editor en el objeto window
+    // Usar el instanceNameProp provisto o generar uno por defecto
+    const finalInstanceName = instanceNameProp || `astroCodeEditor_${editorId.replace(/-/g, '_')}`;
+    window.Editors[finalInstanceName] = editorInstance;
+    let lastValue: string = '';
+    setInterval(() => {
+        const thisInstance = window.Editors[finalInstanceName];
+        if (thisInstance) { 
+            const content = thisInstance.getContent();
+            if (content !== lastValue) {
+                lastValue = content;
+                console.log(`CodeEditor instance '${finalInstanceName}' actualizado`, content,thisInstance.getLanguage());
+            }
+        }
+    } , 1000);
+    console.log(`CodeEditor instance '${finalInstanceName}' inicializada y disponible en window.${finalInstanceName}`);
+
+    // Ejemplo de cómo podrías querer hacerla globalmente accesible con un nombre fijo
+    // si tuvieras un editor principal específico:
+    // if (editorId === 'main-code-editor') {
+    //   window.mainCodeEditor = editorInstance;
+    // }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeAstroCodeEditor);
+} else {
+    initializeAstroCodeEditor();
+}
+</script>

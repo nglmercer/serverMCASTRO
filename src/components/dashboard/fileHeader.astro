@@ -1,59 +1,87 @@
 ---
-import CPopup from '@components/solid/solid.tsx';
-import PathNavigator from '@components/solid/PathNavigator.tsx';
+import CPopup from "@components/solid/solid.tsx";
+import PathNavigator from "@components/solid/PathNavigator.tsx";
+import CodeEditor from "./codeEditor.astro";
 ---
+
 <script src="/src/litcomponents/mcinit.js"></script>
 <div class="content-header">
-        <action-buttons-lit id="FileActions"></action-buttons-lit>
-    </div>
-    <p id="current-path">Current Path: ./</p>
-<PathNavigator  client:only="solid-js" />
+    <action-buttons-lit id="FileActions"></action-buttons-lit>
+</div>
+<p id="current-path">Current Path: ./</p>
+<PathNavigator client:only="solid-js" />
 <file-explorer current-path="/" id="filemanager"></file-explorer>
-<CPopup id='fileOptions' class="file-options" client:load />
-
+<CPopup id="fileOptions" class="file-options" client:load />
+<dialog-container id="file-Editor">
+    <div class="modal__base">
+      <c-input type="text" name="name" id="file-name" placeholder="Nombre del archivo" required style="--padding: 0; border: 0; background-color: var(--bg-dark-accent-light);"></c-input>
+      <c-input type="textarea" name="content" id="file-content" placeholder="Contenido del archivo"  required style="--padding: 0; border: 0; background-color: var(--bg-dark-accent);"></c-input>
+      <CodeEditor editorId="file-Editor-editor" initialLanguage="plaintext" initialContent="" instanceName="fileEditor"></CodeEditor>
+      <div class="actions-bg flex center p-2">
+            <button class="btn btn-primary" id="save-file">Guardar</button>
+            <button class="btn btn-primary" id="cancel-file">Cancelar</button>
+        </div>
+    </div>
+</dialog-container>
 <script>
     import { ActionButtonsLit } from "src/litcomponents/mc/barstatus.js";
     import { filemanagerapi } from "src/fetch/fetchapi";
-    import { FileExplorer, type ItemMenuEventDetail, type FileSystemItem } from "src/litcomponents/mc/files.js";
+    import {
+        FileExplorer,
+        type ItemMenuEventDetail,
+        type FileSystemItem,
+    } from "src/litcomponents/mc/files.js";
     import { optionsModal, setPopupOptions } from "src/utils/dropdown.js";
     import { pathSignal, signals } from "src/globalSignals";
-    type ValidAction = 'start' | 'stop' | 'restart' | 'send' | 'log' | 'info' | 'players' | 'metrics' | 'kill';
-    const filemanager = document.getElementById("filemanager") as FileExplorer | null;
+    type ValidAction =
+        | "start"
+        | "stop"
+        | "restart"
+        | "send"
+        | "log"
+        | "info"
+        | "players"
+        | "metrics"
+        | "kill";
+    const filemanager = document.getElementById(
+        "filemanager",
+    ) as FileExplorer | null;
     const filepopup = document.getElementById("fileOptions");
     document.addEventListener("DOMContentLoaded", function () {
         const actionsElement = document.getElementById("FileActions");
         if (!actionsElement) return;
         if (!(actionsElement instanceof ActionButtonsLit)) return;
         initListener();
+        initMFilelisteners();
         // Initial buttons
         const buttonsConfig = [
             {
-                id: 'new-file',
-                label: '{{create}} {{file}}',
-                icon: 'add_circle',
-                action: 'new-file'
+                id: "new-file",
+                label: "{{create}} {{file}}",
+                icon: "add_circle",
+                action: "new-file",
             },
             {
-                id: 'upload-file',
-                label: '{{uploadFile}}',
-                icon: 'upload_file',
-                action: 'upload-file',
-                iconOnly: true
+                id: "upload-file",
+                label: "{{uploadFile}}",
+                icon: "upload_file",
+                action: "upload-file",
+                iconOnly: true,
             },
             {
-                id: 'new-folder',
-                label: '{{create}} {{folder}}',
-                icon: 'create_new_folder',
-                action: 'new-folder',
-                iconOnly: true
+                id: "new-folder",
+                label: "{{create}} {{folder}}",
+                icon: "create_new_folder",
+                action: "new-folder",
+                iconOnly: true,
             },
             {
-                id: 'refresh-folder',
-                label: '{{refresh}}',
-                icon: 'refresh',
-                action: 'refresh-folder',
-                iconOnly: true
-            }
+                id: "refresh-folder",
+                label: "{{refresh}}",
+                icon: "refresh",
+                action: "refresh-folder",
+                iconOnly: true,
+            },
         ];
         buttonsConfig.forEach((button) => {
             actionsElement.addButton(button);
@@ -61,12 +89,16 @@ import PathNavigator from '@components/solid/PathNavigator.tsx';
 
         actionsElement.addEventListener("button-clicked", (event) => {
             if (!("detail" in event)) return;
-            if (!(event instanceof CustomEvent)) return;    
-            const isValidEvent = buttonsConfig.find(button => button.id === event.detail.id);
+            if (!(event instanceof CustomEvent)) return;
+            const isValidEvent = buttonsConfig.find(
+                (button) => button.id === event.detail.id,
+            );
             console.log("isValidEvent", isValidEvent);
             if (isValidEvent) {
                 switch (event.detail.id) {
                     case buttonsConfig[0].id:
+                        const newFile = document.getElementById("file-Editor") as HTMLDialogElement;
+                        newFile.show();
                         break;
                     case buttonsConfig[1].id:
                         break;
@@ -76,14 +108,18 @@ import PathNavigator from '@components/solid/PathNavigator.tsx';
                         refreshFolder();
                         break;
                     default:
-                        console.log("Button clicked:", event.detail, isValidEvent);
+                        console.log(
+                            "Button clicked:",
+                            event.detail,
+                            isValidEvent,
+                        );
                         break;
                 }
             }
         });
     });
-    refreshFolder()
-    async function fetchFiles(path:string) {
+    refreshFolder();
+    async function fetchFiles(path: string) {
         const pathENCODED = encodeURIComponent(path);
         const result = await filemanagerapi.getFolderInfo(pathENCODED);
         console.log("result", result);
@@ -93,18 +129,18 @@ import PathNavigator from '@components/solid/PathNavigator.tsx';
             filemanager.currentPath = path;
         }
     }
-    async function initListener(){
+    async function initListener() {
         const events = ["selected", "menu", "updated"];
-        events.forEach(Evname => {
+        events.forEach((Evname) => {
             if (!filemanager) return;
             (filemanager as FileExplorer).addEventListener(Evname, (e) => {
                 console.log("event", Evname, e, typeof e);
-                if (!('detail' in e)) return;
+                if (!("detail" in e)) return;
                 const { data, event } = e.detail as ItemMenuEventDetail;
                 if (Evname === "selected") {
-                    if (data.type !== 'directory') return;
+                    if (data.type !== "directory") return;
                     pathSignal.value = window.selectedServer + "/" + data.path;
-                //    fetchFiles(window.selectedServer + "/" + data.path);
+                    //    fetchFiles(window.selectedServer + "/" + data.path);
                 } else if (Evname === "menu") {
                     const popupOptions = getOptions(data);
                     console.log("menu", data, event);
@@ -113,11 +149,14 @@ import PathNavigator from '@components/solid/PathNavigator.tsx';
                     pathSignal.value = data;
                 }
             });
-            signals.subscribe<string>('path', (value:string, oldValue:string) => {
-                console.log("pathSignal", value, oldValue);
-            //    fetchFiles(value);
-             if (value !== oldValue) fetchFiles(value);
-            });
+            signals.subscribe<string>(
+                "path",
+                (value: string, oldValue: string) => {
+                    console.log("pathSignal", value, oldValue);
+                    //    fetchFiles(value);
+                    if (value !== oldValue) fetchFiles(value);
+                },
+            );
         });
     }
     async function refreshFolder() {
@@ -127,53 +166,80 @@ import PathNavigator from '@components/solid/PathNavigator.tsx';
     function getOptions(data: FileSystemItem) {
         // Definir opciones individuales
         const downloadOption = {
-            html: optionsModal({id:"download-file",icon:"download",text:"Download File"}),
-            callback: function() {
+            html: optionsModal({
+                id: "download-file",
+                icon: "download",
+                text: "Download File",
+            }),
+            callback: function () {
                 console.log("Option 1 clicked");
-            }
+            },
         };
-        
+
         const renameOption = {
-            html: optionsModal({id:"rename-file",icon:"bookmark_manager",text:"Rename File"}),
-            callback: function() {
+            html: optionsModal({
+                id: "rename-file",
+                icon: "bookmark_manager",
+                text: "Rename File",
+            }),
+            callback: function () {
                 console.log("Option 2 clicked");
-            }
+            },
         };
-        
+
         const deleteOption = {
-            html: optionsModal({id:"delete-file",icon:"delete",text:"Delete File"}),
-            callback: function() {
+            html: optionsModal({
+                id: "delete-file",
+                icon: "delete",
+                text: "Delete File",
+            }),
+            callback: function () {
                 console.log("Option 3 clicked");
-            }
+            },
         };
-        
+
         // Determinar qué opciones incluir basándose en data.isDirectory u otras condiciones
         const options = [];
-        
+
         if (!data.isDirectory) {
             options.push(downloadOption);
         }
-        
+
         // Estas opciones están disponibles para ambos tipos
         options.push(renameOption);
         options.push(deleteOption);
-        
+
         return options;
+    }
+    async function initMFilelisteners() {
+        const MF_actions = ["save-file", "cancel-file"];
+        const MF_elements: Record<string, HTMLButtonElement> = {};
+        MF_actions.forEach((action:string) => {
+            const element = document.getElementById(action) as HTMLButtonElement;
+            if (element) {
+                MF_elements[action] = element;
+            }
+        });
+        console.log("MF_elements", MF_elements);
     }
 </script>
 <style>
-     .content-header {
+    .content-header {
         width: 100%;
         height: max-content;
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, auto));
-        gap: 1rem
+        gap: 1rem;
     }
-     .content-header .actions {
+    .content-header .actions {
         justify-self: center;
         align-self: center;
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+    .actions-bg {
+        background-color: var(--bg-dark-accent-lighter);
+        gap: 8px;
     }
 </style>

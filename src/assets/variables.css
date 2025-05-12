@@ -63,6 +63,10 @@
     --color-primary-600: #2a63db;
     --color-primary-700: #1d4fb8;
 
+    --bg-dark: #151e27;
+    --bg-dark-accent: #222c3a;
+    --bg-dark-accent-light: #2e3e53;
+    --bg-dark-accent-lighter: #68798a;
 
     --primary-light: var(--color-blue-500);
     --secondary-light: var(--color-cyan-400);
