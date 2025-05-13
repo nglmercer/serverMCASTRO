@@ -67,6 +67,10 @@ const quickActions: QuickAction[] = [
       
       <!-- Lista de servidores -->
       <div class="servers-list">
+        <a href="/new" class="btn btn-primary">
+          <i class="fa-solid fa-plus"></i>
+          New Server
+        </a>
         {servers.map(server => (
           <ServerCard server={server} />
         ))}

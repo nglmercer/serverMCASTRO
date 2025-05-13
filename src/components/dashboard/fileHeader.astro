@@ -15,12 +15,12 @@ import CodeEditor from "@components/dashboard/CodeEditor.astro";
 <dialog-container id="file-Editor">
     <div class="modal__base">
       <c-input type="text" name="name" id="file-name" placeholder="Nombre del archivo" required style="--padding: 0; border: 0; background-color: var(--bg-dark-accent-light);"></c-input>
-      <c-input type="textarea" name="content" id="file-content" placeholder="Contenido del archivo"  required style="--padding: 0; border: 0; background-color: var(--bg-dark-accent);"></c-input>
+<!--       <c-input type="textarea" name="content" id="file-content" placeholder="Contenido del archivo"  required style="--padding: 0; border: 0; background-color: var(--bg-dark-accent);"></c-input>
+ -->
       <CodeEditor 
         id="fileEditor" 
         initialContent="" 
         initialLanguage="json"
-        height="200px"
       />
       <div class="actions-bg flex center p-2">
             <button class="btn btn-primary" id="save-file">Guardar</button>
@@ -56,6 +56,7 @@ import CodeEditor from "@components/dashboard/CodeEditor.astro";
     const newFile = document.getElementById("file-Editor") as DialogContainer;
 
     document.addEventListener("DOMContentLoaded", function () {
+        const filename = signals.create<string>("file-name", "test.txt");
         const actionsElement = document.getElementById("FileActions");
         if (!actionsElement) return;
         if (!(actionsElement instanceof ActionButtonsLit)) return;
@@ -136,20 +137,33 @@ import CodeEditor from "@components/dashboard/CodeEditor.astro";
             filemanager.currentPath = path;
         }
     }
+    async function readFile(path: string) {
+        const pathENCODED = encodeURIComponent(path);
+        const result = await filemanagerapi.readFileByPath(pathENCODED);
+        console.log("result", result);
+        if (result && result.data) {
+            return result.data;
+        }
+        return false;
+    }
     async function initListener() {
         const events = ["selected", "menu", "updated"];
         events.forEach((Evname) => {
             if (!filemanager) return;
-            (filemanager as FileExplorer).addEventListener(Evname, (e) => {
+            (filemanager as FileExplorer).addEventListener(Evname,async (e) => {
                 console.log("event", Evname, e, typeof e);
                 if (!("detail" in e)) return;
                 const { data, event } = e.detail as ItemMenuEventDetail;
                 if (Evname === "selected") {
                     if (data.type !== "directory") {
                         newFile.show();
-                        const editorContent = signals.set("fileEditor-content", "text=false");
-                        const editorLang = signals.set("fileEditor-lang", "plaintext");
-
+                        //const editorContent = signals.set("fileEditor-content", "text=false");
+                        //const editorLang = signals.set("fileEditor-lang", "plaintext");
+                        const fileData = await readFile(window.selectedServer + "/" + data.path);
+                        if (!fileData) return;
+                        signals.set("fileEditor-content", fileData);
+                        signals.set("file-name", data.path);
+                        //console.log("fileData", fileData,editorContent);
                         return;
                     }
                     pathSignal.value = window.selectedServer + "/" + data.path;
@@ -231,6 +245,23 @@ import CodeEditor from "@components/dashboard/CodeEditor.astro";
             const element = document.getElementById(action) as HTMLButtonElement;
             if (element) {
                 MF_elements[action] = element;
+                element.addEventListener("click", async (e) => {
+                    console.log("MF_action", action);
+                    if (action === "save-file") {
+                        const fileData = signals.get("fileEditor-content")?.value;
+                        console.log("fileData", fileData);
+                        if (!fileData) return;
+                        const result = await filemanagerapi.writeFile({
+                            directoryname: window.selectedServer,
+                            filename: signals.get("file-name")?.value,
+                            content: fileData,
+                        });
+                        console.log("result", result);
+                    }
+                    if (action === "cancel-file") {
+                        newFile.hide();
+                    }
+                });
             }
         });
         console.log("MF_elements", MF_elements);

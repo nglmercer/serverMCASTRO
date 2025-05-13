@@ -260,6 +260,18 @@ class FileManagerApi extends BaseApi  {
             headers: this._authHeaders()
         }));
     }
+    // GET "read-file-by-path/:path(.*)"
+    async readFileByPath(path) {
+        return this.request(http.get(`${this.host}/read-file-by-path/${path}`, {
+            headers: this._authHeaders()
+        }));
+    }
+    //POST/write-file' { directoryname: rawDirName, filename: rawFileName, content }
+    async writeFile(formData) {
+        return this.request(http.post(`${this.host}/write-file`, formData, {
+            headers: this._authHeaders()
+        }));
+    }
 }
 const fetchapi = new FetchApi(actualBaseApi);
 const serverapi = new ServerApi(actualBaseApi)
