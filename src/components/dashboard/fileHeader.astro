@@ -2,8 +2,10 @@
 import CPopup from "@components/solid/solid.tsx";
 import PathNavigator from "@components/solid/PathNavigator.tsx";
 import CodeEditor from "@components/dashboard/CodeEditor.astro";
+import FileUploader from "@components/solid/FileUploader.tsx";
 ---
 
+<link rel="stylesheet" href="/src/components/solid/FileUploader.css" />
 <script src="/src/litcomponents/mcinit.js"></script>
 <div class="content-header">
     <action-buttons-lit id="FileActions"></action-buttons-lit>
@@ -26,6 +28,11 @@ import CodeEditor from "@components/dashboard/CodeEditor.astro";
             <button class="btn btn-primary" id="save-file">Guardar</button>
             <button class="btn btn-primary" id="cancel-file">Cancelar</button>
         </div>
+    </div>
+</dialog-container>
+<dialog-container id="upload-files">
+    <div class="modal__base p-10">
+        <FileUploader client:load apiEndpoint="/api/upload" multiple={true} />
     </div>
 </dialog-container>
 <script>
@@ -54,7 +61,7 @@ import CodeEditor from "@components/dashboard/CodeEditor.astro";
     ) as FileExplorer | null;
     const filepopup = document.getElementById("fileOptions");
     const newFile = document.getElementById("file-Editor") as DialogContainer;
-
+    const uploadFiles = document.getElementById("upload-files") as DialogContainer;
     document.addEventListener("DOMContentLoaded", function () {
         const filename = signals.create<string>("file-name", "test.txt");
         const actionsElement = document.getElementById("FileActions");
@@ -109,6 +116,8 @@ import CodeEditor from "@components/dashboard/CodeEditor.astro";
                         newFile.show();
                         break;
                     case buttonsConfig[1].id:
+                        uploadFiles.show();
+                        console.log("uploadFiles", uploadFiles);
                         break;
                     case buttonsConfig[2].id:
                         break;

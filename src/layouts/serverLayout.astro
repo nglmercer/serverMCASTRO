@@ -9,7 +9,7 @@ const { server } = Astro.params;
 	</div>
 	<div class="content">
 		<ServerHeader/>
-    <div class="console-layout">
+    <div class="config-layout p-10">
         <slot/>
     </div>
 	</div>
@@ -18,3 +18,8 @@ const { server } = Astro.params;
     window.selectedServer = server;
 	console.log("server", server);
 </script>
+<style>
+	.config-layout {
+		background-color: var(--secondary-bg);
+	}
+</style>
