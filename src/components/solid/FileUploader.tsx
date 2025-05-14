@@ -121,42 +121,53 @@ const FileUploader: Component<FileUploaderProps> = (props) => {
     setErrorType('');
     setErrorMessage('');
   };
+      //formData.append("selectedServer", window.selectedServer);
+const uploadFiles = async () => {
+  if (files().length === 0) return;
 
-  const uploadFiles = async () => {
-    if (files().length === 0) return;
-    
-    setIsUploading(true);
-    resetErrors();
-    
-    try {
-      const formData = new FormData();
-      
-      files().forEach((fileData, index) => {
-        const blob = new Blob([fileData.file], { type: fileData.file.type });
-        const file = new File([blob], fileData.editedName, { type: fileData.file.type });
-        formData.append(`file-${index}`, file);
-      });
-      
-      const response = await fetch(props.apiEndpoint, {
-        method: 'POST',
-        body: formData
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+  setIsUploading(true);
+  resetErrors();
+
+  try {
+    const formData = new FormData();
+    files().forEach((fileData, index) => {
+      // SIMPLIFIED: Append original file, pass editedName as the third argument
+      formData.append(`file-${index}`, fileData.file, fileData.editedName);
+    });
+    console.log("formData after simplified append", formData); // Check this log
+
+    const urlFetch = props.apiEndpoint + (props.apiEndpoint.includes("?") ? "&" : "?") + "subDirectory=" + window.selectedServer;
+    console.log("urlFetch", urlFetch);
+    const response = await fetch(urlFetch, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      // Log the server's actual error message if available
+      let errorBody = { message: `HTTP error! Status: ${response.status}` };
+      try {
+        errorBody = await response.json();
+      } catch (e) {
+        console.warn("Could not parse error response as JSON.");
       }
-      
-      setFiles([]);
-      if (fileInputRef) fileInputRef.value = '';
-      
-    } catch (error) {
-      console.error('Upload failed:', error);
-      setErrorType('failed-request');
-      setErrorMessage('Something went really wrong, and we can\'t process that file. Try another file.');
-    } finally {
-      setIsUploading(false);
+      console.error('Upload failed. Server response:', errorBody);
+      throw new Error(errorBody.message || `HTTP error! Status: ${response.status}`);
     }
-  };
+
+    // ... success logic
+    setFiles([]);
+    if (fileInputRef) fileInputRef.value = '';
+
+  } catch (error) {
+    console.error('Upload failed (catch block):', error);
+    setErrorType('failed-request');
+    // Use error.message if it came from the server response
+    setErrorMessage(String(error) || 'Something went really wrong, and we can\'t process that file. Try another file.');
+  } finally {
+    setIsUploading(false);
+  }
+};
 
   const formatFileSize = (size: number): string => {
     if (size < 1024) return `${size} B`;

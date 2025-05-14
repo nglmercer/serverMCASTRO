@@ -272,6 +272,11 @@ class FileManagerApi extends BaseApi  {
             headers: this._authHeaders()
         }));
     }
+    async uploadFiles(formData) {
+        return this.request(http.post(`${this.host}/upload-files`, formData, {
+            headers: this._authHeaders()
+        }));
+    }
 }
 const fetchapi = new FetchApi(actualBaseApi);
 const serverapi = new ServerApi(actualBaseApi)
