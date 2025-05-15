@@ -11,7 +11,7 @@ import FileUploader from "@components/solid/FileUploader.tsx";
     <action-buttons-lit id="FileActions"></action-buttons-lit>
 </div>
 <p id="current-path">Current Path: ./</p>
-<PathNavigator client:only="solid-js" />
+<PathNavigator client:only="solid-js" basePath={typeof window !== "undefined" ? window.selectedServer : ""} />
 <file-explorer current-path="/" id="filemanager"></file-explorer>
 <CPopup id="fileOptions" class="file-options" client:load />
 <dialog-container id="file-Editor" required>

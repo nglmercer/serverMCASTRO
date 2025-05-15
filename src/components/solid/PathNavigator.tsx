@@ -3,24 +3,62 @@ import { For, Show, createEffect, onCleanup, onMount, createSignal as createSoli
 import { pathSignal as globalCustomPathSignal, normalizePath, ROOT_PATH } from '../../globalSignals';
 
 export interface PathNavigatorProps {
-  basePath?: string;
+  basePath?: string; // Vendrá de window.selectedServer o será ""
 }
 
+// Define un nombre de servidor por defecto si window.selectedServer está vacío
+// y no quieres que la base sea ROOT_PATH ('/').
+// Cámbialo según tus necesidades. Si quieres permitir '/' como base si selectedServer está vacío,
+// entonces la lógica original de effectiveBasePath era más adecuada.
+const DEFAULT_SERVER_NAME_IF_EMPTY = (typeof window !== "undefined" ? window.selectedServer : "") || "/"; // Por ejemplo
+
 const PathNavigator = (props: PathNavigatorProps) => {
-  // Memoizar el basePath normalizado para evitar cálculos redundantes
-  const effectiveBasePath = createMemo(() => normalizePath(props.basePath ?? ROOT_PATH));
+  const effectiveBasePath = createMemo(() => {
+    let pathFromServer = props.basePath;
+
+    // Si props.basePath está vacío (ej: window.selectedServer no estaba definido o era ""),
+    // y queremos asegurar que la base NUNCA sea ROOT_PATH ('/'),
+    // entonces usamos un nombre de servidor por defecto.
+    if (!pathFromServer || pathFromServer === ROOT_PATH) {
+      // console.warn(`PathNavigator: basePath was empty or root. Using default: ${DEFAULT_SERVER_NAME_IF_EMPTY}`);
+      pathFromServer = DEFAULT_SERVER_NAME_IF_EMPTY;
+    }
+    
+    // normalizePath debe asegurar que "serverName" se convierta en "/serverName"
+    // y "/serverName/" se convierta en "/serverName".
+    // También, si pathFromServer ya es "/serverName", debe mantenerse así.
+    const normalized = normalizePath(pathFromServer);
+
+    // Doble chequeo: si normalizePath("") devuelve ROOT_PATH y pathFromServer era "",
+    // y no queremos ROOT_PATH, forzamos el default de nuevo.
+    // Esto es más robusto si normalizePath tiene un comportamiento peculiar con ""
+    if (normalized === ROOT_PATH && pathFromServer !== ROOT_PATH) { // pathFromServer sería DEFAULT_SERVER_NAME_IF_EMPTY
+        // Esto puede pasar si DEFAULT_SERVER_NAME_IF_EMPTY es "" y normalizePath("") es ROOT_PATH
+        // En ese caso, normalizePath(DEFAULT_SERVER_NAME_IF_EMPTY) podría haber devuelto ROOT_PATH.
+        // Si DEFAULT_SERVER_NAME_IF_EMPTY es algo como "miServidor", normalizePath("miServidor") debería ser "/miServidor"
+        // y no ROOT_PATH. Esta condición es una salvaguarda.
+        const reNormalizedDefault = normalizePath(DEFAULT_SERVER_NAME_IF_EMPTY);
+        if (reNormalizedDefault === ROOT_PATH && reNormalizedDefault !== ROOT_PATH) {
+            // Esto indicaría un problema con normalizePath o DEFAULT_SERVER_NAME_IF_EMPTY
+            console.error("Critical: DEFAULT_SERVER_NAME_IF_EMPTY results in ROOT_PATH. Check configuration.");
+            // Podrías lanzar un error o retornar un valor seguro hardcodeado que no sea ROOT_PATH.
+            // Por ahora, asumimos que normalizePath(DEFAULT_SERVER_NAME_IF_EMPTY) produce algo como /default-server
+            return reNormalizedDefault;
+        }
+        return reNormalizedDefault;
+    }
+
+    return normalized;
+  });
   
-  // Función que se ejecuta una vez al inicio para determinar el path inicial
   const getInitialNormalizedPath = () => {
     const globalPath = normalizePath(globalCustomPathSignal.value);
-    const basePath = effectiveBasePath();
+    const basePath = effectiveBasePath(); // Ya está normalizado y nunca es ROOT_PATH (según nueva lógica)
 
-    // Determinar el path inicial basado en el path global y el base path
     const initialPathToUse = !globalPath.startsWith(basePath) || globalPath.length < basePath.length 
       ? basePath 
       : globalPath;
 
-    // Actualizar el path global solo si es necesario, evitando actualizaciones redundantes
     if (globalCustomPathSignal.value !== initialPathToUse) {
       globalCustomPathSignal.value = initialPathToUse;
     }
@@ -30,50 +68,38 @@ const PathNavigator = (props: PathNavigatorProps) => {
 
   const [currentPath, setCurrentPath] = createSolidSignal<string>(getInitialNormalizedPath());
 
-  // Los segmentos de path se calculan solo cuando cambia currentPath o effectiveBasePath
   const pathSegments = createMemo(() => {
-    const path = currentPath(); // Ya está normalizado
-    const basePath = effectiveBasePath(); // Ya está normalizado
+    const path = currentPath(); 
+    const basePath = effectiveBasePath();
     const segments: { name: string; path: string }[] = [];
 
-    // Calcular el nombre del segmento base - solo una vez
-    let baseSegmentName = 'Raíz';
-    if (basePath !== ROOT_PATH) {
-      const baseParts = basePath.split('/').filter(p => p.length > 0);
-      baseSegmentName = baseParts.length > 0 ? baseParts[baseParts.length - 1] : 'Base';
-    }
+    // El nombre del segmento base. Como basePath nunca es ROOT_PATH, siempre tendrá partes.
+    const baseParts = basePath.split('/').filter(p => p.length > 0);
+    // Si basePath es /server1, baseParts es ["server1"]. name = "server1".
+    // Si basePath es /data/server1, baseParts es ["data", "server1"]. name = "server1".
+    const baseSegmentName = baseParts.length > 0 ? baseParts[baseParts.length - 1] : 'Base'; // 'Base' como fallback improbable
     segments.push({ name: baseSegmentName, path: basePath });
 
-    // Si estamos en la raíz, evitar cálculos adicionales
     if (path === basePath) {
       return segments;
     }
     
-    // Calcular el path relativo una sola vez
     let relativePathString = '';
+    // basePath nunca es ROOT_PATH, así que path.substring(basePath.length + 1) es seguro.
     if (path.startsWith(basePath) && path.length > basePath.length) {
-      relativePathString = path.substring(basePath === ROOT_PATH ? basePath.length : basePath.length + 1);
+      relativePathString = path.substring(basePath.length + 1);
     }
     
     const relativeParts = relativePathString.split('/').filter(p => p.length > 0);
     
-    // Optimización: Pre-calcular todos los segmentos de una vez para reducir llamadas a normalizePath
     if (relativeParts.length > 0) {
       let currentSegmentPathAccumulator = basePath;
-      
       for (const part of relativeParts) {
-        // Construir el path acumulado directamente sin llamar a normalizePath en cada iteración
-        currentSegmentPathAccumulator = currentSegmentPathAccumulator === ROOT_PATH
-          ? `${ROOT_PATH}${part}`
-          : `${currentSegmentPathAccumulator}/${part}`;
-        
-        // Solo normalizar una vez al final si es necesario
-        if (currentSegmentPathAccumulator !== ROOT_PATH && 
-            (currentSegmentPathAccumulator.includes('//') || 
-             currentSegmentPathAccumulator.includes('\\'))) {
+        currentSegmentPathAccumulator = `${currentSegmentPathAccumulator}/${part}`;
+        // Normalizar solo si es estrictamente necesario (aunque las construcciones deberían ser limpias)
+        if (currentSegmentPathAccumulator.includes('//') || currentSegmentPathAccumulator.includes('\\')) {
           currentSegmentPathAccumulator = normalizePath(currentSegmentPathAccumulator);
         }
-        
         segments.push({ name: part, path: currentSegmentPathAccumulator });
       }
     }
@@ -81,97 +107,89 @@ const PathNavigator = (props: PathNavigatorProps) => {
     return segments;
   });
 
-  // Optimización: Combinar las lógicas de efectos y manejo de caminos para reducir cálculos redundantes
   onMount(() => {
     const unsubscribe = globalCustomPathSignal.subscribe((newGlobalValue: string) => {
       const normalizedNewGlobalValue = normalizePath(newGlobalValue);
       const basePath = effectiveBasePath();
       
-      // Corregir path global solo si es necesario
       if (newGlobalValue !== normalizedNewGlobalValue && globalCustomPathSignal.value === newGlobalValue) {
         globalCustomPathSignal.value = normalizedNewGlobalValue;
-        return; // La nueva ejecución del subscriber se encargará del resto
+        return; 
       }
       
-      // Determinar el nuevo path a utilizar
       const pathForSolidSignal = normalizedNewGlobalValue.startsWith(basePath) && 
                                 normalizedNewGlobalValue.length >= basePath.length
         ? normalizedNewGlobalValue
-        : basePath;
+        : basePath; // Si está fuera de los límites del basePath, se ajusta al basePath
       
-      // Corregir el path global si es necesario
       if (pathForSolidSignal !== normalizedNewGlobalValue && globalCustomPathSignal.value !== pathForSolidSignal) {
         globalCustomPathSignal.value = pathForSolidSignal;
       }
 
-      // Actualizar el path local solo si ha cambiado
       if (currentPath() !== pathForSolidSignal) {
         setCurrentPath(pathForSolidSignal);
       }
     });
     
-    // Limpiar suscripción al desmontar
     onCleanup(unsubscribe);
   });
 
-  // Efecto para mantener sincronizados basePath y currentPath
   createEffect(() => {
     const basePath = effectiveBasePath();
     const current = currentPath();
     
+    // Si currentPath es más corto que basePath o no comienza con él,
+    // (ej. si basePath cambió dinámicamente), reajusta.
     if (!current.startsWith(basePath) || current.length < basePath.length) {
-      // Actualizar globalCustomPathSignal solo si es necesario para evitar ciclos
       if (globalCustomPathSignal.value !== basePath) {
         globalCustomPathSignal.value = basePath;
       }
+      // currentPath() se actualizará a través del subscriber de onMount
     }
   });
 
-  // Navegación optimizada: subir un nivel
   const goUp = () => {
     const path = currentPath();
     const basePath = effectiveBasePath();
 
-    if (path === basePath) return;
+    if (path === basePath) return; // Ya está en el nivel más alto permitido por este componente
 
-    // Calcular nuevo path de manera eficiente
     const parts = path.split('/').filter(p => p.length > 0);
     parts.pop();
     
-    // Construir el nuevo path directamente sin llamadas innecesarias
-    let newPath = parts.length === 0 ? ROOT_PATH : `${ROOT_PATH}${parts.join('/')}`;
+    // Construir el nuevo path. Como basePath nunca es ROOT_PATH, parts no debería quedar vacío
+    // a menos que estemos en el basePath. El caso path === basePath ya se maneja.
+    // Si path es "/server/folder", parts es ["server", "folder"], pop, parts es ["server"]. newPath es "/server".
+    let newPath = `${ROOT_PATH}${parts.join('/')}`; // Siempre empieza con ROOT_PATH
     
-    // Solo normalizar si es realmente necesario
-    if (newPath !== ROOT_PATH && (newPath.includes('//') || newPath.endsWith('/'))) {
-      newPath = normalizePath(newPath);
-    }
+    // normalizePath es importante aquí si parts.join('/') pudiera ser vacío, pero
+    // debido a la guarda path === basePath y que basePath no es ROOT_PATH,
+    // parts después de pop() no debería llevar a newPath siendo solo ROOT_PATH
+    // a menos que el resultado sea el propio basePath.
+    newPath = normalizePath(newPath); // Asegurar la forma canónica
 
-    // Verificar límites de basePath
+    // Verificación final: el newPath no puede ser más superficial que basePath.
+    // Esta condición es redundante si la lógica anterior es correcta, pero es una buena salvaguarda.
     const finalPath = !newPath.startsWith(basePath) || newPath.length < basePath.length
       ? basePath
       : newPath;
       
-    // Actualizar solo si hay un cambio real
     if (globalCustomPathSignal.value !== finalPath) {
       globalCustomPathSignal.value = finalPath;
     }
   };
 
-  // Navegación optimizada: ir a un path específico
   const navigateToPath = (newPathFromClick: string) => {
-    // Solo normalizar si es necesario (si no viene de pathSegments que ya está normalizado)
-    const normalizedNewPath = pathSegments().some(s => s.path === newPathFromClick)
-      ? newPathFromClick
-      : normalizePath(newPathFromClick);
-      
+    // No es necesario normalizar newPathFromClick si viene de pathSegments(), ya que esos están normalizados.
+    // Pero si es un path arbitrario, se debe normalizar.
+    // Para simplificar y por seguridad, normalizamos siempre (createMemo cacheará si es el mismo input).
+    const normalizedNewPath = normalizePath(newPathFromClick);
     const basePath = effectiveBasePath();
 
-    // Determinar path final
     const finalPath = normalizedNewPath.startsWith(basePath) && normalizedNewPath.length >= basePath.length
       ? normalizedNewPath
-      : basePath;
+      : basePath; // Si el path clickeado está fuera, ir al basePath
 
-    // Actualizar solo si hay un cambio real
     if (globalCustomPathSignal.value !== finalPath) {
       globalCustomPathSignal.value = finalPath;
     }
@@ -257,3 +275,4 @@ const PathNavigator = (props: PathNavigatorProps) => {
   );
 };
 export default PathNavigator;
+
