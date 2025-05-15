@@ -14,7 +14,7 @@ import FileUploader from "@components/solid/FileUploader.tsx";
 <PathNavigator client:only="solid-js" />
 <file-explorer current-path="/" id="filemanager"></file-explorer>
 <CPopup id="fileOptions" class="file-options" client:load />
-<dialog-container id="file-Editor">
+<dialog-container id="file-Editor" required>
     <div class="modal__base">
       <c-input type="text" name="name" id="file-name" placeholder="Nombre del archivo" required style="--padding: 0; border: 0; background-color: var(--bg-dark-accent-light);"></c-input>
 <!--       <c-input type="textarea" name="content" id="file-content" placeholder="Contenido del archivo"  required style="--padding: 0; border: 0; background-color: var(--bg-dark-accent);"></c-input>
@@ -47,7 +47,7 @@ import FileUploader from "@components/solid/FileUploader.tsx";
 </dialog-container>
 <script>
     import { ActionButtonsLit } from "src/litcomponents/mc/barstatus.js";
-    import { filemanagerapi } from "src/fetch/fetchapi";
+    import { filemanagerapi, serverapi } from "src/fetch/fetchapi";
     import {
         FileExplorer,
         type ItemMenuEventDetail,
@@ -252,8 +252,13 @@ import FileUploader from "@components/solid/FileUploader.tsx";
                 icon: "delete",
                 text: "Delete File",
             }),
-            callback: function () {
-                console.log("Option 3 clicked");
+            callback: async function () {
+                if (data && data.path) {
+                    console.log("Option 3 clicked", data);
+                    // fetch DELETE file
+                    const result = await filemanagerapi.deleteFile(window.selectedServer, data.path);
+                    console.log("result", result);
+                }
             },
         };
 
@@ -279,19 +284,29 @@ import FileUploader from "@components/solid/FileUploader.tsx";
                 MF_elements[action] = element;
                 element.addEventListener("click", async (e) => {
                     console.log("MF_action", action);
+                    const InputFile = document.getElementById("file-name") as HTMLInputElement;
                     if (action === "save-file") {
                         const fileData = signals.get("fileEditor-content")?.value;
-                        console.log("fileData", fileData);
                         if (!fileData) return;
+                        console.log("fileData", fileData, InputFile.value);
                         const result = await filemanagerapi.writeFile({
                             directoryname: window.selectedServer,
-                            filename: signals.get("file-name")?.value,
+                            filename: InputFile?.value || signals.get("file-name")?.value,
                             content: fileData,
                         });
                         console.log("result", result);
+                        if (result && result.data) {
+                            newFile.hide();
+                            signals.set("file-name", "");
+                            signals.set("fileEditor-content", "");
+                            InputFile.value = "";
+                        }
                     }
                     if (action === "cancel-file") {
                         newFile.hide();
+                        signals.set("file-name", "");
+                        signals.set("fileEditor-content", "");
+                        InputFile.value = "";
                     }
                 });
             }

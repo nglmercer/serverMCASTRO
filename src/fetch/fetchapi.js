@@ -277,6 +277,13 @@ class FileManagerApi extends BaseApi  {
             headers: this._authHeaders()
         }));
     }
+    // EXAMPLE = DELETE /delete/serverName/pathToFileOrFolderInServer
+    async deleteFile(serverName, path) {
+        const verifyPath = path.startsWith("/") ? path.substring(1) : path;
+        return this.request(http.delete(`${this.host}/deleteFile/${serverName}${path}`, {
+            headers: this._authHeaders(null)
+        }));
+    }
 }
 const fetchapi = new FetchApi(actualBaseApi);
 const serverapi = new ServerApi(actualBaseApi)
