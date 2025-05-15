@@ -11,7 +11,7 @@ interface FileUploaderProps {
 interface FileWithMeta {
   file: File;
   editedName: string;
-  isEditing: boolean;
+  isEditing: boolean; 
 }
 
 const FileUploader: Component<FileUploaderProps> = (props) => {
@@ -132,11 +132,13 @@ const uploadFiles = async () => {
     const formData = new FormData();
     files().forEach((fileData, index) => {
       // SIMPLIFIED: Append original file, pass editedName as the third argument
-      formData.append(`file-${index}`, fileData.file, fileData.editedName);
+      formData.append(`${(fileData.editedName || fileData.file.name)}`, fileData.file, fileData.editedName);
     });
     console.log("formData after simplified append", formData); // Check this log
-
-    const urlFetch = props.apiEndpoint + (props.apiEndpoint.includes("?") ? "&" : "?") + "subDirectory=" + window.selectedServer;
+    const windowPath = window.$signals.get("path")?.value;
+    const normalizedSubDirectory = windowPath.startsWith("/") ? windowPath.substring(1) : windowPath;
+    console.log("windowPath", windowPath);
+    const urlFetch = props.apiEndpoint + (props.apiEndpoint.includes("?") ? "&" : "?") + "subDirectory=" + (normalizedSubDirectory || window.selectedServer);
     console.log("urlFetch", urlFetch);
     const response = await fetch(urlFetch, {
       method: 'POST',

@@ -35,6 +35,16 @@ import FileUploader from "@components/solid/FileUploader.tsx";
         <FileUploader client:load apiEndpoint="http://localhost:3000/upload/files?pathType=servers" multiple={true} />
     </div>
 </dialog-container>
+<dialog-container id="EditFile">
+    <div class="modal__base">
+        <span id="ModalTitle">Editar archivo</span>
+        <c-input class="FileEditor" placeholder="Nombre del archivo" required style="background-color: var(--bg-dark-accent-light);"></c-input>
+        <div class="actions-bg flex center p-2">
+            <button class="btn btn-primary" id="save-Editfile">Guardar</button>
+            <button class="btn btn-primary" id="cancel-Editfile">Cancelar</button>
+        </div>
+    </div>
+</dialog-container>
 <script>
     import { ActionButtonsLit } from "src/litcomponents/mc/barstatus.js";
     import { filemanagerapi } from "src/fetch/fetchapi";
@@ -45,7 +55,7 @@ import FileUploader from "@components/solid/FileUploader.tsx";
     } from "src/litcomponents/mc/files.js";
     import { DialogContainer } from "src/litcomponents/custom-modal.js";
     import { optionsModal, setPopupOptions } from "src/utils/dropdown.js";
-    import { pathSignal, signals } from "src/globalSignals";
+    import { pathSignal, signals,normalizePath } from "src/globalSignals";
     type ValidAction =
         | "start"
         | "stop"
@@ -150,7 +160,7 @@ import FileUploader from "@components/solid/FileUploader.tsx";
         const pathENCODED = encodeURIComponent(path);
         const result = await filemanagerapi.readFileByPath(pathENCODED);
         console.log("result", result);
-        if (result && result.data) {
+        if (result) {
             return result.data;
         }
         return false;
@@ -165,13 +175,16 @@ import FileUploader from "@components/solid/FileUploader.tsx";
                 const { data, event } = e.detail as ItemMenuEventDetail;
                 if (Evname === "selected") {
                     if (data.type !== "directory") {
-                        newFile.show();
                         //const editorContent = signals.set("fileEditor-content", "text=false");
                         //const editorLang = signals.set("fileEditor-lang", "plaintext");
                         const fileData = await readFile(window.selectedServer + "/" + data.path);
-                        if (!fileData) return;
+                        if (typeof fileData !== "string") return;
+                        console.log("fileData", fileData, typeof fileData);
+                        newFile.show();
                         signals.set("fileEditor-content", fileData);
                         signals.set("file-name", data.path);
+                        const fileNameInput = document.getElementById("file-name") as HTMLInputElement;
+                        fileNameInput.value = data.path;
                         //console.log("fileData", fileData,editorContent);
                         return;
                     }
@@ -189,8 +202,16 @@ import FileUploader from "@components/solid/FileUploader.tsx";
                 "path",
                 (value: string, oldValue: string) => {
                     console.log("pathSignal", value, oldValue);
-                    //    fetchFiles(value);
-                    if (value !== oldValue) fetchFiles(value);
+                    const normalizedValue = normalizePath(value);
+                    const normalizedOldValue = normalizePath(oldValue);
+                    if (value !== normalizedValue) {
+                        console.log("Normalizing path:", value, "->", normalizedValue);
+                        pathSignal.value = normalizedValue;
+                    }
+                    
+                    if (normalizedValue !== normalizedOldValue) {
+                        fetchFiles(normalizedValue);
+                    }
                 },
             );
         });
@@ -219,6 +240,8 @@ import FileUploader from "@components/solid/FileUploader.tsx";
                 text: "Rename File",
             }),
             callback: function () {
+                const EditFile = document.getElementById("EditFile") as DialogContainer;
+                EditFile.show();
                 console.log("Option 2 clicked");
             },
         };

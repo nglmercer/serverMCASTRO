@@ -159,12 +159,49 @@ var signals = window.$signals = {
       signal.value = value;
     }
   };
+  const ROOT_PATH = '/';
+  const normalizedPathCache = new Map<string, string>();
+  const normalizePath = (path: string | undefined | null): string => {
+    if (!path) return ROOT_PATH;
+    
+    // Comprobar si ya tenemos este path en caché
+    if (normalizedPathCache.has(path)) {
+      return normalizedPathCache.get(path)!;
+    }
   
+    // 1. Reemplazar todos los backslashes (\) con forward slashes (/)
+    let normalized = path.replace(/\\/g, '/');
+  
+    // 2. Eliminar barras duplicadas (ej: // -> /)
+    normalized = normalized.replace(/\/{2,}/g, '/');
+  
+    // 3. Asegurar que comience con una barra, a menos que sea solo la raíz
+    if (normalized !== ROOT_PATH && !normalized.startsWith(ROOT_PATH)) {
+      normalized = ROOT_PATH + normalized;
+    }
+  
+    // 4. Eliminar la barra final si no es la raíz
+    if (normalized !== ROOT_PATH && normalized.endsWith('/') && normalized.length > 1) {
+      normalized = normalized.slice(0, -1);
+    }
+    
+    // 5. Si después de todo esto queda vacío (ej. input era solo "//"), devolver ROOT_PATH
+    if (normalized === '' && path && path.length > 0) {
+      normalized = ROOT_PATH;
+    }
+  
+    // Guardar en caché el resultado para futuros usos
+    normalizedPathCache.set(path, normalized || ROOT_PATH);
+    return normalized || ROOT_PATH;
+  };
 const tabsSignal = window.$signals.create('tabs', {});
 const pathSignal = window.$signals.create('path', '/');
 export {
   tabsSignal,
   pathSignal,
   signals,
-  Signal
+  Signal,
+  normalizePath,
+  ROOT_PATH,
+  normalizedPathCache
 }

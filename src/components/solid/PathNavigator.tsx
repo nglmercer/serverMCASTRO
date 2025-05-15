@@ -1,77 +1,181 @@
 // src/components/PathNavigator.tsx
-import { For, Show, createEffect, onCleanup, onMount, createSignal as createSolidSignal } from 'solid-js';
-import { pathSignal as globalCustomPathSignal } from '../../globalSignals'; // Renombrado para claridad
+import { For, Show, createEffect, onCleanup, onMount, createSignal as createSolidSignal, createMemo } from 'solid-js';
+import { pathSignal as globalCustomPathSignal, normalizePath, ROOT_PATH } from '../../globalSignals';
 
-// Componente de Navegación de Path
-const PathNavigator = () => {
-  // 1. Crear un signal de SolidJS para el path actual.
-  // Se inicializa con el valor actual de tu signal customizado.
-  const [currentPath, setCurrentPath] = createSolidSignal(globalCustomPathSignal.value);
+export interface PathNavigatorProps {
+  basePath?: string;
+}
 
-  // 2. Suscribirse a los cambios de tu signal global customizado
-  // y actualizar el signal de SolidJS cuando cambie.
-  onMount(() => {
-    const unsubscribeFromCustomSignal = globalCustomPathSignal.subscribe((newValue: string) => {
-      console.log('[PathNavigator] Custom global signal changed. Updating Solid signal to:', newValue);
-      setCurrentPath(newValue); // <-- Actualiza el signal de Solid
-    });
+const PathNavigator = (props: PathNavigatorProps) => {
+  // Memoizar el basePath normalizado para evitar cálculos redundantes
+  const effectiveBasePath = createMemo(() => normalizePath(props.basePath ?? ROOT_PATH));
+  
+  // Función que se ejecuta una vez al inicio para determinar el path inicial
+  const getInitialNormalizedPath = () => {
+    const globalPath = normalizePath(globalCustomPathSignal.value);
+    const basePath = effectiveBasePath();
 
-    // Opcional: tu suscripción existente para depuración
-    let unsubscribeWindowSignal: (() => void) | null = null;
-    try {
-      unsubscribeWindowSignal = window.$signals.subscribe<string>('path', (value: string, oldValue: string) => {
-        console.log(`[PathNavigator - window.$signals] path cambió de "${oldValue}" a "${value}"`);
-      });
-    } catch (error) {
-      console.error("[PathNavigator] Error al suscribirse a window.$signals.path:", error);
+    // Determinar el path inicial basado en el path global y el base path
+    const initialPathToUse = !globalPath.startsWith(basePath) || globalPath.length < basePath.length 
+      ? basePath 
+      : globalPath;
+
+    // Actualizar el path global solo si es necesario, evitando actualizaciones redundantes
+    if (globalCustomPathSignal.value !== initialPathToUse) {
+      globalCustomPathSignal.value = initialPathToUse;
     }
-
-    onCleanup(() => {
-      unsubscribeFromCustomSignal();
-      if (unsubscribeWindowSignal) unsubscribeWindowSignal();
-    });
-  });
-
-  const goUp = () => {
-    const path = currentPath(); // Leer del signal de Solid
-    if (path === '/') return;
-
-    const parts = path.split('/').filter((p: any) => p.length > 0);
-    parts.pop();
-    const newPath = `/${parts.join('/')}`;
     
-    // Actualizar AMBOS: el signal custom global y el de Solid.
-    // O, mejor aún, solo el custom, y dejar que la suscripción actualice el de Solid.
-    globalCustomPathSignal.value = newPath;
-    // setCurrentPath(newPath); // Esto es redundante si la suscripción de arriba funciona bien
+    return initialPathToUse;
   };
 
-  // Derivar los segmentos del path para los breadcrumbs
-  const pathSegments = () => {
-    const path = currentPath(); // Leer del signal de Solid
-    if (path === '/') return [{ name: 'Raíz', path: '/' }];
+  const [currentPath, setCurrentPath] = createSolidSignal<string>(getInitialNormalizedPath());
 
-    const parts = path.split('/').filter((p: any) => p.length > 0);
-    const segments = [{ name: 'Raíz', path: '/' }];
-    let currentSegmentPath = '';
-    for (const part of parts) {
-      currentSegmentPath += `/${part}`;
-      segments.push({ name: part, path: currentSegmentPath });
+  // Los segmentos de path se calculan solo cuando cambia currentPath o effectiveBasePath
+  const pathSegments = createMemo(() => {
+    const path = currentPath(); // Ya está normalizado
+    const basePath = effectiveBasePath(); // Ya está normalizado
+    const segments: { name: string; path: string }[] = [];
+
+    // Calcular el nombre del segmento base - solo una vez
+    let baseSegmentName = 'Raíz';
+    if (basePath !== ROOT_PATH) {
+      const baseParts = basePath.split('/').filter(p => p.length > 0);
+      baseSegmentName = baseParts.length > 0 ? baseParts[baseParts.length - 1] : 'Base';
     }
+    segments.push({ name: baseSegmentName, path: basePath });
+
+    // Si estamos en la raíz, evitar cálculos adicionales
+    if (path === basePath) {
+      return segments;
+    }
+    
+    // Calcular el path relativo una sola vez
+    let relativePathString = '';
+    if (path.startsWith(basePath) && path.length > basePath.length) {
+      relativePathString = path.substring(basePath === ROOT_PATH ? basePath.length : basePath.length + 1);
+    }
+    
+    const relativeParts = relativePathString.split('/').filter(p => p.length > 0);
+    
+    // Optimización: Pre-calcular todos los segmentos de una vez para reducir llamadas a normalizePath
+    if (relativeParts.length > 0) {
+      let currentSegmentPathAccumulator = basePath;
+      
+      for (const part of relativeParts) {
+        // Construir el path acumulado directamente sin llamar a normalizePath en cada iteración
+        currentSegmentPathAccumulator = currentSegmentPathAccumulator === ROOT_PATH
+          ? `${ROOT_PATH}${part}`
+          : `${currentSegmentPathAccumulator}/${part}`;
+        
+        // Solo normalizar una vez al final si es necesario
+        if (currentSegmentPathAccumulator !== ROOT_PATH && 
+            (currentSegmentPathAccumulator.includes('//') || 
+             currentSegmentPathAccumulator.includes('\\'))) {
+          currentSegmentPathAccumulator = normalizePath(currentSegmentPathAccumulator);
+        }
+        
+        segments.push({ name: part, path: currentSegmentPathAccumulator });
+      }
+    }
+    
     return segments;
-  };
-
-  const navigateToPath = (newPath: string) => {
-    // Actualizar AMBOS: el signal custom global y el de Solid.
-    // O, mejor aún, solo el custom, y dejar que la suscripción actualice el de Solid.
-    globalCustomPathSignal.value = newPath;
-    // setCurrentPath(newPath); // Redundante si la suscripción funciona
-  };
-
-  // Loggear cambios del signal de Solid para depuración
-  createEffect(() => {
-    console.log('PathNavigator: Ruta actual (desde Solid Effect y signal de Solid):', currentPath());
   });
+
+  // Optimización: Combinar las lógicas de efectos y manejo de caminos para reducir cálculos redundantes
+  onMount(() => {
+    const unsubscribe = globalCustomPathSignal.subscribe((newGlobalValue: string) => {
+      const normalizedNewGlobalValue = normalizePath(newGlobalValue);
+      const basePath = effectiveBasePath();
+      
+      // Corregir path global solo si es necesario
+      if (newGlobalValue !== normalizedNewGlobalValue && globalCustomPathSignal.value === newGlobalValue) {
+        globalCustomPathSignal.value = normalizedNewGlobalValue;
+        return; // La nueva ejecución del subscriber se encargará del resto
+      }
+      
+      // Determinar el nuevo path a utilizar
+      const pathForSolidSignal = normalizedNewGlobalValue.startsWith(basePath) && 
+                                normalizedNewGlobalValue.length >= basePath.length
+        ? normalizedNewGlobalValue
+        : basePath;
+      
+      // Corregir el path global si es necesario
+      if (pathForSolidSignal !== normalizedNewGlobalValue && globalCustomPathSignal.value !== pathForSolidSignal) {
+        globalCustomPathSignal.value = pathForSolidSignal;
+      }
+
+      // Actualizar el path local solo si ha cambiado
+      if (currentPath() !== pathForSolidSignal) {
+        setCurrentPath(pathForSolidSignal);
+      }
+    });
+    
+    // Limpiar suscripción al desmontar
+    onCleanup(unsubscribe);
+  });
+
+  // Efecto para mantener sincronizados basePath y currentPath
+  createEffect(() => {
+    const basePath = effectiveBasePath();
+    const current = currentPath();
+    
+    if (!current.startsWith(basePath) || current.length < basePath.length) {
+      // Actualizar globalCustomPathSignal solo si es necesario para evitar ciclos
+      if (globalCustomPathSignal.value !== basePath) {
+        globalCustomPathSignal.value = basePath;
+      }
+    }
+  });
+
+  // Navegación optimizada: subir un nivel
+  const goUp = () => {
+    const path = currentPath();
+    const basePath = effectiveBasePath();
+
+    if (path === basePath) return;
+
+    // Calcular nuevo path de manera eficiente
+    const parts = path.split('/').filter(p => p.length > 0);
+    parts.pop();
+    
+    // Construir el nuevo path directamente sin llamadas innecesarias
+    let newPath = parts.length === 0 ? ROOT_PATH : `${ROOT_PATH}${parts.join('/')}`;
+    
+    // Solo normalizar si es realmente necesario
+    if (newPath !== ROOT_PATH && (newPath.includes('//') || newPath.endsWith('/'))) {
+      newPath = normalizePath(newPath);
+    }
+
+    // Verificar límites de basePath
+    const finalPath = !newPath.startsWith(basePath) || newPath.length < basePath.length
+      ? basePath
+      : newPath;
+      
+    // Actualizar solo si hay un cambio real
+    if (globalCustomPathSignal.value !== finalPath) {
+      globalCustomPathSignal.value = finalPath;
+    }
+  };
+
+  // Navegación optimizada: ir a un path específico
+  const navigateToPath = (newPathFromClick: string) => {
+    // Solo normalizar si es necesario (si no viene de pathSegments que ya está normalizado)
+    const normalizedNewPath = pathSegments().some(s => s.path === newPathFromClick)
+      ? newPathFromClick
+      : normalizePath(newPathFromClick);
+      
+    const basePath = effectiveBasePath();
+
+    // Determinar path final
+    const finalPath = normalizedNewPath.startsWith(basePath) && normalizedNewPath.length >= basePath.length
+      ? normalizedNewPath
+      : basePath;
+
+    // Actualizar solo si hay un cambio real
+    if (globalCustomPathSignal.value !== finalPath) {
+      globalCustomPathSignal.value = finalPath;
+    }
+  };
 
   return (
     <div class="path-navigator">
@@ -81,7 +185,9 @@ const PathNavigator = () => {
             <>
               <span
                 class="breadcrumb-segment"
-                classList={{ 'is-link': segment.path !== currentPath() }} // Usar signal de Solid
+                classList={{ 
+                  'is-link': segment.path !== currentPath(),
+                }}
                 onClick={() => segment.path !== currentPath() && navigateToPath(segment.path)}
               >
                 {segment.name}
@@ -95,7 +201,7 @@ const PathNavigator = () => {
       </div>
       
       <div class="controls">
-        <Show when={currentPath() !== '/'}> {/* Usar signal de Solid */}
+        <Show when={currentPath() !== effectiveBasePath()}>
           <button onClick={goUp} class="up-button">
             Subir Nivel (..)
           </button>
@@ -115,7 +221,7 @@ const PathNavigator = () => {
         .breadcrumb-bar {
           display: flex;
           align-items: center;
-          flex-wrap: wrap; /* Para paths largos */
+          flex-wrap: wrap;
         }
         .breadcrumb-segment {
           padding: 4px 6px;
@@ -145,10 +251,9 @@ const PathNavigator = () => {
         }
         .controls .up-button:hover {
           background-color: #5a6268;
-        }
+        }W
       `}</style>
     </div>
   );
 };
-
 export default PathNavigator;
