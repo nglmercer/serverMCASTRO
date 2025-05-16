@@ -293,6 +293,16 @@ class FileManagerApi extends BaseApi  {
             headers: this._authHeaders()
         }));
     }
+    // PUT /rename     const { server: rawServer, path: rawServerPath, newName: rawNewName } = request.body;
+    async renameFile(server, path, newName) {
+        return this.request(http.put(`${this.host}/rename`, {
+            server: server,
+            path: path,
+            newName: newName
+        }, {
+            headers: this._authHeaders()
+        }));
+    }
 }
 const fetchapi = new FetchApi(actualBaseApi);
 const serverapi = new ServerApi(actualBaseApi)
@@ -308,11 +318,22 @@ async function test() {
 test();
 
 */
+async function fetchFiles(path,element) {
+    const pathENCODED = encodeURIComponent(path);
+    const result = await filemanagerapi.getFolderInfo(pathENCODED);
+    console.log("result", result);
+    if (result && result.data) {
+        if (!element) return;
+        element.data = result.data?.files;
+        element.currentPath = path;
+    }
+}
 export {
     fetchapi,
     serverapi,
     servermanagerapi,
     filemanagerapi,
     BaseApi,
-    actualBaseApi
+    actualBaseApi,
+    fetchFiles
 }

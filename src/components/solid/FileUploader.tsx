@@ -1,6 +1,9 @@
 import { createSignal, onMount, onCleanup, Show } from 'solid-js';
 import type { Component } from 'solid-js';
-
+import { fetchFiles } from "src/fetch/fetchapi";
+import {
+  FileExplorer
+} from "src/litcomponents/mc/files.js";
 interface FileUploaderProps {
   apiEndpoint: string;
   maxFileSize?: number; // in bytes, default is 2GB
@@ -157,10 +160,10 @@ const uploadFiles = async () => {
       throw new Error(errorBody.message || `HTTP error! Status: ${response.status}`);
     }
 
-    // ... success logic
     setFiles([]);
     if (fileInputRef) fileInputRef.value = '';
-
+    const filemanager = document.getElementById("filemanager") as FileExplorer;
+    fetchFiles(normalizedSubDirectory, filemanager);
   } catch (error) {
     console.error('Upload failed (catch block):', error);
     setErrorType('failed-request');

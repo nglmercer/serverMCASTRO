@@ -35,13 +35,14 @@ import CodeEditor from "./codeEditor.astro";
         <FileUploader client:load apiEndpoint="http://localhost:3000/upload/files?pathType=servers" multiple={true} />
     </div>
 </dialog-container>
-<dialog-container id="EditFile">
+<dialog-container id="EditFilename">
     <div class="modal__base">
         <span id="ModalTitle">Editar archivo</span>
-        <c-input class="FileEditor" placeholder="Nombre del archivo" required style="background-color: var(--bg-dark-accent-light);"></c-input>
+        <c-input id="OriginalFilename" placeholder="Nombre original" readOnly required style="background-color: var(--bg-dark-accent-light);"></c-input>
+        <c-input id="FilenameEditor" placeholder="Nombre del archivo" required style="background-color: var(--bg-dark-accent-light);"></c-input>
         <div class="actions-bg flex center p-2">
-            <button class="btn btn-primary" id="save-Editfile">Guardar</button>
-            <button class="btn btn-primary" id="cancel-Editfile">Cancelar</button>
+            <button class="btn btn-primary" id="save-EditFilename">Guardar</button>
+            <button class="btn btn-primary" id="cancel-EditFilename">Cancelar</button>
         </div>
     </div>
 </dialog-container>
@@ -86,14 +87,17 @@ import CodeEditor from "./codeEditor.astro";
     const newFile = document.getElementById("file-Editor") as DialogContainer;
     const uploadFiles = document.getElementById("upload-files") as DialogContainer;
     const newFolder = document.getElementById("new-folder") as DialogContainer;
+    const EditFilename = document.getElementById("EditFilename") as DialogContainer;
+    const FilenameEditor = document.getElementById("FilenameEditor") as HTMLInputElement;
+    const OriginalFilename = document.getElementById("OriginalFilename") as HTMLInputElement;
     document.addEventListener("DOMContentLoaded", function () {
-        const filename = signals.create<string>("file-name", "test.txt");
         const actionsElement = document.getElementById("FileActions");
         if (!actionsElement) return;
         if (!(actionsElement instanceof ActionButtonsLit)) return;
         initListener();
-        initCDlistners();
+        initCDlisteners();
         initMFilelisteners();
+        initEFlisteners();
         // Initial buttons
         const buttonsConfig = [
             {
@@ -162,14 +166,14 @@ import CodeEditor from "./codeEditor.astro";
         });
     });
     refreshFolder();
-    async function fetchFiles(path: string) {
+    async function fetchFiles(path: string,element = filemanager) {
         const pathENCODED = encodeURIComponent(path);
         const result = await filemanagerapi.getFolderInfo(pathENCODED);
         console.log("result", result);
         if (result && result.data) {
-            if (!filemanager) return;
-            filemanager.data = result.data?.files;
-            filemanager.currentPath = path;
+            if (!element) return;
+            element.data = result.data?.files;
+            element.currentPath = path;
         }
     }
     async function readFile(path: string) {
@@ -256,9 +260,10 @@ import CodeEditor from "./codeEditor.astro";
                 text: "Rename File",
             }),
             callback: function () {
-                const EditFile = document.getElementById("EditFile") as DialogContainer;
-                EditFile.show();
-                console.log("Option 2 clicked");
+                EditFilename.show();
+                FilenameEditor.value = data.name;
+                OriginalFilename.value = data.path;
+                console.log("Option 2 clicked",FilenameEditor?.value, OriginalFilename?.value);
             },
         };
 
@@ -331,7 +336,7 @@ import CodeEditor from "./codeEditor.astro";
         });
         console.log("MF_elements", MF_elements);
     }
-    async function initCDlistners(){
+    async function initCDlisteners(){
         const CD_actions = ["create-folder", "cancel-folder"];
         const CD_elements: Record<string, HTMLButtonElement> = {};
         CD_actions.forEach((action:string) => {
@@ -353,6 +358,33 @@ import CodeEditor from "./codeEditor.astro";
                     if (action === "cancel-folder") {
                         newFolder.hide();
 
+                    }
+                });
+            }
+        });
+    }
+    async function initEFlisteners(){
+        const EF_actions = ["save-EditFilename", "cancel-EditFilename"];
+        const EF_elements: Record<string, HTMLButtonElement> = {};
+        EF_actions.forEach((action:string) => {
+            const element = document.getElementById(action) as HTMLButtonElement;
+            if (element) {
+                EF_elements[action] = element;
+                element.addEventListener("click", async (e) => {
+                    console.log("EF_action", action,FilenameEditor?.value, OriginalFilename?.value);
+                    if (action === "save-EditFilename") {
+                        const result = await filemanagerapi.renameFile(window.selectedServer, OriginalFilename?.value, FilenameEditor?.value);
+                        if (!result) return;
+                        console.log("result", result);
+                        EditFilename.hide();
+                        FilenameEditor.value = "";
+                        OriginalFilename.value = "";
+                        if (result.success || result.data) refreshFolder();
+                    }
+                    if (action === "cancel-EditFilename") {
+                        EditFilename.hide();
+                        FilenameEditor.value = "";
+                        OriginalFilename.value = "";
                     }
                 });
             }
