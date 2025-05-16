@@ -182,7 +182,7 @@ class KubekAlerts1 extends HTMLElement {
 
 
 // Registrar el componente
-customElements.define('kubek-alerts', KubekAlerts1);
+customElements.define('k-alerts', KubekAlerts1);
 class TaskNotifications extends HTMLElement {
   constructor() {
     super();

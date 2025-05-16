@@ -4,36 +4,88 @@ import ServerLayout from '@layouts/serverLayout.astro';
 const { server } = Astro.params;    
 import SideBySideRow from '@components/Sidec.astro';
 import ModSearch from '@components/store/ModSearch';
+import FileUploader from "@components/solid/FileUploader.tsx";
 
 ---
+<link rel="stylesheet" href="/src/components/solid/FileUploader.css" />
+<script src="/src/litcomponents/mcinit.js"></script>
 <ServerLayout title={server + " server"} activeConfig="A" prefix={server}>
     <h2>Plugins and mods</h2>
         <div class="config-section">
             <SideBySideRow gap="20px" alignItems="center">
-                <div slot="left" class="flex gap-10">
-                    <h3>Modificaciones</h3>
-                    <button class="dark-btn icon-only" id="uploadItem_mod">
-                        <span class="material-symbols-rounded">upload</span>
-                    </button>
+                <div slot="left" class="grid gap-10">
+                    <div class="flex align-center gap-10">
+                        <span>Mods</span>
+                        <button class="dark-btn icon-only p-4" id="uploadItem_mod">
+                            <span class="material-symbols-rounded">upload</span>
+                        </button>
+                    </div>
+                    <plugins-ui class="mods" id="modList"></plugins-ui>
                 </div>
-                <div slot="right" class="flex  gap-10">
-                    <h3>Plugins</h3>
-                    <button class="dark-btn icon-only" id="uploadItem_plugin">
-                        <span class="material-symbols-rounded">upload</span>
-                    </button>
+                <div slot="right" class="grid  gap-10">
+                    <div class="flex align-center gap-10">
+                        <span>Plugins</span>
+                        <button class="dark-btn icon-only p-4" id="uploadItem_plugin">
+                            <span class="material-symbols-rounded">upload</span>
+                        </button>
+                    </div>
+                    <plugins-ui class="plugins" id="pluginList"></plugins-ui>
                 </div>
             </SideBySideRow>
             <ModSearch client:only="solid-js"/>
       </div>
 </ServerLayout>
+<dialog-container id="upload-files">
+    <div class="modal__base p-10">
+        <FileUploader client:load apiEndpoint="http://localhost:3000/upload/files?pathType=servers" multiple={true} />
+    </div>
+</dialog-container>
 <script>
-    import { BaseApi, actualBaseApi } from "src/fetch/fetchapi.js";
-    class SettingsApi extends BaseApi {
+    import { filemanagerapi } from "src/fetch/fetchapi.js";
+    import { DialogContainer } from "src/litcomponents/custom-modal.js";
+    import { pathSignal, signals,normalizePath } from "src/globalSignals";
+    import { PluginsUI } from "src/litcomponents/mc/PluginsUI.js";
+    const modList = document.getElementById("modList") as PluginsUI;
+    const pluginList = document.getElementById("pluginList") as PluginsUI;
+    document.addEventListener("DOMContentLoaded",async function () {
+        initListener();
+        modList.type = "mods";
+        pluginList.type = "plugins";
+        pluginList.elements = ["plugin1.jar", "plugin2.jar.dis", "plugin3.jar"];
+        modList.elements = ["mod1.jar", "mod2.jar.dis", "mod3.jar"];
+    });
+    async function initListener() {
+        const EventNames = ["uploadItem_mod", "uploadItem_plugin"];
+        EventNames.forEach((eventName) => {
+            const element = document.getElementById(eventName) as HTMLButtonElement;
+            if (eventName === "uploadItem_mod") pathSignal.value = window.selectedServer + "/mods";
+            if (eventName === "uploadItem_plugin") pathSignal.value = window.selectedServer + "/plugins";
+            if (element) {
+                element.addEventListener("click", async (e) => {
+                    console.log("EventName", eventName);
+                    const uploadFiles = document.getElementById("upload-files") as DialogContainer;
+                    uploadFiles.show();
+                    console.log("uploadFiles", uploadFiles,pathSignal.value);
+                }
+            );
+            }
+        });
+        const MPEList = ["toggle", "delete"];
+        MPEList.forEach((eventName) => {
+            modList.addEventListener(eventName, (e) => {
+                console.log("modList", eventName, e);
+            });
+            pluginList.addEventListener(eventName, (e) => {
+                console.log("pluginList", eventName, e);
+            });
+        });
 
     }
-    const settingsApi = new SettingsApi(actualBaseApi);
-
-    document.addEventListener("DOMContentLoaded",async function () {
-
-    });
 </script>
+<style>
+    .dark-btn {
+        width: min(100%, 40px);
+        height: min(100%, 40px);
+    }
+    
+</style>
