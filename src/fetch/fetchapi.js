@@ -304,10 +304,21 @@ class FileManagerApi extends BaseApi  {
         }));
     }
 }
+class SystemMonitor extends BaseApi {
+    getSystemInfo() {
+        //GET 
+        ///hardware/resources
+        ///hardware/summary
+        return this.request(this.http.get(`${this.host}/hardware/summary`, {
+            headers: this._authHeaders()
+        }));
+    }
+}
 const fetchapi = new FetchApi(actualBaseApi);
 const serverapi = new ServerApi(actualBaseApi)
 const servermanagerapi = new ServermanagerApi(actualBaseApi)
 const filemanagerapi = new FileManagerApi(actualBaseApi)
+const systemapi = new SystemMonitor(actualBaseApi);
 // test
 async function test() {
     const pathENCODED = encodeURIComponent(window.selectedServer);
@@ -333,6 +344,7 @@ export {
     serverapi,
     servermanagerapi,
     filemanagerapi,
+    systemapi,
     BaseApi,
     actualBaseApi,
     fetchFiles

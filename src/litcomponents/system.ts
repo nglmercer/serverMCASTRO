@@ -383,16 +383,3 @@ export class SystemMonitorLit extends LitElement {
         `;
     }
 }
-
-// Example usage (if you were to instantiate this in JS/TS)
-// const monitor = document.createElement('system-monitor-lit') as SystemMonitorLit;
-// fetch('/api/system-info') // Your API endpoint
-//   .then(res => res.json())
-//   .then((data: SystemInfoResponse) => {
-//     monitor.systemInfo = data;
-//   })
-//   .catch(err => {
-//     console.error("Failed to load system info:", err);
-//     monitor.systemInfo = { success: false, data: null };
-//   });
-// document.body.appendChild(monitor);

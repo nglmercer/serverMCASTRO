@@ -1,39 +1,26 @@
 ---
 export const prerender = false;
 import ServerLayout from '@layouts/serverLayout.astro';
-const { server } = Astro.params;    
+const { server } = Astro.params;
+import SystemMonitorSolid, {type SystemInfoResponse } from '@components/solid/system.tsx';
+import { systemapi } from 'src/fetch/fetchapi';
+
+async function getSystemInfo() {
+    try{
+        const result = await systemapi.getSystemInfo();
+        return result;
+    } catch (error) {
+        console.error("Error fetching system info:", error);
+        return null;
+    }
+}
+const systemInfo = await getSystemInfo();
 ---
 <script src="/src/litcomponents/mcinit.js"></script>
 <ServerLayout title={server + " server"} activeConfig="A" prefix={server}>
     <h2>Server Properties</h2>
-    <system-monitor-lit id="system-monitor"></system-monitor-lit>
+    <SystemMonitorSolid client:load systemInfo={systemInfo} />
 </ServerLayout>
-<script>
-    import { BaseApi, actualBaseApi } from "src/fetch/fetchapi.js";
-    import { SystemMonitorLit } from "src/litcomponents/system.js";
-    class SystemMonitor extends BaseApi {
-        getSystemInfo() {
-            //GET 
-            ///hardware/resources
-            ///hardware/summary
-            return this.request(this.http.get(`${this.host}/hardware/summary`, {
-                headers: this._authHeaders()
-            }));
-        }
-    }
-    const systemApi = new SystemMonitor(actualBaseApi);
-    async function getSystemInfo() {
-        const systemInfo = await systemApi.getSystemInfo();
-        return systemInfo;
-    }
-    document.addEventListener("DOMContentLoaded",async function () {
-        const systemMonitor = document.getElementById("system-monitor") as SystemMonitorLit;
-        if (!systemMonitor) return;
-        const systemInfo = await getSystemInfo();
-        console.log("systemInfo", systemInfo);
-        systemMonitor.systemInfo = systemInfo;
-    });
-</script>
 
 
 <style>
