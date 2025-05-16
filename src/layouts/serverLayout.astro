@@ -5,7 +5,10 @@ const { server } = Astro.params;
 ---
 <SidebarLayout title="Mi Aplicación" activeConfig="A" prefix={server}>
 	<div slot="logo">
-		<h1 class="logo-text">Logo</h1>
+		<a href="/" class="flex items-center gap-4 p-4">
+			<span class="material-symbols-outlined">home</span>
+			<span>Home</span>
+		</a>
 	</div>
 	<div class="content">
 		<ServerHeader/>

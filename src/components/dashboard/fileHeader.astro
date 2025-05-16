@@ -169,6 +169,7 @@ import CodeEditor from "./codeEditor.astro";
     });
     refreshFolder();
     async function fetchFiles(path: string,element = filemanager) {
+        if (path === "/") return;
         const pathENCODED = encodeURIComponent(path);
         const result = await filemanagerapi.getFolderInfo(pathENCODED);
         console.log("result", result);
