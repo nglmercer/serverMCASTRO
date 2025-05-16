@@ -45,6 +45,19 @@ import FileUploader from "@components/solid/FileUploader.tsx";
         </div>
     </div>
 </dialog-container>
+<dialog-container id="new-folder">
+    <div class="modal__base">
+        <span id="ModalTitle" class="center">Crear carpeta</span>
+        <c-input class="NewFolder" placeholder="Nombre de la carpeta" required style="background-color: var(--bg-dark-accent-light);"
+        id="NewFolder"
+        pattern="[a-zA-Z0-9]*"
+        ></c-input>
+        <div class="actions-bg flex center p-2">
+            <button class="btn btn-primary" id="create-folder">Crear</button>
+            <button class="btn btn-primary" id="cancel-folder">Cancelar</button>
+        </div>
+    </div>
+</dialog-container>
 <script>
     import { ActionButtonsLit } from "src/litcomponents/mc/barstatus.js";
     import { filemanagerapi, serverapi } from "src/fetch/fetchapi";
@@ -72,12 +85,14 @@ import FileUploader from "@components/solid/FileUploader.tsx";
     const filepopup = document.getElementById("fileOptions");
     const newFile = document.getElementById("file-Editor") as DialogContainer;
     const uploadFiles = document.getElementById("upload-files") as DialogContainer;
+    const newFolder = document.getElementById("new-folder") as DialogContainer;
     document.addEventListener("DOMContentLoaded", function () {
         const filename = signals.create<string>("file-name", "test.txt");
         const actionsElement = document.getElementById("FileActions");
         if (!actionsElement) return;
         if (!(actionsElement instanceof ActionButtonsLit)) return;
         initListener();
+        initCDlistners();
         initMFilelisteners();
         // Initial buttons
         const buttonsConfig = [
@@ -130,6 +145,7 @@ import FileUploader from "@components/solid/FileUploader.tsx";
                         console.log("uploadFiles", uploadFiles);
                         break;
                     case buttonsConfig[2].id:
+                        newFolder.show();
                         break;
                     case buttonsConfig[3].id:
                         refreshFolder();
@@ -312,6 +328,27 @@ import FileUploader from "@components/solid/FileUploader.tsx";
             }
         });
         console.log("MF_elements", MF_elements);
+    }
+    async function initCDlistners(){
+        const CD_actions = ["create-folder", "cancel-folder"];
+        const CD_elements: Record<string, HTMLButtonElement> = {};
+        CD_actions.forEach((action:string) => {
+            const element = document.getElementById(action) as HTMLButtonElement;
+            if (element) {
+                CD_elements[action] = element;
+                element.addEventListener("click", async (e) => {
+                    console.log("CD_action", action);
+                    const InputFolder = document.getElementById("NewFolder") as HTMLInputElement;
+                    if (action === "create-folder") {
+                        console.log("InputFolder", InputFolder.value);
+                    }
+                    if (action === "cancel-folder") {
+                        newFolder.hide();
+
+                    }
+                });
+            }
+        });
     }
 </script>
 <style>

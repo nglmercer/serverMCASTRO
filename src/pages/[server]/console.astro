@@ -105,4 +105,15 @@ const { server } = Astro.params;
         display: flex;
         flex-direction: column;
     }
+    @media (max-width: 768px) {
+        .console-layout {
+            grid-template-areas:
+                "console"
+                "input"
+                "settings";
+        }
+        .settings {
+            flex-direction: row !important;
+        }
+    }   
 </style>

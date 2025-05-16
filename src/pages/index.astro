@@ -9,25 +9,32 @@ import ServerCard from '@components/main/ServerCard.astro';
 import RecentBackups from '@components/main/RecentBackups.astro';
 import SystemHealth from '@components/main/SystemHealth.astro';
 import type { Server, SystemMetrics, QuickAction } from '../types/server';
-import StatusIndicator from '@components/main/StatusIndicator.astro';
 import { serverapi } from 'src/fetch/fetchapi';
-const serversfetch = await serverapi.getServers();
 interface filedata {
   name: string;
   path: string;
   size: number;
-  lastModified: string;
+  lastModified?: string;
+  modified?: string;
   status?: string;
 }
-const mapedServers = serversfetch.data.files.map((server: filedata) => ({
+const fetchServers = async () => {
+  try {
+    const serversfetch = await serverapi.getServers();
+    return serversfetch.data.files;
+  } catch (error) {
+    console.error("Error fetching servers:", error);
+    return []; // Retorna un array vacío en caso de error
+  }
+};
+
+const mapedServers = (await fetchServers()).map((server: filedata) => ({
   id: server.name,
   name: server.name,
   size: server.size,
-  lastModified: server.lastModified,
+  lastModified: server.lastModified || server.modified,
   status: server.status || 'stopped',
 }));
-console.log("serversfetch", serversfetch,serversfetch.data.files);
-// Datos de servidores
 const servers: Server[] = mapedServers;
 
 // Métricas del sistema
@@ -85,6 +92,9 @@ const quickActions: QuickAction[] = [
       </div>
     </main>
   </div>
+  <script define:vars={{mapedServers }}>
+    console.log("serversfetch", mapedServers);
+  </script>
 </Layout>
 
 <style>
