@@ -190,7 +190,7 @@ export class CInput extends LitElement {
 
     input, textarea, select {
       padding: 0.5rem;
-      border: border: var(--border);
+      border: var(--border);
       border-radius: 4px;
       font-size: 14px;
       background-color: inherit;

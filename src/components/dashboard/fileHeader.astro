@@ -36,10 +36,10 @@ import CodeEditor from "./codeEditor.astro";
     </div>
 </dialog-container>
 <dialog-container id="EditFilename">
-    <div class="modal__base">
-        <span id="ModalTitle">Editar archivo</span>
-        <c-input id="OriginalFilename" placeholder="Nombre original" readOnly required style="background-color: var(--bg-dark-accent-light);"></c-input>
-        <c-input id="FilenameEditor" placeholder="Nombre del archivo" required style="background-color: var(--bg-dark-accent-light);"></c-input>
+    <div class="modal__base p-10 grid gap-10">	
+        <span id="ModalTitle" class="text-center">Editar archivo</span>
+        <input type="text" name="OriginalFilename" id="OriginalFilename" class="input" disabled></input>
+        <input type="text" id="FilenameEditor" placeholder="Nombre del archivo" class="input" required></c-input>
         <div class="actions-bg flex center p-2">
             <button class="btn btn-primary" id="save-EditFilename">Guardar</button>
             <button class="btn btn-primary" id="cancel-EditFilename">Cancelar</button>
@@ -68,6 +68,7 @@ import CodeEditor from "./codeEditor.astro";
         type FileSystemItem,
     } from "src/litcomponents/mc/files.js";
     import { DialogContainer } from "src/litcomponents/custom-modal.js";
+    import { CInput } from "src/litcomponents/CInput.js";
     import { optionsModal, setPopupOptions } from "src/utils/dropdown.js";
     import { pathSignal, signals,normalizePath } from "src/globalSignals";
     type ValidAction =
@@ -91,6 +92,7 @@ import CodeEditor from "./codeEditor.astro";
     const FilenameEditor = document.getElementById("FilenameEditor") as HTMLInputElement;
     const OriginalFilename = document.getElementById("OriginalFilename") as HTMLInputElement;
     document.addEventListener("DOMContentLoaded", function () {
+        const File_nameS = signals.create<string>("file-name", "");
         const actionsElement = document.getElementById("FileActions");
         if (!actionsElement) return;
         if (!(actionsElement instanceof ActionButtonsLit)) return;
@@ -409,5 +411,27 @@ import CodeEditor from "./codeEditor.astro";
     .actions-bg {
         background-color: var(--bg-dark-accent-lighter);
         gap: 8px;
+    }
+    input, textarea, select {
+      padding: 0.5rem;
+      border: var(--border-color);
+      border-radius: 4px;
+      font-size: 14px;
+      background-color: var(--bg-dark-accent-light);
+      color: inherit;
+      box-sizing: border-box;
+      margin: 0;
+    }
+    input:disabled, textarea:disabled, select:disabled {
+      background-color: var(--secondary-bg);
+      cursor: not-allowed;
+      color: var(--disabled-color);
+      border: 1px solid var(--disabled-color);
+    }
+    
+    input:read-only, textarea:read-only {
+      background-color: var(--secondary-bg);
+      cursor: no-drop;
+      color: var(--disabled-color);
     }
 </style>

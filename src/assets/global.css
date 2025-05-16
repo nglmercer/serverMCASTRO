@@ -255,6 +255,9 @@
   justify-content: center;
   align-items: center;
 }
+.text-center {
+  text-align: center;
+}
 
 .p-0 { padding: 0px;}
 .p-2 { padding: 2px;}
