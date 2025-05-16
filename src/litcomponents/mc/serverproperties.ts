@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { state, property, customElement } from 'lit/decorators.js';
-
+import { filemanagerapi } from 'src/fetch/fetchapi';
 @customElement('server-properties')
 export class ServerPropertiesLitElement extends LitElement {
     @property({ type: String, attribute: 'server-id' })
@@ -263,7 +263,7 @@ export class ServerPropertiesLitElement extends LitElement {
         return saveResult;
     }
 
-    private _emitPropertiesChange() {
+    private async _emitPropertiesChange() {
         const propertiesToSave = this._getPropertiesToSave();
         const currentServerId = this.serverId || window.localStorage.getItem('selectedServer');
 
@@ -281,6 +281,19 @@ export class ServerPropertiesLitElement extends LitElement {
             },
         }));
         console.log("save-success emitted with:", { server: currentServerId, result: propertiesToSave });
+        try {
+            // server:string = name
+            // result:{...[key:string]:[value:string]}
+            const content = Object.entries(propertiesToSave).map(([key, value]) => `${key}=${value}`).join('\n');
+            const result = await filemanagerapi.writeFile({
+                directoryname: currentServerId,
+                filename: "server.properties",
+                content
+            });
+            console.log("result", result);
+        } catch (error) {
+            console.error("Error saving properties:", error);
+        }
     }
 
     render() {
