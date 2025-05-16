@@ -34,19 +34,46 @@ const defaultConfig = {
             <c-input  type="boolean" id="restart-on-error" name="restart-on-error" value={true}></c-input>
             </div>
         </SideBySideRow>
-        <button class="btn btn-primary">Guardar</button>
+        <button class="btn btn-primary" id="save-btn">Guardar</button>
       </div>
 </ServerLayout>
 <script>
-    import { BaseApi, actualBaseApi } from "src/fetch/fetchapi.js";
-    class SettingsApi extends BaseApi {
-
-    }
-    const settingsApi = new SettingsApi(actualBaseApi);
+    import { filemanagerapi } from "src/fetch/fetchapi.js";
 
     document.addEventListener("DOMContentLoaded",async function () {
-
+      getScript();
+      initListener();
     });
+    let ExistentScript = "";
+    const startScript = document.getElementById("start-script") as HTMLInputElement;
+    async function getScript() {
+      const scripts = ["start.sh","start.bat"]
+      scripts.forEach(async (script) => {
+        const pathENCODED = encodeURIComponent(window.selectedServer + "/" + script);
+        const result = await filemanagerapi.readFileByPath(pathENCODED);
+        console.log("result", result);
+        if (result) {
+          console.log("script", script);
+          startScript.value = result.data;
+          ExistentScript = script;
+        }
+      });
+    }
+    async function initListener() {
+      const saveBtn = document.getElementById("save-btn") as HTMLButtonElement;
+      saveBtn.addEventListener("click", async (e) => {
+          console.log("saveBtn", startScript?.value);
+          const result = await filemanagerapi.writeFile({
+            directoryname: window.selectedServer,
+            filename: ExistentScript,
+            content: startScript?.value
+          });
+          if (result) {
+            console.log("result", result);
+          }
+        }
+      );
+    }
 </script>
 
 <style>
