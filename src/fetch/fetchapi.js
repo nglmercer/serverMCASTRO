@@ -280,8 +280,17 @@ class FileManagerApi extends BaseApi  {
     // EXAMPLE = DELETE /delete/serverName/pathToFileOrFolderInServer
     async deleteFile(serverName, path) {
         const verifyPath = path.startsWith("/") ? path.substring(1) : path;
-        return this.request(http.delete(`${this.host}/deleteFile/${serverName}${path}`, {
+        return this.request(http.delete(`${this.host}/deleteFile/${serverName}/${verifyPath}`, {
             headers: this._authHeaders(null)
+        }));
+    }
+    // POST /create-folder
+    async createFolder(Path) {
+        //     const { directoryname: rawDirName } = request.body;
+        return this.request(http.post(`${this.host}/create-folder`, {
+            directoryname: Path
+        }, {
+            headers: this._authHeaders()
         }));
     }
 }

@@ -1,8 +1,8 @@
 ---
 import CPopup from "@components/solid/solid.tsx";
 import PathNavigator from "@components/solid/PathNavigator.tsx";
-import CodeEditor from "@components/dashboard/CodeEditor.astro";
 import FileUploader from "@components/solid/FileUploader.tsx";
+import CodeEditor from "./codeEditor.astro";
 ---
 
 <link rel="stylesheet" href="/src/components/solid/FileUploader.css" />
@@ -232,9 +232,9 @@ import FileUploader from "@components/solid/FileUploader.tsx";
             );
         });
     }
-    async function refreshFolder() {
-        console.log("refreshFolder");
-        fetchFiles(window.selectedServer);
+    async function refreshFolder(path: string = (pathSignal?.value || window.selectedServer)) {
+        console.log("refreshFolder", path);
+        fetchFiles(path);
     }
     function getOptions(data: FileSystemItem) {
         // Definir opciones individuales
@@ -273,7 +273,9 @@ import FileUploader from "@components/solid/FileUploader.tsx";
                     console.log("Option 3 clicked", data);
                     // fetch DELETE file
                     const result = await filemanagerapi.deleteFile(window.selectedServer, data.path);
+                    if (!result) return;
                     console.log("result", result);
+                    refreshFolder();
                 }
             },
         };
@@ -306,17 +308,17 @@ import FileUploader from "@components/solid/FileUploader.tsx";
                         if (!fileData) return;
                         console.log("fileData", fileData, InputFile.value);
                         const result = await filemanagerapi.writeFile({
-                            directoryname: window.selectedServer,
+                            directoryname: pathSignal?.value || window.selectedServer,
                             filename: InputFile?.value || signals.get("file-name")?.value,
                             content: fileData,
                         });
                         console.log("result", result);
-                        if (result && result.data) {
-                            newFile.hide();
-                            signals.set("file-name", "");
-                            signals.set("fileEditor-content", "");
-                            InputFile.value = "";
-                        }
+                        if (!result && result.data) return;
+                        newFile.hide();
+                        signals.set("file-name", "");
+                        signals.set("fileEditor-content", "");
+                        InputFile.value = "";
+                        refreshFolder();
                     }
                     if (action === "cancel-file") {
                         newFile.hide();
@@ -341,6 +343,12 @@ import FileUploader from "@components/solid/FileUploader.tsx";
                     const InputFolder = document.getElementById("NewFolder") as HTMLInputElement;
                     if (action === "create-folder") {
                         console.log("InputFolder", InputFolder.value);
+                        if (!InputFolder) return;
+                        const result = await filemanagerapi.createFolder(pathSignal?.value + "/" + InputFolder.value);
+                        if (!result) return;
+                        console.log("result", result);
+                        if (result.success || result.data) refreshFolder();
+                        newFolder.hide();
                     }
                     if (action === "cancel-folder") {
                         newFolder.hide();
