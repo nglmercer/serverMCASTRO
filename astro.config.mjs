@@ -12,6 +12,6 @@ export default defineConfig({
   integrations: [lit(), solidJs()],
 
   adapter: node({
-    mode: 'middleware'
+    mode: 'standalone'
   })
 });

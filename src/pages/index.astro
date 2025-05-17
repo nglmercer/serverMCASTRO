@@ -5,9 +5,9 @@ import SystemStatus from '@components/main/SystemStatus.astro';
 import ServerStatistics from '@components/main/ServerStatistics.astro';
 import QuickActions from '@components/main/QuickActions.astro';
 import PerformanceAlert from '@components/main/PerformanceAlert.astro';
-import ServerCard from '@components/main/ServerCard.astro';
 import RecentBackups from '@components/main/RecentBackups.astro';
 import SystemHealth from '@components/main/SystemHealth.astro';
+import ServerCard from '@components/main/ServerCard.astro';
 import type { Server, SystemMetrics, QuickAction } from '../types/server';
 import { serverapi } from 'src/fetch/fetchapi';
 interface filedata {
@@ -78,9 +78,7 @@ const quickActions: QuickAction[] = [
           <i class="fa-solid fa-plus"></i>
           New Server
         </a>
-        {servers.map(server => (
-          <ServerCard server={server} />
-        ))}
+          <ServerCard />
 
       </div>
       
@@ -92,9 +90,6 @@ const quickActions: QuickAction[] = [
       </div>
     </main>
   </div>
-  <script define:vars={{mapedServers }}>
-    console.log("serversfetch", mapedServers);
-  </script>
 </Layout>
 
 <style>
@@ -131,4 +126,71 @@ const quickActions: QuickAction[] = [
       grid-template-columns: repeat(3, 1fr);
     }
   }
+  .server-card {
+    background-color: var(--color-dark-900);
+    border: 1px solid var(--color-gray-800);
+    border-radius: var(--border-radius-xl);
+    overflow: hidden;
+    margin-bottom: var(--space-6);
+  }
 </style>
+<script>
+import { type EDetails } from 'src/litcomponents/mc/serveritem.js';
+  import { optionsModal, setPopupOptions } from 'src/utils/dropdown.js';
+  const popup = document.getElementById('serverOptions');
+  function initEDlisteners(){
+    const allServerItems = document.querySelectorAll('server-item');
+    console.log("allServerItems", allServerItems);
+    if (!allServerItems) return;
+    allServerItems.forEach(element => {
+        element.addEventListener('selected', function(e) {
+          if (!('detail' in e)) return;
+          if (!(e instanceof CustomEvent)) return;
+          window.location.href = `/${e.detail.data.server}/console`;
+        });
+  
+        element.addEventListener('menu', function(e) {
+          if (!('detail' in e)) return;
+          const detail = (e as CustomEvent).detail as EDetails;
+          console.log("menu", detail);
+          const popupOptions = getOptions(detail);
+          setPopupOptions(popup, popupOptions, detail.event);
+        });
+      });
+  }
+  function getOptions({data}: EDetails) {
+    const options = [
+      {
+        html: optionsModal({id:"create-backup",icon:"backup",text:"Create Backup"}),
+        callback: function() {
+          console.log("Option 1 clicked");
+        }
+      },
+      {
+        html: optionsModal({id:"restore-backup",icon:"restore",text:"Restore Backup"}),
+        callback: function() {
+          console.log("Option 2 clicked");
+        }
+      },
+      {
+        html: optionsModal({id:"delete-server",icon:"delete",text:"Delete Server"}),
+        callback: function() {
+          console.log("Option 3 clicked");
+        }
+      },
+      {
+        html: optionsModal({id:"download-server",icon:"download",text:"Download Server"}),
+        callback: function() {
+          console.log("Option 4 clicked");
+        }
+      },
+    ]
+    return options;
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+      initEDlisteners();
+      console.log("initEDlisteners");
+    }, 1000);
+  });
+</script>

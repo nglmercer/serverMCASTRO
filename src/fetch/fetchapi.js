@@ -256,6 +256,9 @@ class ServermanagerApi extends BaseApi  {
 class FileManagerApi extends BaseApi  {
     // GET "/folder-info/:folderName(.*)"
     async getFolderInfo(folderName) {
+        //const FName = decodeURIComponent(folderName);
+        //if (FName?.startsWith("/")) folderName = FName.substring(1);
+        console.log("FName", folderName);
         return this.request(http.get(`${this.host}/folder-info/${folderName}`, {
             headers: this._authHeaders()
         }));

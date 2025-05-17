@@ -1,99 +1,54 @@
 ---
-import type { Server } from 'src/types/server';
-import StatusIndicator from './StatusIndicator.astro';
-import CPopup from '@components/solid/solid.tsx';
-interface Props {
-  server: Server;
-}
-
-const { server } = Astro.props;
+// import StatusIndicator from './StatusIndicator.astro'; // Ya no lo necesitas aquí para la lista
+import CPopup from '@components/solid/solid.tsx'; // CPopup es CPopup.solid.tsx? Asumiré que sí.
+import ServerList from '@components/solid/ServerList.solid.tsx'; // Importa tu nuevo componente
 ---
 
-<div class="server-card">
-  <div class="p-10 m-auto">
-    <server-item
-    id={server.id}
-    data-server={server.name}
-    data-size={server.size}
-    data-version={server.version}
-    data-modified={server.lastModified}
-    data-status={server.status}
-    icon="/favicon.svg"
-    title={server.name}
-    >
-    <!-- Contenido personalizado para el slot -->
-     <div class="flex center">
-       <StatusIndicator status={server.status} />
-       <button class="more-options">
-         <span class="material-symbols-rounded">more_vert</span>
-       </button>
-     </div>
-    </server-item>
-  </div>
-</div>
-<CPopup id="serverOptions" class="serverModal_0 material-symbols-rounded server-card" client:load />
-<script define:vars={{ server }}>
-  console.log("server", server);
-</script>
-<script>
-  import { type EDetails } from 'src/litcomponents/mc/serveritem.js';
-  import { optionsModal, setPopupOptions } from 'src/utils/dropdown.js';
-  const popup = document.getElementById('serverOptions');
-  document.querySelectorAll('server-item').forEach(element => {
-      element.addEventListener('selected', function(e) {
-        if (!('detail' in e)) return;
-        if (!(e instanceof CustomEvent)) return;
-        window.location.href = `/${e.detail.data.server}/console`;
-      });
+<!-- El div que contendrá la lista generada por SolidJS -->
+<ServerList client:only="solid-js" />
 
-      element.addEventListener('menu', function(e) {
-        if (!('detail' in e)) return;
-        const detail = (e as CustomEvent).detail as EDetails;
-        console.log("menu", detail);
-        const popupOptions = getOptions(detail);
-        setPopupOptions(popup, popupOptions, detail.event);
-      });
-    });
-  
-  function getOptions({data}: EDetails) {
-    const options = [
-      {
-        html: optionsModal({id:"create-backup",icon:"backup",text:"Create Backup"}),
-        callback: function() {
-          console.log("Option 1 clicked");
-        }
-      },
-      {
-        html: optionsModal({id:"restore-backup",icon:"restore",text:"Restore Backup"}),
-        callback: function() {
-          console.log("Option 2 clicked");
-        }
-      },
-      {
-        html: optionsModal({id:"delete-server",icon:"delete",text:"Delete Server"}),
-        callback: function() {
-          console.log("Option 3 clicked");
-        }
-      },
-      {
-        html: optionsModal({id:"download-server",icon:"download",text:"Download Server"}),
-        callback: function() {
-          console.log("Option 4 clicked");
-        }
-      },
-    ]
-    return options;
-  }
-  document.addEventListener('DOMContentLoaded', function() {
-  });
-</script>
+<!-- Tu CPopup sigue igual, pero su activación será manejada desde ServerList.solid.tsx -->
+<CPopup id="serverOptions" class="serverModal_0 material-symbols-rounded server-card" client:load />
+
 <style>
-  .server-card {
-    background-color: var(--color-dark-900);
-    border: 1px solid var(--color-gray-800);
-    border-radius: var(--border-radius-xl);
-    overflow: hidden;
-    margin-bottom: var(--space-6);
-  }
-  
+/* Asegúrate que los estilos de server-card y otros alcancen a los elementos generados por Solid */
+.server-card {
+  border: 1px solid #eee;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.server-card .p-10 { /* Si usas Tailwind, p-10 es mucho, quizás quisiste p-4 o p-6? */
+  padding: 1.5rem; /* Ejemplo con padding más común */
+}
+.flex.center {
+  display: flex;
+  align-items: center; /* center verticalmente */
+  /* justify-content: center; /* center horizontalmente si es necesario */
+}
+.more-options {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+}
+.more-options:hover {
+  background-color: rgba(0,0,0,0.05);
+}
+.material-symbols-rounded {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24;
+  vertical-align: middle; /* Ayuda a alinear iconos */
+}
 </style>
+
+<script>
+// Ya no necesitas el script de fetch aquí si ServerList.solid.tsx lo maneja.
+// Si quieres pasar datos iniciales a ServerList, podrías hacerlo como props,
+// pero para renderizado completamente en cliente, es mejor que el componente SolidJS haga el fetch.
+</script>
