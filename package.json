@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@astrojs/lit": "^4.3.0",
+    "@astrojs/node": "^9.2.1",
     "@astrojs/solid-js": "^5.0.10",
     "@webcomponents/template-shadowroot": "^0.2.1",
     "astro": "^5.7.1",
