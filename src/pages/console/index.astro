@@ -2,11 +2,10 @@
 export const prerender = false;
 import ServerLayout from "@layouts/serverLayout.astro";
 import Inputcommand from "@components/dashboard/inputcommand.astro";
-const { server } = Astro.params;
 ---
 
 <script src="src/litcomponents/mcinit.ts"></script>
-<ServerLayout title={server + " server"} activeConfig="A">
+<ServerLayout title={"console"} activeConfig="A">
     <div class="console-layout">
         <div class="console">
             <game-console> </game-console>

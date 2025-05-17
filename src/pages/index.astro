@@ -8,34 +8,7 @@ import PerformanceAlert from '@components/main/PerformanceAlert.astro';
 import RecentBackups from '@components/main/RecentBackups.astro';
 import SystemHealth from '@components/main/SystemHealth.astro';
 import ServerCard from '@components/main/ServerCard.astro';
-import type { Server, SystemMetrics, QuickAction } from '../types/server';
-import { serverapi } from 'src/fetch/fetchapi';
-interface filedata {
-  name: string;
-  path: string;
-  size: number;
-  lastModified?: string;
-  modified?: string;
-  status?: string;
-}
-const fetchServers = async () => {
-  try {
-    const serversfetch = await serverapi.getServers();
-    return serversfetch.data.files;
-  } catch (error) {
-    console.error("Error fetching servers:", error);
-    return []; // Retorna un array vacío en caso de error
-  }
-};
-
-const mapedServers = (await fetchServers()).map((server: filedata) => ({
-  id: server.name,
-  name: server.name,
-  size: server.size,
-  lastModified: server.lastModified || server.modified,
-  status: server.status || 'stopped',
-}));
-const servers: Server[] = mapedServers;
+import type { SystemMetrics, QuickAction } from '../types/server';
 
 // Métricas del sistema
 const systemMetrics: SystemMetrics = {
@@ -146,7 +119,7 @@ import { type EDetails } from 'src/litcomponents/mc/serveritem.js';
         element.addEventListener('selected', function(e) {
           if (!('detail' in e)) return;
           if (!(e instanceof CustomEvent)) return;
-          window.location.href = `/${e.detail.data.server}/console`;
+          window.location.href = `/console/?server=${e.detail.data.server}`;
         });
   
         element.addEventListener('menu', function(e) {

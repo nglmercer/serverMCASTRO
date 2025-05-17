@@ -1,16 +1,9 @@
 ---
-export const prerender = false;
 import ServerLayout from '@layouts/serverLayout.astro';
 import SideBySideRow from '@components/Sideb.astro';
-const { server } = Astro.params;    
-const defaultConfig = {
-  startScript: "start.sh",
-  restartOnError: true,
-  restartAttempts: 3,
-  stopCommand: "stop",
-};
+
 ---
-<ServerLayout title={server + " server"} activeConfig="A" prefix={server}>
+<ServerLayout title={"settings"} activeConfig="A">
     <h2>Server Properties</h2>
         <div class="config-section">
         <SideBySideRow gap="20px" alignItems="center">

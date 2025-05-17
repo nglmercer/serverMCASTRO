@@ -1,6 +1,5 @@
 ---
 import { pagesConfigA, pagesConfigB } from '../config/pages';
-import Actiontest from '@components/menu/actiontest.astro';
 
 interface Props {
   title?: string;
@@ -10,16 +9,6 @@ interface Props {
 
 const { title = "Default Title", activeConfig = 'A', prefix = '/' } = Astro.props;
 const currentConfig = activeConfig === 'A' ? pagesConfigA : pagesConfigB;
-function ensureSlashes(text: string) {
-  if (!text.startsWith('/')) {
-    text = '/' + text;
-  }
-  if (!text.endsWith('/')) {
-    text = text + '/';
-  }
-  return text;
-}
-const validPrefix = ensureSlashes(prefix);
 ---
 
 <html lang="en">
@@ -59,7 +48,7 @@ const validPrefix = ensureSlashes(prefix);
           <div class="nav-buttons">
             {
               Object.entries(currentConfig).map(([key, page]) => (
-                <a href={validPrefix+ page.slot} class="nav-link">
+              <a href={`/${page.slot.replace(/^\/+/, '')}`} class="nav-link" id="NavigatePath">
                   {/* CHANGE: Usar span con la clase y el nombre del icono como contenido */}
                   <span class="material-symbols-outlined">{page.icon}</span>
                   <span class="nav-text">{page.name}</span>
@@ -82,7 +71,7 @@ const validPrefix = ensureSlashes(prefix);
           <div class="nav-buttons">
             {
               Object.entries(currentConfig).map(([key, page]) => (
-                <a href={validPrefix + page.slot} class="nav-link">
+              <a href={`/${page.slot.replace(/^\/+/, '')}`} class="nav-link" id="NavigatePath">
                   {/* CHANGE: Usar span con la clase y el nombre del icono como contenido */}
                   <span class="material-symbols-outlined">{page.icon}</span>
                   <span class="nav-text">{page.name}</span>
@@ -107,7 +96,21 @@ const validPrefix = ensureSlashes(prefix);
     </div>
   </body>
 </html>
-
+<script define:vars={{prefix,currentConfig}}>
+	const params = new URLSearchParams(window.location.search);
+	const server = params.get("server");
+  window.selectedServer = server || "";
+	console.log("server", server);
+  const aLinks = document.querySelectorAll("#NavigatePath");
+  aLinks.forEach((element)=>{
+    element.addEventListener("click", (e) => {
+      console.log("e", prefix, element.href,window.location);
+      e.preventDefault();
+      window.location.href = element.href + "?server=" + window.selectedServer;
+    }
+    );
+  });
+</script>
 <style>
 
 </style>

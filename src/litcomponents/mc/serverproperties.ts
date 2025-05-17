@@ -4,7 +4,7 @@ import { filemanagerapi } from 'src/fetch/fetchapi';
 @customElement('server-properties')
 export class ServerPropertiesLitElement extends LitElement {
     @property({ type: String, attribute: 'server-id' })
-    serverId = '';
+    serverId = window.selectedServer || '';
 
     @state()
     private _properties: Array<{ key: string; value: unknown; originalType: string; displayValue: unknown }> = [];

@@ -1,7 +1,5 @@
 ---
-export const prerender = false;
 import ServerLayout from '@layouts/serverLayout.astro';
-const { server } = Astro.params;
 import SystemMonitorSolid, {type SystemInfoResponse } from '@components/solid/system.tsx';
 import { systemapi } from 'src/fetch/fetchapi';
 
@@ -17,7 +15,7 @@ async function getSystemInfo() {
 const systemInfo = await getSystemInfo();
 ---
 <script src="/src/litcomponents/mcinit.js"></script>
-<ServerLayout title={server + " server"} activeConfig="A" prefix={server}>
+<ServerLayout title={"systemMonitor"} activeConfig="A">
     <h2>Server Properties</h2>
     <SystemMonitorSolid client:load systemInfo={systemInfo} />
 </ServerLayout>

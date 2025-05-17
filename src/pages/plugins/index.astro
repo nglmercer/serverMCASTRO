@@ -1,14 +1,13 @@
 ---
 export const prerender = false;
 import ServerLayout from '@layouts/serverLayout.astro';
-const { server } = Astro.params;    
 import SideBySideRow from '@components/Sidec.astro';
 import ModSearch from '@components/store/ModSearch';
 import FileUploader from "@components/solid/FileUploader.tsx";
 
 ---
 <script src="/src/litcomponents/mcinit.js"></script>
-<ServerLayout title={server + " server"} activeConfig="A" prefix={server}>
+<ServerLayout title={"plugins"} activeConfig="A">
     <h2>Plugins and mods</h2>
         <div class="config-section">
             <SideBySideRow gap="20px" alignItems="center">

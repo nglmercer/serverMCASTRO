@@ -262,7 +262,6 @@ export class FileExplorer extends LitElement {
     this._headerIcons = icons;
   }
   
-  // Replace the render method's table header section with this:
   render() {
     return html`
       <table>
@@ -303,11 +302,7 @@ export class FileExplorer extends LitElement {
               <td>${this.formatDate(item.lastModified)}</td>
             </tr>
           `)}
-          ${this.processedData.length === 0 ? html`
-            <tr>
-              <td colspan="4" style="text-align: center; padding: 20px;">No items to display.</td>
-            </tr>
-          ` : ''}
+
         </tbody>
       </table>
     `;

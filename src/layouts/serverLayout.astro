@@ -1,9 +1,8 @@
 ---
 import SidebarLayout from '@layouts/SidebarLayout.astro';
 import ServerHeader from '@components/header/serverHeader.astro';
-const { server } = Astro.params;
 ---
-<SidebarLayout title="Mi Aplicación" activeConfig="A" prefix={server}>
+<SidebarLayout title="Mi Aplicación" activeConfig="A">
 	<div slot="logo">
 		<a href="/" class="flex items-center gap-4 p-4">
 			<span class="material-symbols-outlined">home</span>
@@ -17,8 +16,10 @@ const { server } = Astro.params;
     </div>
 	</div>
 </SidebarLayout>
-<script define:vars={{server}}>
-    window.selectedServer = server;
+<script>
+	const params = new URLSearchParams(window.location.search);
+	const server = params.get("server");
+    window.selectedServer = server || "";
 	console.log("server", server);
 </script>
 <style>

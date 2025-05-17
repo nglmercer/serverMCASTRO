@@ -2,10 +2,9 @@
 export const prerender = false;
 import ServerLayout from '@layouts/serverLayout.astro';
 import FileHeader from '@components/dashboard/fileHeader.astro';
-const { server } = Astro.params;    
 ---
 <link rel="stylesheet" href="/atom-one-dark.css">
-<ServerLayout title={server + " server"} activeConfig="A" prefix={server}>
+<ServerLayout title={"filemanager"} activeConfig="A" >
     <h2>Gestor de archivos</h2>
     <FileHeader/>
 </ServerLayout>
