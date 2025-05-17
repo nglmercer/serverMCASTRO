@@ -1,8 +1,7 @@
 ---
 // src/components/CodeEditor.astro
-// No changes needed in the Astro frontmatter props, it's already well-typed.
 interface Props {
-  id?: string; // Made id optional as you have a fallback
+  id?: string;
   initialContent?: string;
   initialLanguage?: string;
   height?: string;
@@ -10,14 +9,13 @@ interface Props {
 }
 
 const {
-  id, // id can be undefined here
+  id, 
   initialContent = "",
   initialLanguage = "plaintext",
   height = "auto",
   width = "100%"
 } = Astro.props;
 
-// Ensure componentId is always a string, even if Astro.props.id is undefined
 const componentId = id || "editor-" + Math.random().toString(36).substring(2, 9);
 const IDS = [`${componentId}-content`, `${componentId}-lang`];
 ---
@@ -32,7 +30,6 @@ const IDS = [`${componentId}-content`, `${componentId}-lang`];
 </div>
 
 <script define:vars={{ componentId, initialContent, initialLanguage, IDS }}>
-  // This part remains the same, it passes data to the client
   window.EditorConfig = {
     componentId,
     initialContent,
@@ -42,11 +39,9 @@ const IDS = [`${componentId}-content`, `${componentId}-lang`];
 </script>
 
 <script>
-  // Client-side script
-  import { signals } from "src/globalSignals"; // Assuming this file exists and exports 'signals'
+  import { signals } from "src/globalSignals"; 
   import hljs from 'highlight.js';
 
-  // 1. Define types for what's coming from window.EditorConfig
   interface EditorConfigData {
     componentId: string;
     initialContent: string;
@@ -56,7 +51,6 @@ const IDS = [`${componentId}-content`, `${componentId}-lang`];
 
 
 
-  // Retrieve typed config
   const {
     componentId,
     initialContent,
@@ -67,30 +61,25 @@ const IDS = [`${componentId}-content`, `${componentId}-lang`];
   const typedSignals = signals;
 
 
-  // Create signals for content and language
   function initSignals(): void {
     if (!IDS || IDS.length < 2) {
       console.error("IDS not properly initialized for signals.");
       return;
     }
-    // Use typedSignals
     typedSignals.create<string>(IDS[0], (initialContent || "") as string);
     typedSignals.create<string>(IDS[1], (initialLanguage || "plaintext") as string);
     console.log("Signals initialized for IDS:", IDS);
   }
   initSignals();
 
-  // Removed unused CodeEditorProps interface
 
   class CodeEditor {
-    // 4. Declare class properties with types
     private editorElement: HTMLElement | null;
     private languageIndicator: HTMLElement | null;
     private initialContent: string;
     private initialLanguage: string;
     private debouncedUpdateHighlight: () => void;
 
-    // Type constructor parameters
     constructor(editorId: string, initialContent: string = "", initialLanguage: string = "plaintext") {
       this.editorElement = document.getElementById(editorId);
       this.languageIndicator = document.getElementById(`${editorId}-language`);
@@ -102,27 +91,22 @@ const IDS = [`${componentId}-content`, `${componentId}-lang`];
       } else {
         console.error(`Editor element with ID '${editorId}' not found.`);
       }
-      // Assign debounced function here after binding 'this'
       this.debouncedUpdateHighlight = this.debounce(this.updateHighlight.bind(this), 300);
     }
 
     private initializeEditor(): void {
-      // Type guard for editorElement
       if (!this.editorElement) return;
 
-      this.editorElement.contentEditable = "true"; // contentEditable is a string "true" or "false"
+      this.editorElement.contentEditable = "true"; 
       this.editorElement.spellcheck = false;
-      (this.editorElement as HTMLElement).autocapitalize = "off"; // Autocapitalize might not be on all HTMLElements, cast or check
+      (this.editorElement as HTMLElement).autocapitalize = "off"; 
 
       this.setContent(this.initialContent);
 
-      // Event listeners
       this.editorElement.addEventListener('input', this.handleInput.bind(this) as EventListener);
       this.editorElement.addEventListener('paste', this.handlePaste.bind(this) as EventListener);
       this.editorElement.addEventListener('keydown', this.handleTabKey.bind(this) as EventListener);
 
-      // Subscribe to signal changes
-      // Ensure IDS exists and has the required elements before subscribing
       if (IDS && IDS.length >= 2) {
         typedSignals.subscribe<string>(IDS[0], (newContent: string) => {
           if (this.editorElement && this.editorElement.textContent !== newContent) {
@@ -134,12 +118,11 @@ const IDS = [`${componentId}-content`, `${componentId}-lang`];
           if (this.languageIndicator) {
             this.languageIndicator.textContent = newLanguage;
           }
-          this.updateHighlight(); // Update highlight when language changes
+          this.updateHighlight(); 
         });
       }
     }
 
-    // Type debounce function
     private debounce<F extends (...args: any[]) => any>(func: F, wait: number): (...args: Parameters<F>) => void {
       let timeout: ReturnType<typeof setTimeout> | undefined;
       return function(this: ThisParameterType<F>, ...args: Parameters<F>): void {
@@ -192,10 +175,9 @@ const IDS = [`${componentId}-content`, `${componentId}-lang`];
           }
         } catch (e) {
           console.error("Error restoring cursor position:", e);
-          // Fallback: place cursor at the end or beginning if restoration fails
           const range = document.createRange();
           range.selectNodeContents(element);
-          range.collapse(false); // false for end, true for beginning
+          range.collapse(false);
            const selection = window.getSelection();
           if (selection) {
             selection.removeAllRanges();
@@ -208,14 +190,14 @@ const IDS = [`${componentId}-content`, `${componentId}-lang`];
     private updateHighlight(): void {
       console.log("updateHighlight");
       if (!this.editorElement) return;
-      if (!IDS || IDS.length < 2) return; // Guard for IDS
+      if (!IDS || IDS.length < 2) return;
 
       const cursorPosition = this.saveCursorPosition(this.editorElement);
       const content = this.editorElement.textContent || "";
 
       typedSignals.set<string>(IDS[0], content);
 
-      let result; // Use type from @types/highlight.js
+      let result; 
       const currentLangSignal = typedSignals.get<string>(IDS[1]);
       const currentLang = currentLangSignal ? currentLangSignal.value : "plaintext";
 
@@ -235,30 +217,27 @@ const IDS = [`${componentId}-content`, `${componentId}-lang`];
 
       if (result.language && result.language !== currentLang) {
         typedSignals.set<string>(IDS[1], result.language);
-        // The languageIndicator should update via its own signal subscription
       }
       signals.set<string>(IDS[0], content);
       
       this.restoreCursorPosition(this.editorElement, cursorPosition);
     }
 
-    // Type event parameters
     private handlePaste(event: ClipboardEvent): void {
       event.preventDefault();
-      const text = event.clipboardData?.getData('text/plain') || ""; // Use text/plain for safety
+      const text = event.clipboardData?.getData('text/plain') || "";
 
       const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
         range.deleteContents();
         range.insertNode(document.createTextNode(text));
-        // Move cursor to the end of pasted text
         range.setStart(range.endContainer, range.endOffset);
         range.collapse(true);
         selection.removeAllRanges();
         selection.addRange(range);
       }
-      this.updateHighlight(); // This will trigger debounced update if it's the first change in a while
+      this.updateHighlight();
     }
     private handleInput(event: Event): void {
       this.debouncedUpdateHighlight();
@@ -266,12 +245,7 @@ const IDS = [`${componentId}-content`, `${componentId}-lang`];
     private handleTabKey(event: KeyboardEvent): void {
       if (event.key === 'Tab') {
         event.preventDefault();
-        document.execCommand('insertText', false, '  '); // Simpler way to insert text and handle selection
-        // No need to call updateHighlight directly, 'input' event should fire.
-        // If execCommand doesn't fire 'input', you might need to dispatch it manually or call updateHighlight.
-        // For robustness, let's ensure update is called if execCommand doesn't fire 'input' on its own
-        // However, modern browsers typically fire an 'input' event after execCommand.
-        // If not, uncomment the next line:
+        document.execCommand('insertText', false, '  ');
         this.debouncedUpdateHighlight();
       }
     }
@@ -292,22 +266,19 @@ const IDS = [`${componentId}-content`, `${componentId}-lang`];
       if (!this.editorElement) return;
       if (!IDS || IDS.length < 1) return;
 
-      // Check if content is actually different to avoid unnecessary updates and cursor jumps
       if (this.editorElement.textContent === content) {
           if (content.trim() === "" && this.editorElement.innerHTML !== "") {
-             // handles case where content is whitespace but innerHTML might have <br> or something
           } else {
             return;
           }
       }
 
       if (!content || content.trim() === "") {
-        this.editorElement.innerHTML = ""; // Clear completely for empty content
+        this.editorElement.innerHTML = "";
         typedSignals.set<string>(IDS[0], "");
-        // No need to call updateHighlight if content is empty, unless you want hljs to process ""
       } else {
-        this.editorElement.textContent = content; // Set as text first
-        this.updateHighlight(); // Then highlight (which also updates the signal)
+        this.editorElement.textContent = content;
+        this.updateHighlight();
       }
     }
 
@@ -315,13 +286,10 @@ const IDS = [`${componentId}-content`, `${componentId}-lang`];
       if (!IDS || IDS.length < 2) return;
       this.setContent(this.initialContent);
       typedSignals.set<string>(IDS[1], this.initialLanguage);
-      // languageIndicator will update via its signal subscription
     }
   }
 
-  // Initialize the editor
   document.addEventListener('DOMContentLoaded', () => {
-    // Ensure IDS is valid before creating the editor
     if (window.EditorConfig && IDS && IDS.length >= 2) {
       const editorInstance = new CodeEditor(
         (componentId || "file-editor"),
@@ -329,8 +297,6 @@ const IDS = [`${componentId}-content`, `${componentId}-lang`];
         initialLanguage
       );
       console.log("CodeEditor instance created:", editorInstance, "for componentId:", componentId);
-      // You can store editorInstance on window if you need to access it from console for debugging
-      // (window as any)[`editor_${componentId}`] = editorInstance;
     } else {
       console.error("Failed to initialize CodeEditor: EditorConfig or IDS are missing/invalid.", window.EditorConfig);
     }
