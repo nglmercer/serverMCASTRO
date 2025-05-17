@@ -4,6 +4,7 @@ import { fetchFiles } from "src/fetch/fetchapi";
 import {
   FileExplorer
 } from "src/litcomponents/mc/files.js";
+import 'src/components/solid/FileUploader.css';
 interface FileUploaderProps {
   apiEndpoint: string;
   maxFileSize?: number; // in bytes, default is 2GB
