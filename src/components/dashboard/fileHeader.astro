@@ -12,7 +12,7 @@ import CodeEditor from "./codeEditor.astro";
 <p id="current-path">Current Path: ./</p>
 <PathNavigator client:only="solid-js" basePath={typeof window !== "undefined" ? window.selectedServer : ""} />
 <file-explorer current-path="/" id="filemanager"></file-explorer>
-<CPopup id="fileOptions" class="file-options" client:load />
+<CPopup id="fileOptions" class="file-options" client:only="solid-js" />
 <dialog-container id="file-Editor" required>
     <div class="modal__base">
       <c-input type="text" name="name" id="file-name" placeholder="Nombre del archivo" required style="--padding: 0; border: 0; background-color: var(--bg-dark-accent-light);"></c-input>
@@ -31,7 +31,7 @@ import CodeEditor from "./codeEditor.astro";
 </dialog-container>
 <dialog-container id="upload-files">
     <div class="modal__base p-10">
-        <FileUploader client:load apiEndpoint="http://localhost:3000/upload/files?pathType=servers" multiple={true} />
+        <FileUploader client:only="solid-js" apiEndpoint="http://localhost:3000/upload/files?pathType=servers" multiple={true} />
     </div>
 </dialog-container>
 <dialog-container id="EditFilename">

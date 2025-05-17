@@ -1,6 +1,16 @@
 import { type Component, For, Show, createSignal, onCleanup, createEffect } from 'solid-js';
 import './SystemMonitor.css'; // Import the CSS file
-
+import { systemapi } from 'src/fetch/fetchapi';
+async function getSystemInfo() {
+    try{
+        const result = await systemapi.getSystemInfo();
+        return result;
+    } catch (error) {
+        console.error("Error fetching system info:", error);
+        return null;
+    }
+}
+const systemInfoData = await getSystemInfo();
 // --- Type Definitions (Copied from your example) ---
 export interface CacheInfo {
     l1d?: number;
@@ -206,7 +216,8 @@ interface SystemMonitorSolidProps {
 }
 
 const SystemMonitorSolid: Component<SystemMonitorSolidProps> = (props) => {
-    const data = () => props.systemInfo?.data;
+    const initialData = props.systemInfo ||(systemInfoData as SystemInfoResponse);
+    const data = () => initialData?.data || (systemInfoData as SystemInfoResponse)?.data;
 
     const platform = () => data()?.platform || {};
     const cpu = () => data()?.cpu || {};
@@ -236,7 +247,6 @@ const SystemMonitorSolid: Component<SystemMonitorSolidProps> = (props) => {
             updateUptimeDisplay(); // Actualizar inmediatamente al recibir los datos
             
             // Limpiar cualquier intervalo anterior antes de establecer uno nuevo.
-            // Esto es importante si props.systemInfo se actualiza y este efecto se re-ejecuta.
             if (uptimeInterval !== undefined) {
                 window.clearInterval(uptimeInterval);
             }
@@ -297,13 +307,13 @@ const SystemMonitorSolid: Component<SystemMonitorSolidProps> = (props) => {
     return (
         <div class="system-monitor-solid">
             <Show 
-                when={!props.systemInfo} 
+                when={!initialData} 
                 fallback={
                     <Show 
-                        when={props.systemInfo?.success && data()} 
+                        when={initialData?.success && data()} 
                         fallback={
                             <div class="status-message">
-                                {props.systemInfo?.success === false ? systemMonitorLabels.errorData : systemMonitorLabels.noData}
+                                {initialData?.success === false ? systemMonitorLabels.errorData : systemMonitorLabels.noData}
                             </div>
                         }
                         keyed

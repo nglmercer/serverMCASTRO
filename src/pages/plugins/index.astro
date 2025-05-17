@@ -35,7 +35,7 @@ import FileUploader from "@components/solid/FileUploader.tsx";
 </ServerLayout>
 <dialog-container id="upload-files">
     <div class="modal__base p-10">
-        <FileUploader client:load apiEndpoint="http://localhost:3000/upload/files?pathType=servers" multiple={true} />
+        <FileUploader client:only="solid-js" apiEndpoint="http://localhost:3000/upload/files?pathType=servers" multiple={true} />
     </div>
 </dialog-container>
 <script>
