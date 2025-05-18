@@ -111,6 +111,20 @@ const currentConfig = activeConfig === 'A' ? pagesConfigA : pagesConfigB;
     );
   });
 </script>
+<script>
+  import wsClient from '../utils/socketManager';
+  wsClient.connect({
+    onOpen: (event:string) => {
+      console.log("Conexión WS establecida desde el componente.", event);
+    },
+    onMessage: (message:string, rawData:string) => {
+      console.log("Mensaje recibido desde el componente:", message, rawData);
+    },
+    onClose: (event:string) => {
+      console.log("Conexión WS cerrada desde el componente:", event);
+    }
+  });
+</script>
 <style>
 
 </style>
