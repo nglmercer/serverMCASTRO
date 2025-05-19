@@ -4,6 +4,7 @@ import StepForm from '@components/newserver/StepForm.astro'
 import Step1 from '@components/newserver/steps/Step1.astro';
 import Step2 from '@components/newserver/steps/Step2.astro';
 import Step3 from '@components/newserver/steps/Step3.astro';
+import NotificationContent from '@components/solid/modal/NotificationContent';
 const steps = [
  { name: "Nombre del servidor", value: "server-name" },
  { name: "Seleccionar núcleo del servidor", value: "server-core" },
@@ -18,7 +19,17 @@ const steps = [
   </div>
 <link rel="stylesheet" href="/src/components/newserver/steps/step.css">
 <script src="/src/components/newserver/newserver.js"></script>
-<task-notifications id="notificaciones"></task-notifications>
+<dialog-container id="notificationDialog">
+  <NotificationContent
+  client:load
+  id="notificationContent"
+  initialState={{
+    type: 'info',
+    title: 'Bienvenido!',
+    message: 'El sistema está listo.',
+  }}
+/>
+</dialog-container>
 <StepForm steps={steps} title="Crear un nuevo Servidor de Minecraft">
 <Step1 />
 <Step2 />
@@ -33,6 +44,8 @@ import { tabsSignal,signals } from "src/globalSignals";
 import { CInput } from "src/litcomponents/CInput";
 import { TaskNotifications } from "src/litcomponents/notify";
 import { type TasksObject } from 'src/types/task';
+import type { DialogContainer } from "src/litcomponents/custom-modal";
+import type { NotificationControls } from 'src/types/Notification';
 
 const notifications = document.querySelector("task-notifications") as TaskNotifications;
 const formElemNames = [
@@ -69,9 +82,17 @@ function getFileForm(id: string) {
   const fileInput = inputFile.shadowRoot?.querySelector('input');
   return fileInput?.files?.[0] || null;
 }
+function isTasksObject(obj: any): obj is TasksObject {
+  return typeof obj === 'object' && obj !== null && Object.values(obj).every(value => typeof value !== 'undefined');
+}
+
 async function updateNotifications() {
-  const result = await serverapi.getTasks() as { data: TasksObject };
-  notifications.updateTasks(result.data);
+  const result = await serverapi.getTasks();
+  if (isTasksObject(result.data)) {
+    notifications.updateTasks(result.data);
+  } else {
+    console.error("Datos inesperados recibidos en result.data", result.data);
+  }
 }
 
 updateNotifications()
@@ -123,6 +144,15 @@ document.addEventListener('formSubmit', async function(e) {
     // Enviar el FormData al servidor
     const result = await serverapi.postNewserver(formData);
     console.log(result);
+    if (result && result.success) {
+      showDialogWithMessage(notifier => {
+          notifier.setType('success', (result.message ? result.message : 'La operación fue un éxito rotundo.'), '¡Completado!');
+        });
+    } else {
+      showDialogWithMessage(notifier => {
+          notifier.setType('error', ('Error al enviar el formulario: ' + result?.error), 'Error');
+        });
+    }
   } catch (error) {
     console.error("Error al enviar el formulario:", error);
   }
@@ -144,5 +174,49 @@ signals.subscribe('tabs', (value:TabButtonData, oldValue:TabButtonData) => {
 
   }
 });
-
+const dialog = document.getElementById('notificationDialog') as DialogContainer;
+const ASTRO_NOTIFICATION_API_KEY = 'astroAppNotificationControls'; // Misma clave que en el componente Solid
+function getNotifierApi(id:string) {
+      return new Promise((resolve, reject) => {
+        let attempts = 0;
+        const maxAttempts = 50; // ~5 segundos
+        const interval = setInterval(() => {
+          if (window.astroAppNotifications && window.astroAppNotifications[id]) {
+            clearInterval(interval);
+            resolve(window.astroAppNotifications[id]);
+          } else if (attempts++ > maxAttempts) {
+            clearInterval(interval);
+            reject(new Error(`API para el notificador con ID '${id}' no encontrada tras ${maxAttempts} intentos.`));
+          }
+        }, 100);
+      });
+    }
+async function showDialogWithMessage(action: (notifier: NotificationControls) => void) {
+    const notifier = await getNotifierApi('notificationContent');
+      if (notifier) {
+        await action(notifier as NotificationControls);
+        if (dialog && typeof dialog.show === 'function') {
+          dialog.show();
+        } else {
+          console.error("El elemento dialog no fue encontrado o no soporta showModal().");
+        }
+      } else {
+        console.error('La API de notificación (window.' + ASTRO_NOTIFICATION_API_KEY + '.update) no está disponible. ¿Se cargó el componente SolidJS?');
+        // Podrías poner un reintento o un mensaje al usuario
+        // setTimeout(() => showNotification(type, message, title, icon), 100); // Ejemplo de reintento simple
+      }
+    }
+document.addEventListener('DOMContentLoaded', () => {
+/*   setTimeout(() => {
+    showDialogWithMessage(notifier => {
+        notifier.setType('success', 'La operación fue un éxito rotundo.', '¡Conseguido!');
+      });
+      showDialogWithMessage(notifier => {
+        notifier.setIcon('pets'); // Cambia solo el icono, el tipo y color se mantienen
+        notifier.setTitle('Mascota Encontrada'); // También actualizamos título para que tenga sentido
+        notifier.setMessage('¡Nuevo mascota encontrada!');
+        notifier.setType('info');
+      });
+  }, 1000); */
+});
 </script>
