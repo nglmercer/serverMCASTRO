@@ -11,6 +11,11 @@ const steps = [
 ];
 ---
 <Layout>
+  <div class="home-link absolute top-0 right-0 p-4">
+    <span class="material-symbols-rounded">
+      <a href="/">home</a>
+    </span>
+  </div>
 <link rel="stylesheet" href="/src/components/newserver/steps/step.css">
 <script src="/src/components/newserver/newserver.js"></script>
 <task-notifications id="notificaciones"></task-notifications>
@@ -26,7 +31,10 @@ import { type TabButtonData } from "src/types/elements";
 import { serverapi } from "src/fetch/fetchapi";
 import { tabsSignal,signals } from "src/globalSignals";
 import { CInput } from "src/litcomponents/CInput";
+import { TaskNotifications } from "src/litcomponents/notify";
+import { type TasksObject } from 'src/types/task';
 
+const notifications = document.querySelector("task-notifications") as TaskNotifications;
 const formElemNames = [
   "serverName",
   "selecttab",
@@ -61,6 +69,12 @@ function getFileForm(id: string) {
   const fileInput = inputFile.shadowRoot?.querySelector('input');
   return fileInput?.files?.[0] || null;
 }
+async function updateNotifications() {
+  const result = await serverapi.getTasks() as { data: TasksObject };
+  notifications.updateTasks(result.data);
+}
+
+updateNotifications()
 // Inicializar elementos y configurar listeners
 formElemNames.forEach((id) => {
   const element = document.getElementById(id);

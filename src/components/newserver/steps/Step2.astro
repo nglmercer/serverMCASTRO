@@ -10,7 +10,8 @@ import TabbedContent from '@components/TabbedContent.astro';
       <div slot="tab-0" class="w-full">
           <grid-selector class="selectcore w-full" id="coreName"> </grid-selector>
           <p>select version</p>
-          <list-selector class="coreVersion" id="coreVersion"></list-selector>
+          <list-selector class="coreVersion" id="coreVersion" showEmptyStateMessages>
+          </list-selector>
       </div>
       <div slot="tab-1">
         <c-input class="fileName" id="fileName" type="file" darkmode></c-input>

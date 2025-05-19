@@ -1,3 +1,5 @@
+---
+---
 <!doctype html>
 <html lang="en">
 	<head>
@@ -12,6 +14,7 @@
 		<link rel="stylesheet" href="/materialSymbols.css"/>
 	</head>
 	<body>
+		<task-notifications id="my-notifications"></task-notifications>
 		<slot />
 	</body>
 </html>
@@ -24,3 +27,40 @@
 		height: 100%;
 	}
 </style>
+<script>
+/* 	import { TaskNotifications } from "src/litcomponents/notify";
+	const notifications = document.querySelector("task-notifications") as TaskNotifications;
+		function initNotifications() {
+		//test
+		if (!notifications) {
+			return;
+		}
+		notifications.updateTasks({
+			"task-1": { // Using more descriptive IDs
+				filename: "Initial_Report.pdf",
+				progress: 75,
+				status: "downloading",
+				type: "downloading"
+			},
+			"task-2": {
+				filename: "System_Update.pkg",
+				progress: 30,
+				status: "processing",
+				type: "downloading" // type might be 'update' or similar if not strictly a download
+			},
+			"task-3": {
+				filename: "User_Agreement.docx",
+				status: "completed", // No progress needed if completed
+			},
+			"task-4": {
+				filename: "Critical_Patch.exe",
+				progress: 10, // Show some progress before failure
+				status: "failed",
+			}
+		});
+		console.log("initNotifications",notifications);
+	}
+	document.addEventListener("DOMContentLoaded", () => {
+		setTimeout(initNotifications, 1000);
+	}); */
+</script>

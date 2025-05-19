@@ -176,11 +176,11 @@ class FetchApi extends BaseApi  {
     }
 }
 class ServerApi extends BaseApi {
-      // GET /java/all
-      getVSJava() {
-        return this.request(http.get(`${this.host}/java/all`, {
-            headers: this._authHeaders()
-        }));
+    // GET /java/all
+    getVSJava() {
+    return this.request(http.get(`${this.host}/java/all`, {
+        headers: this._authHeaders()
+    }));
     }
       // GET /cores/all
     getALLCores(){
@@ -228,6 +228,12 @@ class ServerApi extends BaseApi {
     // GET "/servermanager/" + server + "/logs"
     async getServerLog(server) {
         return this.request(http.get(`${this.host}/servermanager/${server}/log`, {
+            headers: this._authHeaders()
+        }));
+    }
+    // GET "/tasks"
+    async getTasks() {
+        return this.request(http.get(`${this.host}/tasks`, {
             headers: this._authHeaders()
         }));
     }

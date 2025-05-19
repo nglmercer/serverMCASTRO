@@ -7,6 +7,8 @@ import { serverapi } from "src/fetch/fetchapi";
 async function fetchCores() {
   try {
     const gridElement = document.querySelector('.selectcore');
+    const newselector = document.querySelector(".coreVersion");
+    newselector.isLoading = true;
     if (!gridElement) {
       console.warn("Elemento .selectcore no encontrado");
       return;
@@ -20,7 +22,7 @@ async function fetchCores() {
     
     const gridOptions = parseCoreversions(result.data);
     console.log("result", result, gridOptions);
-    
+    gridElement.isLoading = false;
     gridElement.options = gridOptions;
     
     // Es mejor usar Promise en lugar de setTimeout para operaciones asíncronas
@@ -34,7 +36,7 @@ async function fetchCores() {
         const result = await serverapi.getcore(e.detail.value);
         console.log("result", result);
         if (result && result.data) {
-          await setcoreversions(result.data);
+          await setcoreversions(result.data, newselector);
         }
       } catch (error) {
         console.error("Error al obtener las versiones del core:", error);
@@ -66,9 +68,9 @@ async function fetchJavav() {
  * Configura las opciones del selector de versiones de núcleo
  * @param {Array} arrayV - Lista de versiones disponibles
  */
-async function setcoreversions(arrayV) {
+async function setcoreversions(arrayV,select) {
   try {
-    const coreSelect = document.querySelector(".coreVersion");
+    const coreSelect = select || document.querySelector(".coreVersion");
     if (!coreSelect) {
       console.warn("Elemento .coreVersion no encontrado");
       return;
@@ -76,7 +78,7 @@ async function setcoreversions(arrayV) {
     
     const optionsCore = returnOptionfromArray(arrayV);
     console.log("optionsCore", optionsCore, coreSelect);
-    
+    coreSelect.isLoading = false; 
     coreSelect.options = optionsCore;
   } catch (error) {
     console.error("Error en setcoreversions:", error);
@@ -102,7 +104,7 @@ async function setjavaversions(objV) {
     
     const optionsCore = returnOptionfromArray(objV.available, "java ");
     console.log("setjavaversions", optionsCore, objV);
-    
+    javaSelect.isLoading = false; 
     javaSelect.options = optionsCore;
     
     if (objV.installed && objV.installed.length > 0) {
@@ -130,9 +132,24 @@ function returnOptionfromArray(arrayV, prefix = "") {
   }
   return [];
 }
-
+async function fetchTasks() {
+  try {
+    const result = await serverapi.getTasks();
+    if (!result || !result.data) {
+      console.error("No se pudieron obtener las tareas");
+      return;
+    }
+    
+    const tasks = result.data;
+    console.log("result", result, tasks);
+    return tasks;
+  } catch (error) {
+    console.error("Error en fetchTasks:", error);
+  }
+}
 // Inicialización cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
   fetchCores();
   fetchJavav();
+  fetchTasks();
 });
