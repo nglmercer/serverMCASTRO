@@ -133,6 +133,12 @@ import wsClient from '../../utils/socketManager';
     //    console.log("serverInfo", serverInfo);
         setServerStatus(serverInfo.data);
     }
+    window.getServerInfo = getServerInfo;
+    declare global {
+        interface Window {
+            getServerInfo: (server: string) => void;
+        }
+    }
     function defaultstatus(actionsElement:ActionButtonsLit) {
         actionsElement.hideButton("more-server-actions");
         actionsElement.hideButton("kill-server");

@@ -217,6 +217,9 @@ onMessage: (message:wsMessage, rawData:string) => {
     scheduleUpdate(async ()=>{
       try {
         await fetchLogs();
+        if (window.getServerInfo) {
+            window.getServerInfo(window.selectedServer);
+        }
       } catch (error) {
         console.error("Error al actualizar información del servidor:", error);
       }
