@@ -66,3 +66,71 @@
     color: var(--text-color);
     color: inherit;
   }
+/* Estilos para la sección de botones */
+.notification-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.notification-button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.notification-button:hover {
+  opacity: 0.9;
+}
+
+/* Variantes de botones según el tipo de notificación */
+.type-success .notification-button:not([class*=" "]) {
+  background-color: #4caf50;
+  color: white;
+}
+
+.type-error .notification-button:not([class*=" "]) {
+  background-color: #f44336;
+  color: white;
+}
+
+.type-warning .notification-button:not([class*=" "]) {
+  background-color: #ff9800;
+  color: white;
+}
+
+.type-info .notification-button:not([class*=" "]) {
+  background-color: #2196f3;
+  color: white;
+}
+
+/* Clases comunes que puedes usar */
+.notification-button.outlined {
+  background-color: transparent;
+  border: 1px solid currentColor;
+}
+
+.notification-button.text {
+  background-color: transparent;
+  padding: 6px 8px;
+}
+
+.notification-button.primary {
+  background-color: #1976d2;
+  color: white;
+}
+
+.notification-button.secondary {
+  background-color: #9c27b0;
+  color: white;
+}
+
+.notification-button.danger {
+  background-color: #d32f2f;
+  color: white;
+}

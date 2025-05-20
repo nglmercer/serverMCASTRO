@@ -1,12 +1,20 @@
 // --- Type Definitions ---
 export type NotificationType = 'success' | 'error' | 'warning' | 'info' | 'loading';
 
+export interface NotificationButton {
+  text: string;
+  class?: string;
+  onClick: () => void;
+}
+
 export interface NotificationState {
   type: NotificationType;
   title: string;
   message: string;
-  icon?: string; // Icono personalizado, si no se usa el del tipo
+  icon?: string;
+  buttons?: NotificationButton[]; // Array de botones opcionales
 }
+
 
 export interface NotificationTypeConfig {
   icon: string;
@@ -36,7 +44,7 @@ export interface NotificationControls {
     title?: string,
     customIcon?: string
   ) => void;
-  // Podríamos añadir getFullState y setFullState si es necesario
-  // getFullState: () => NotificationState;
-  // setFullState: (newState: Partial<NotificationState>) => void;
+  getButtons: () => NotificationButton[];
+  addButton: (button: NotificationButton) => void;
+  removeAllButtons: () => void;
 }

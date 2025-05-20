@@ -1,8 +1,14 @@
 // src/components/NotificationContent.tsx
-import { createSignal, Show, Switch, Match, onMount, onCleanup, type Component } from 'solid-js';
-import type { NotificationContentProps, NotificationControls, NotificationType, NotificationTypeConfig,NotificationState } from 'src/types/Notification';
-import './NotificationContent.css'; // El mismo CSS de antes
-
+import { createSignal, Show, Switch, Match, onMount, onCleanup, type Component, For } from 'solid-js';
+import type { 
+  NotificationContentProps, 
+  NotificationControls, 
+  NotificationType, 
+  NotificationTypeConfig,
+  NotificationState,
+  NotificationButton
+} from 'src/types/Notification';
+import './NotificationContent.css';
 
 const notificationTypeConfigs: Record<NotificationType, NotificationTypeConfig> = {
   success: { icon: 'check_circle', color: 'green', defaultTitle: 'Éxito' },
@@ -21,7 +27,6 @@ declare global {
   }
 }
 
-
 const NotificationContent: Component<NotificationContentProps> = (props) => {
   const [notification, setNotification] = createSignal<NotificationState>(
     props.initialState || {
@@ -29,6 +34,7 @@ const NotificationContent: Component<NotificationContentProps> = (props) => {
       title: notificationTypeConfigs.info.defaultTitle,
       message: 'Notificación lista.',
       icon: notificationTypeConfigs.info.icon,
+      buttons: [] // Por defecto no hay botones
     }
   );
 
@@ -61,12 +67,30 @@ const NotificationContent: Component<NotificationContentProps> = (props) => {
     customIcon?: string
   ): void => {
     const typeConfig = notificationTypeConfigs[type] || notificationTypeConfigs.info;
-    setNotification({
+    setNotification(prev => ({
+      ...prev,
       type,
       title: title || typeConfig.defaultTitle,
-      message: message || notification().message, // Conserva el mensaje actual si no se provee uno nuevo
+      message: message || prev.message, // Conserva el mensaje actual si no se provee uno nuevo
       icon: customIcon || typeConfig.icon,
-    });
+    }));
+  };
+
+  // --- Nuevos métodos para manejar botones ---
+  const getButtons = (): NotificationButton[] => notification().buttons || [];
+  
+  const addButton = (button: NotificationButton): void => {
+    setNotification(prev => ({
+      ...prev,
+      buttons: [...(prev.buttons || []), button]
+    }));
+  };
+  
+  const removeAllButtons = (): void => {
+    setNotification(prev => ({
+      ...prev,
+      buttons: []
+    }));
   };
 
   // --- Montaje y Limpieza para exponer la API ---
@@ -88,6 +112,10 @@ const NotificationContent: Component<NotificationContentProps> = (props) => {
         setIcon,
         getType,
         setType,
+        // Nuevos métodos para botones
+        getButtons,
+        addButton,
+        removeAllButtons
       };
       console.log(`NotificationContent API expuesta en window.astroAppNotifications['${props.id}']`);
     }
@@ -110,7 +138,6 @@ const NotificationContent: Component<NotificationContentProps> = (props) => {
   // El icono a mostrar es el `notification().icon` si existe, sino el del tipo
   const displayIcon = (): string => getIcon();
 
-
   return (
     <div class={`notification-content type-${notification().type}`}>
       <div class="notification-icon-container" style={{ color: currentTypeConfig().color }}>
@@ -130,6 +157,21 @@ const NotificationContent: Component<NotificationContentProps> = (props) => {
       <div class="notification-text-container">
         <h2 class="notification-title">{notification().title}</h2>
         <p class="notification-message">{notification().message}</p>
+        
+        <Show when={(notification().buttons && Array.isArray(notification().buttons))}>
+          <div class="notification-buttons">
+            <For each={notification().buttons}>
+              {(button) => (
+                <button 
+                  class={`notification-button ${button.class || ''}`} 
+                  onClick={button.onClick}
+                >
+                  {button.text}
+                </button>
+              )}
+            </For>
+          </div>
+        </Show>
       </div>
     </div>
   );
