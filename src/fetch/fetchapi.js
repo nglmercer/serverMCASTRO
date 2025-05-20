@@ -126,6 +126,7 @@ function safeParse(value) {
         return value; // Retorna el valor original si no se puede parsear
     }
 }
+
 class BaseApi {
     constructor(baseApi) {
         this.host = baseApi;
