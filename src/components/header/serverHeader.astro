@@ -13,6 +13,34 @@ import Userheader from "./userheader.astro"
 <script>
     import { ActionButtonsLit } from "src/litcomponents/mc/barstatus.js";
     import { serverapi,servermanagerapi } from "src/fetch/fetchapi";
+    import { scheduleUpdate } from "src/fetch/request";
+
+    interface wsMessage {
+  event: string;
+  data: any;
+}
+import wsClient from '../../utils/socketManager';
+  wsClient.connect({
+    onOpen: (event:string) => {
+      console.log("Conexión WS establecida desde el componente.", event);
+    },
+    onMessage: (message:wsMessage, rawData:string) => {
+      console.log("Mensaje recibido desde el componente:", message);
+      if (!message || !message.event) return;
+      if (message.event.startsWith("server")) {
+        scheduleUpdate(()=>{
+          try {
+            getServerInfo(window.selectedServer);
+          } catch (error) {
+            console.error("Error al actualizar información del servidor:", error);
+          }
+        });
+      }
+    },
+    onClose: (event:string) => {
+      console.log("Conexión WS cerrada desde el componente:", event);
+    }
+  });
     type ValidAction = 'start' | 'stop' | 'restart' | 'send' | 'log' | 'info' | 'players' | 'metrics' | 'kill';
 
     document.addEventListener("DOMContentLoaded", function () {
@@ -160,6 +188,7 @@ function setStatus(status: string) {
     window.dispatchEvent(new CustomEvent('change-status', { detail: { status: status } }));
     window.serverStatus = status;
 }
+getServerInfo(window.selectedServer);
 </script>
 <style>
      .content-header {

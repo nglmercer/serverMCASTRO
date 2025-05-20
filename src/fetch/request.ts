@@ -76,5 +76,24 @@ class RequestQueue {
       return this.queue.length;
     }
   }
-  
+  const taskQueue = new RequestQueue(1000);
+  let updateScheduled = false;
+  function scheduleUpdate(callback?: () => void) {
+    if (!updateScheduled) {
+      updateScheduled = true;
+      
+      // Esperar un corto período para agrupar múltiples eventos
+      setTimeout(() => {
+        // Añadir la solicitud de actualización a la cola
+        taskQueue.enqueue(async () => {
+          if (callback) callback();
+          updateScheduled = false;
+        });
+      }, 300); // Esperar 300ms para ver si llegan más eventos
+    }
+  }
+  export {
+    taskQueue,
+    scheduleUpdate
+  }
   export default RequestQueue;

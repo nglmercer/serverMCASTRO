@@ -40,7 +40,7 @@ const steps = [
 import generateNewServerStart from "@components/newserver/startscript";
 import { type TabButtonData } from "src/types/elements";
 import { serverapi } from "src/fetch/fetchapi";
-import RequestQueue from "src/fetch/request";
+import { scheduleUpdate } from "src/fetch/request";
 import { tabsSignal,signals } from "src/globalSignals";
 import { CInput } from "src/litcomponents/CInput";
 import { TaskNotifications } from "src/litcomponents/notify";
@@ -60,7 +60,13 @@ import wsClient from '../utils/socketManager';
       console.log("Mensaje recibido desde el componente:", message);
       if (!message || !message.event) return;
       if (message.event.startsWith("task")) {
-        scheduleUpdate();
+        scheduleUpdate(async()=>{
+          try {
+          await updateNotifications();
+        } catch (error) {
+          console.error("Error al actualizar notificaciones:", error);
+        }
+        });
       }
     },
     onClose: (event:string) => {
@@ -79,26 +85,7 @@ const formElemNames = [
   "serverPort",
   "optiflags"
 ];
-const taskQueue = new RequestQueue(1000);
-let updateScheduled = false;
-function scheduleUpdate() {
-  if (!updateScheduled) {
-    updateScheduled = true;
-    
-    // Esperar un corto período para agrupar múltiples eventos
-    setTimeout(() => {
-      // Añadir la solicitud de actualización a la cola
-      taskQueue.enqueue(async () => {
-        try {
-          await updateNotifications();
-        } catch (error) {
-          console.error("Error al actualizar notificaciones:", error);
-        }
-        updateScheduled = false;
-      });
-    }, 300); // Esperar 300ms para ver si llegan más eventos
-  }
-}
+
 const formElements: Element[] = [];
 const formOBJ: Record<string, any> = {};
 

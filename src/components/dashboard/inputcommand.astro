@@ -199,6 +199,34 @@ const componentInstanceId = `input-command-${Math.random().toString(36).substrin
 <script>
 import {GameConsole} from 'src/litcomponents/mc/Console.js';
 import { servermanagerapi } from 'src/fetch/fetchapi';
+import { scheduleUpdate } from "src/fetch/request";
+
+interface wsMessage {
+event: string;
+data: any;
+}
+import wsClient from '../../utils/socketManager';
+wsClient.connect({
+onOpen: (event:string) => {
+  console.log("Conexión WS establecida desde el componente.", event);
+},
+onMessage: (message:wsMessage, rawData:string) => {
+  console.log("Mensaje recibido desde el componente:", message);
+  if (!message || !message.event) return;
+  if (message.event.startsWith("server")) {
+    scheduleUpdate(async ()=>{
+      try {
+        await fetchLogs();
+      } catch (error) {
+        console.error("Error al actualizar información del servidor:", error);
+      }
+    });
+  }
+},
+onClose: (event:string) => {
+  console.log("Conexión WS cerrada desde el componente:", event);
+}
+});
 const commandElement = (window as any).commandWrapper; // Assuming this is some external command wrapper
 const commandContainer = document.querySelector('game-console') as GameConsole; // Cast to GameConsole
 
@@ -212,9 +240,7 @@ if (commandElement && commandContainer) {
         }
     });
 }
-setInterval(async function () {
-    await fetchLogs();
-    }, 1000);
+fetchLogs();
 async function fetchLogs(){
   if (isValidstatus()) {
       const logs = await servermanagerapi.getServerLog(window.selectedServer);
