@@ -299,7 +299,10 @@ export class PluginsUI extends LitElement {
   //   }
   // }
 }
-
+export type {
+  ToggleEventDetail,
+  DeleteEventDetail
+}
 
 // Para declarar el tipo globalmente si usas el componente en HTML directamente con TypeScript
 // (esto es más para proyectos grandes donde se quiere type-checking en plantillas HTML)

@@ -324,11 +324,42 @@ class SystemMonitor extends BaseApi {
         }));
     }
 }
+class PluginsApi extends BaseApi {
+    // GET /plugins/:serverName (Listar plugins)
+    async getPlugins(serverName) {
+        return this.request(this.http.get(`${this.host}/plugins/${serverName}`, {
+            headers: this._authHeaders()
+        }));
+    }
+    //  // GET /mods/:serverName (Listar mods)
+    async getMods(serverName) {
+        return this.request(this.http.get(`${this.host}/mods/${serverName}`, {
+            headers: this._authHeaders()
+        }));
+    }
+    /* 
+    const Operations = ['enable','disable', 'delete']
+    get('/plugin/:serverName/:itemName/:operation')
+
+    get('/mod/:serverName/:itemName/:operation')
+    */
+  async pluginToggle(serverName,itemName,operation) {
+    return this.request(this.http.get(`${this.host}/plugin/${serverName}/${itemName}/${operation}`, {
+        headers: this._authHeaders()
+    }));
+  }
+  async ModToggle(serverName,itemName,operation) {
+    return this.request(this.http.get(`${this.host}/mod/${serverName}/${itemName}/${operation}`, {
+        headers: this._authHeaders()
+    }));
+  }
+}
 const fetchapi = new FetchApi(actualBaseApi);
 const serverapi = new ServerApi(actualBaseApi)
 const servermanagerapi = new ServermanagerApi(actualBaseApi)
 const filemanagerapi = new FileManagerApi(actualBaseApi)
 const systemapi = new SystemMonitor(actualBaseApi);
+const pluginsapi = new PluginsApi(actualBaseApi);
 // test
 async function test() {
     const pathENCODED = encodeURIComponent(window.selectedServer);
@@ -357,5 +388,6 @@ export {
     systemapi,
     BaseApi,
     actualBaseApi,
-    fetchFiles
+    fetchFiles,
+    pluginsapi
 }

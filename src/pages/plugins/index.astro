@@ -39,19 +39,30 @@ import FileUploader from "@components/solid/FileUploader.tsx";
     </div>
 </dialog-container>
 <script>
-    import { filemanagerapi } from "src/fetch/fetchapi.js";
+    import { filemanagerapi,pluginsapi } from "src/fetch/fetchapi.js";
     import { DialogContainer } from "src/litcomponents/custom-modal.js";
     import { pathSignal, signals,normalizePath } from "src/globalSignals";
-    import { PluginsUI } from "src/litcomponents/mc/PluginsUI.js";
+    import { PluginsUI, type ToggleEventDetail, type DeleteEventDetail } from "src/litcomponents/mc/PluginsUI.js";
     const modList = document.getElementById("modList") as PluginsUI;
     const pluginList = document.getElementById("pluginList") as PluginsUI;
+    interface PluginOrMod {
+        name: string;
+        path?: string;
+        size?: number;
+        type?: "plugin" | "mod";
+        modified?: string;
+    }
     document.addEventListener("DOMContentLoaded",async function () {
         initListener();
+        fetchPluginandMods();
         modList.type = "mods";
         pluginList.type = "plugins";
-        pluginList.elements = ["plugin1.jar", "plugin2.jar.dis", "plugin3.jar"];
-        modList.elements = ["mod1.jar", "mod2.jar.dis", "mod3.jar"];
+        pluginList.elements = ["plugin1.jar", "plugin2.jar.dis", ];
+        modList.elements = ["mod1.jar", "mod2.jar.dis"];
     });
+    const getFILEPATH = (type:string,itemName:string) => {
+        return `/${type}/${itemName}`;
+    }
     async function initListener() {
         const EventNames = ["uploadItem_mod", "uploadItem_plugin"];
         EventNames.forEach((eventName) => {
@@ -70,14 +81,52 @@ import FileUploader from "@components/solid/FileUploader.tsx";
         });
         const MPEList = ["toggle", "delete"];
         MPEList.forEach((eventName) => {
-            modList.addEventListener(eventName, (e) => {
-                console.log("modList", eventName, e);
-            });
-            pluginList.addEventListener(eventName, (e) => {
-                console.log("pluginList", eventName, e);
-            });
+            modList.addEventListener(eventName, ((e: Event) => {
+                const details = (e as CustomEvent).detail;
+                if (eventName === "delete") {
+                    DeteletePluginorMod(details,"mods")
+                    return;
+                }
+                TogglePluginorMod(details,"mods")
+            }) as EventListener);
+            pluginList.addEventListener(eventName, ((e: Event) => {
+                const details = (e as CustomEvent).detail;
+                if (eventName === "delete") {
+                    DeteletePluginorMod(details,"plugins")
+                    return;
+                }
+                TogglePluginorMod(details,"plugins")
+            }) as EventListener);
         });
+    }
 
+    async function TogglePluginorMod(data:ToggleEventDetail,type:string) {
+        console.log("data", data, type);
+        const result = await filemanagerapi.renameFile(window.selectedServer, getFILEPATH(type,data.item),data.newName);
+        console.log("result", result);
+    }
+    async function DeteletePluginorMod(data:DeleteEventDetail,type:string) {
+        const filePath = getFILEPATH(type,data.item);
+        console.log("filePath", filePath, data);
+        const result = await filemanagerapi.deleteFile(window.selectedServer, filePath);
+        console.log("result", result);
+        fetchPluginandMods();
+    }
+    async function fetchPluginandMods(){
+        const plugins = await pluginsapi.getPlugins(window.selectedServer);
+        const mods = await pluginsapi.getMods(window.selectedServer);
+        console.log("plugins", plugins,returnArrayName(plugins.data));
+        pluginList.elements = returnArrayName(plugins.data);
+        modList.elements = returnArrayName(mods.data);
+        console.log("mods", mods,returnArrayName(mods.data));
+    }
+    function returnArrayName(array: PluginOrMod[]): string[]{
+        if (!array || !Array.isArray(array)) return [];
+        const arrayName: string[] = [];
+        array.forEach((item) => {
+                arrayName.push(item.name);
+        });
+        return arrayName;
     }
 </script>
 <style>
