@@ -8,4 +8,9 @@ import solidJs from '@astrojs/solid-js';
 // https://astro.build/config
 export default defineConfig({
   integrations: [lit(), solidJs()],
+  vite: {
+    build: {
+      chunkSizeWarningLimit: 1000 // Cambia este valor al límite deseado en KB
+    }
+  }
 });
