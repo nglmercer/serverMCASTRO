@@ -353,6 +353,19 @@ class PluginsApi extends BaseApi {
         headers: this._authHeaders()
     }));
   }
+  //   fastify.post('/download-file' { server: rawServer, path: rawPathInServer, url } body
+  async DownloadModorPlugin(serverName,url,type) {
+    const isModorPlugin = type === "mods" ? "mods" : "plugins";
+    return this.request(this.http.post(`${this.host}/download-file`, {
+        server: serverName,
+        url: url,
+        path: isModorPlugin
+    },
+    {
+        headers: this._authHeaders()
+    }));
+    
+  }
 }
 const fetchapi = new FetchApi(actualBaseApi);
 const serverapi = new ServerApi(actualBaseApi)

@@ -5,7 +5,7 @@ import ModCard from './ModCard';
 import ModDetails from './ModDetails';
 import type { Mod } from './index.ts';
 import './ModSearch.css';
-
+import { pluginsapi } from 'src/fetch/fetchapi.js';
 const ModSearch = () => {
   const [searchQuery, setSearchQuery] = createSignal('');
   const [results, setResults] = createSignal<Mod[]>([]);
@@ -57,12 +57,46 @@ const ModSearch = () => {
     setShowSearch(true);
   };
 
-  const handleDownload = (versionDetails: any) => {
-    console.log('Download requested for version:', versionDetails);
-    // Implement download logic here
-    alert(`Download started for ${versionDetails.version_number}`);
+  const isPluginOrMod = (
+    array: { plugins: string[]; mods: string[] },
+    loaderList: string[]
+  ) => {
+    const loaders = loaderList.map((loader) => loader.toLowerCase());
+    console.log('Normalized loaders:', loaders);
+  
+    return {
+      plugins: loaders.some((l) => array.plugins.includes(l)),
+      mods: loaders.some((l) => array.mods.includes(l)),
+    };
   };
-
+  const isValidUrl = (files: any):string | boolean => {
+    if (!files)return false;
+    if (typeof files === 'string') return files;
+    if (typeof files === 'object' && files.url) return files.url;
+    if (Array.isArray(files) && files.length > 0) {
+      return files[0].url;
+    }
+    return false;
+  }
+  const handleDownload = async (versionDetails: any) => {
+    console.log('Download requested for version:', versionDetails);
+  
+    const Loaders = {
+      plugins: ['paper', 'purpur', 'spigot', 'velocity', 'sponge','bungeecord'],
+      mods: ['forge', 'fabric', 'quilt'],
+    };
+  
+    if (versionDetails.loaders) {
+      const verifyLoaders = isPluginOrMod(Loaders, versionDetails.loaders);
+      const type = verifyLoaders.plugins ? 'plugins' : 'mods';
+      const validurl = isValidUrl(versionDetails.files);
+      console.log('verifyLoaders', verifyLoaders,type, validurl);
+      if (!validurl) return;
+      const result = await pluginsapi.DownloadModorPlugin(window.selectedServer,validurl,type); 
+      console.log("result", result);
+    }
+  };
+  
   return (
     <div class="mod-manager">
       <Show when={showSearch()} fallback={
