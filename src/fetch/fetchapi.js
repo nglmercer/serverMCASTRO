@@ -1,7 +1,10 @@
-const baseurlApi = "productionUrl";
-const baseurlTestApi = "http://localhost:3000"; // Original test API
-const mockApi = "http://localhost:3000/api"; // Mock API endpoint
-const actualBaseApi = mockApi; // Use mock API for development
+const baseurlApi = window.location.origin + "/api";
+const baseurlTestApi = "http://localhost:3000/api"; // API de desarrollo
+const mockApi = "http://localhost:3000/api"; // Otra opción de mock
+
+const actualBaseApi =
+  import.meta.env.MODE === "development" ? baseurlTestApi : baseurlApi;
+
 const http = {
     get: (url, options = {}) => {
         return fetch(url, {

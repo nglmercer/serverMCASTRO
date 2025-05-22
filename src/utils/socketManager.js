@@ -1,4 +1,9 @@
 // SimpleWebSocketClient.js
+const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+const wsUrl =
+  import.meta.env.MODE === "development"
+    ? "ws://localhost:3000/ws"
+    : `${wsProtocol}//${window.location.host}/ws`;
 
 class SimpleWebSocketClient {
     /**
@@ -183,7 +188,7 @@ class SimpleWebSocketClient {
       return this.ws && this.ws.readyState === WebSocket.OPEN;
     }
   }
-const wsClient = new SimpleWebSocketClient('ws://localhost:3000/ws');
+const wsClient = new SimpleWebSocketClient(wsUrl);
 export default wsClient;
   // Ejemplo de uso (puedes poner esto en tu archivo HTML dentro de <script> o en otro JS):
   /*
