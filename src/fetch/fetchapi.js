@@ -1,4 +1,5 @@
-const baseurlApi = window.location.origin + "/api";
+const windowurl = typeof window !== "undefined" ? window.location.origin : "";
+const baseurlApi = windowurl + "/api";
 const baseurlTestApi = "http://localhost:3000/api"; // API de desarrollo
 const mockApi = "http://localhost:3000/api"; // Otra opción de mock
 
