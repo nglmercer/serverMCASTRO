@@ -4,7 +4,8 @@ import ServerLayout from '@layouts/serverLayout.astro';
 import SideBySideRow from '@components/Sidec.astro';
 import ModSearch from '@components/store/ModSearch';
 import FileUploader from "@components/solid/FileUploader.tsx";
-
+const windowurl = typeof window !== "undefined" ? window.location.origin : "";
+const urlbase = import.meta.env.MODE === "development" ? "http://localhost:3000" : windowurl;
 ---
 <script src="/src/litcomponents/mcinit.js"></script>
 <ServerLayout title={"plugins"} activeConfig="A">
@@ -35,7 +36,7 @@ import FileUploader from "@components/solid/FileUploader.tsx";
 </ServerLayout>
 <dialog-container id="upload-files">
     <div class="modal__base p-10">
-        <FileUploader client:only="solid-js" apiEndpoint="http://localhost:3000/upload/files?pathType=servers" multiple={true} />
+        <FileUploader client:only="solid-js" apiEndpoint={(urlbase+"/upload/files?pathType=servers")} multiple={true} />
     </div>
 </dialog-container>
 <script>

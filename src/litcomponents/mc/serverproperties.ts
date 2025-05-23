@@ -1,6 +1,8 @@
 import { LitElement, html, css } from 'lit';
 import { state, property, customElement } from 'lit/decorators.js';
 import { filemanagerapi } from 'src/fetch/fetchapi';
+const windowurl = typeof window !== "undefined" ? window.location.origin : "";
+const urlbase = import.meta.env.MODE === "development" ? "http://localhost:3000" : windowurl;
 @customElement('server-properties')
 export class ServerPropertiesLitElement extends LitElement {
     @property({ type: String, attribute: 'server-id' })
@@ -156,8 +158,7 @@ export class ServerPropertiesLitElement extends LitElement {
         this._isLoading = true;
         this._error = null;
         try {
-            const baseUrl = "http://localhost:3000/api/";
-            const url = baseUrl+`servers/${currentServerId}/server.properties`;
+            const url = urlbase+`/api/servers/${currentServerId}/server.properties`;
             console.log("url", url);
             const response = await fetch(url);
             if (!response.ok) {

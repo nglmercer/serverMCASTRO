@@ -3,6 +3,8 @@ import CPopup from "@components/solid/solid.tsx";
 import PathNavigator from "@components/solid/PathNavigator.tsx";
 import FileUploader from "@components/solid/FileUploader.tsx";
 import CodeEditor from "./codeEditor.astro";
+const windowurl = typeof window !== "undefined" ? window.location.origin : "";
+const urlbase = import.meta.env.MODE === "development" ? "http://localhost:3000" : windowurl;
 ---
 
 <script src="/src/litcomponents/mcinit.js"></script>
@@ -31,7 +33,7 @@ import CodeEditor from "./codeEditor.astro";
 </dialog-container>
 <dialog-container id="upload-files">
     <div class="modal__base p-10">
-        <FileUploader client:only="solid-js" apiEndpoint="http://localhost:3000/upload/files?pathType=servers" multiple={true} />
+        <FileUploader client:only="solid-js" apiEndpoint={(urlbase + "/upload/files?pathType=servers")} multiple={true} />
     </div>
 </dialog-container>
 <dialog-container id="EditFilename">
