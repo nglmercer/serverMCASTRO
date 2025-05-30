@@ -82,9 +82,7 @@ const urlbase = import.meta.env.MODE === "development" ? "http://localhost:3000"
         | "players"
         | "metrics"
         | "kill";
-    const filemanager = document.getElementById(
-        "filemanager",
-    ) as FileExplorer | null;
+    const filemanager = document.getElementById("filemanager") as FileExplorer;
     const filepopup = document.getElementById("fileOptions");
     const newFile = document.getElementById("file-Editor") as DialogContainer;
     const uploadFiles = document.getElementById("upload-files") as DialogContainer;
@@ -253,7 +251,8 @@ const urlbase = import.meta.env.MODE === "development" ? "http://localhost:3000"
                 text: "Download File",
             }),
             callback: function () {
-                console.log("Option 1 clicked");
+            // fetch GET file
+                console.log("Option 1 clicked",data);
             },
         };
 

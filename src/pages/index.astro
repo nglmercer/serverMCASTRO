@@ -109,7 +109,8 @@ const quickActions: QuickAction[] = [
 </style>
 <script>
 import { type EDetails } from 'src/litcomponents/mc/serveritem.js';
-  import { optionsModal, setPopupOptions } from 'src/utils/dropdown.js';
+import { optionsModal, setPopupOptions } from 'src/utils/dropdown.js';
+import { backupsapi } from 'src/fetch/fetchapi';
   const popup = document.getElementById('serverOptions');
   function initEDlisteners(){
     const allServerItems = document.querySelectorAll('server-item');
@@ -132,29 +133,45 @@ import { type EDetails } from 'src/litcomponents/mc/serveritem.js';
       });
   }
   function getOptions({data}: EDetails) {
+    // { prefix: '/backups' }
     const options = [
       {
         html: optionsModal({id:"create-backup",icon:"backup",text:"Create Backup"}),
         callback: function() {
-          console.log("Option 1 clicked");
-        }
+          //post('/create',data);
+          // data:{folderName,outputFilename?}
+          console.log("Option 1 clicked",data);
+          const backupdata = {
+            folderName: data.server,
+            serverName: data.server,
+            outputFilename: data.server + '-backup-' + new Date().toISOString().slice(0, 19).replace(/:/g, '-')
+          }
+          backupsapi.createBackup(backupdata)
+              .then(response => {
+                console.log("Backup created successfully", response);
+                // Optionally, you can refresh the page or update the UI
+              })
+              .catch(error => {
+                console.error("Error creating backup", error);
+              });
+          }
       },
-      {
+/*       {
         html: optionsModal({id:"restore-backup",icon:"restore",text:"Restore Backup"}),
         callback: function() {
-          console.log("Option 2 clicked");
+          console.log("Option 2 clicked", data);
         }
-      },
-      {
-        html: optionsModal({id:"delete-server",icon:"delete",text:"Delete Server"}),
-        callback: function() {
-          console.log("Option 3 clicked");
-        }
-      },
+        {
+          html: optionsModal({id:"delete-server",icon:"delete",text:"Delete Server"}),
+          callback: function() {
+            console.log("Option 3 clicked",data);
+          }
+        },
+        }, */
       {
         html: optionsModal({id:"download-server",icon:"download",text:"Download Server"}),
         callback: function() {
-          console.log("Option 4 clicked");
+          console.log("Option 4 clicked",data);
         }
       },
     ]

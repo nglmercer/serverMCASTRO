@@ -371,12 +371,61 @@ class PluginsApi extends BaseApi {
     
   }
 }
+class BackupsAPi extends BaseApi {
+    // GET ALL /backups/backupsInfo/
+    async getBackups() {
+        return this.request(this.http.get(`${this.host}/backups/backupsInfo`, {
+            headers: this._authHeaders()
+        }));
+    }
+    // POST /backups/create/  {folderName,outputFilename,serverName?}
+    async createBackup(data) {
+        if (!data || !data.folderName || !data.outputFilename) {
+            console.error("folderName and outputFilename are required");
+        }
+        return this.request(this.http.post(`${this.host}/backups/create`, data, {
+            headers: this._authHeaders()
+        }));
+    }
+    // DELETE /backups/ { filename }
+    async deleteBackup(filename) {
+        if (!filename || typeof filename !== 'string') {
+            console.error("filename is required");
+            return;
+        }
+        return this.request(this.http.post(`${this.host}/backups`,{filename}, {
+            headers: this._authHeaders()
+        }));
+    }
+    // GET /backups/download/:filename
+    async downloadBackup(filename) {
+        if (!filename || typeof filename !== 'string') {
+            console.error("filename is required");
+            return;
+        }
+        return this.request(this.http.get(`${this.host}/backups/download/${filename}`, {
+            headers: this._authHeaders()
+        }));
+    }
+    // GET /backups/restore/ { filename, outputFolderName } = body;
+    async restoreBackup(data) {
+        const { filename, outputFolderName } = data;
+        if (!filename || typeof filename !== 'string' || !outputFolderName || typeof outputFolderName !== 'string') {
+            console.error("filename and outputFolderName are required");
+            return;
+        }
+        return this.request(this.http.post(`${this.host}/backups/restore/`, data, {
+            headers: this._authHeaders()
+        }));
+    }
+}
 const fetchapi = new FetchApi(actualBaseApi);
 const serverapi = new ServerApi(actualBaseApi)
 const servermanagerapi = new ServermanagerApi(actualBaseApi)
 const filemanagerapi = new FileManagerApi(actualBaseApi)
 const systemapi = new SystemMonitor(actualBaseApi);
 const pluginsapi = new PluginsApi(actualBaseApi);
+const backupsapi = new BackupsAPi(actualBaseApi);
 // test
 async function test() {
     const pathENCODED = encodeURIComponent(window.selectedServer);
@@ -406,5 +455,6 @@ export {
     BaseApi,
     actualBaseApi,
     fetchFiles,
-    pluginsapi
+    pluginsapi,
+    backupsapi
 }
