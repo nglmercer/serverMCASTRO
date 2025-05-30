@@ -20,6 +20,7 @@ export const optionsModal = (option: OptionModal) => {
 </div>`;
 };
 export function setPopupOptions(popup:any,popupOptions: Modaltemplate[], event: Event) {
+  console.log('Setting popup options:', popupOptions,popup);
     if (popup && 'setOptions' in popup) {
         // Use the component methods directly
         (popup).setOptions(popupOptions);

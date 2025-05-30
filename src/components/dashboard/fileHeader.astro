@@ -14,7 +14,7 @@ const urlbase = import.meta.env.MODE === "development" ? "http://localhost:3000"
 <p id="current-path">Current Path: ./</p>
 <PathNavigator client:only="solid-js" basePath={typeof window !== "undefined" ? window.selectedServer : ""} />
 <file-explorer current-path="/" id="filemanager"></file-explorer>
-<CPopup id="fileOptions" class="file-options" client:only="solid-js" />
+<CPopup id="fileOptions" class="file-options"  client:only="solid-js"/>
 <dialog-container id="file-Editor" required>
     <div class="modal__base">
       <c-input type="text" name="name" id="file-name" placeholder="Nombre del archivo" required style="--padding: 0; border: 0; background-color: var(--bg-dark-accent-light);"></c-input>
@@ -83,7 +83,6 @@ const urlbase = import.meta.env.MODE === "development" ? "http://localhost:3000"
         | "metrics"
         | "kill";
     const filemanager = document.getElementById("filemanager") as FileExplorer;
-    const filepopup = document.getElementById("fileOptions");
     const newFile = document.getElementById("file-Editor") as DialogContainer;
     const uploadFiles = document.getElementById("upload-files") as DialogContainer;
     const newFolder = document.getElementById("new-folder") as DialogContainer;
@@ -192,8 +191,8 @@ const urlbase = import.meta.env.MODE === "development" ? "http://localhost:3000"
         events.forEach((Evname) => {
             if (!filemanager) return;
             (filemanager as FileExplorer).addEventListener(Evname,async (e) => {
-                console.log("event", Evname, e, typeof e);
                 if (!("detail" in e)) return;
+                console.log("event", Evname,"e", typeof e, e.detail);
                 const { data, event } = e.detail as ItemMenuEventDetail;
                 if (Evname === "selected") {
                     if (data.type !== "directory") {
@@ -215,6 +214,7 @@ const urlbase = import.meta.env.MODE === "development" ? "http://localhost:3000"
                 } else if (Evname === "menu") {
                     const popupOptions = getOptions(data);
                     console.log("menu", data, event);
+                    const filepopup = document.getElementById("fileOptions");
                     setPopupOptions(filepopup, popupOptions, event);
                 } else if (Evname === "updated") {
                     pathSignal.value = data;
