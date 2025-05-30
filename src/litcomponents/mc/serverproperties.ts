@@ -1,8 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { state, property, customElement } from 'lit/decorators.js';
 import { filemanagerapi } from 'src/fetch/fetchapi';
-const windowurl = typeof window !== "undefined" ? window.location.origin : "";
-const urlbase = import.meta.env.MODE === "development" ? "http://localhost:3000" : windowurl;
+import { urlbase } from 'src/config/url';
 @customElement('server-properties')
 export class ServerPropertiesLitElement extends LitElement {
     @property({ type: String, attribute: 'server-id' })
