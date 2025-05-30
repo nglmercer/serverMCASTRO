@@ -4,8 +4,7 @@ import ServerLayout from '@layouts/serverLayout.astro';
 import SideBySideRow from '@components/Sidec.astro';
 import ModSearch from '@components/store/ModSearch';
 import FileUploader from "@components/solid/FileUploader.tsx";
-const windowurl = typeof window !== "undefined" ? window.location.origin : "";
-const urlbase = import.meta.env.MODE === "development" ? "http://localhost:3000" : windowurl;
+import { urlbase } from 'src/config/url';
 ---
 <script src="/src/litcomponents/mcinit.js"></script>
 <ServerLayout title={"plugins"} activeConfig="A">

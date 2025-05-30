@@ -3,8 +3,7 @@ import CPopup from "@components/solid/solid.tsx";
 import PathNavigator from "@components/solid/PathNavigator.tsx";
 import FileUploader from "@components/solid/FileUploader.tsx";
 import CodeEditor from "./codeEditor.astro";
-const windowurl = typeof window !== "undefined" ? window.location.origin : "";
-const urlbase = import.meta.env.MODE === "development" ? "http://localhost:3000" : windowurl;
+import { urlbase } from "src/config/url";
 ---
 
 <script src="/src/litcomponents/mcinit.js"></script>
