@@ -1,7 +1,7 @@
 ---
 // RecentBackups.astro
 ---
-
+<script src="src/components/main/backups/backup.ts"></script>
 <div class="backups-card">
     <div class="card-header">
       <h2>Recent Backups</h2>
@@ -12,12 +12,7 @@
     </div>
     
     <div class="backups-content">
-      <span class="material-symbols-rounded backup-icon">backup</span>
-      <p class="no-backups-text">No backups available</p>
-      <button class="btn btn-primary create-backup-btn">
-        <span class="material-symbols-rounded">add</span>
-        Create Backup
-      </button>
+      <backup-list class="backups" id="backups_List"></backup-list>
     </div>
   </div>
   

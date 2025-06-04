@@ -11,7 +11,15 @@ const http = {
         return fetch(url, {
             method: 'GET',
             ...options
-        }).then(res => res.json());
+        }).then(res => {
+            // Si esperamos un archivo (detectamos por headers o URL)
+            if (options.responseType === 'blob' || 
+                res.headers.get('content-type')?.includes('application/octet-stream') ||
+                res.headers.get('content-disposition')?.includes('attachment')) {
+                return res.blob();
+            }
+            return res.json();
+        });
     },
     post: (url, body = {}, options = {}) => {
         // Verificamos si body es una instancia de FormData
@@ -403,18 +411,21 @@ class BackupsAPi extends BaseApi {
             console.error("filename is required");
             return;
         }
-        return this.request(this.http.get(`${this.host}/backups/download/${filename}`, {
-            headers: this._authHeaders()
+        const urlEndcoded = encodeURIComponent(filename);
+        // Especificamos que esperamos un blob
+        return this.request(this.http.get(`${this.host}/backups/download/${urlEndcoded}`, {
+            headers: this._authHeaders(),
+            responseType: 'blob'
         }));
     }
-    // GET /backups/restore/ { filename, outputFolderName } = body;
+    // POST /backups/restore/ { filename, outputFolderName } = body;
     async restoreBackup(data) {
         const { filename, outputFolderName } = data;
         if (!filename || typeof filename !== 'string' || !outputFolderName || typeof outputFolderName !== 'string') {
             console.error("filename and outputFolderName are required");
             return;
         }
-        return this.request(this.http.post(`${this.host}/backups/restore/`, data, {
+        return this.request(this.http.post(`${this.host}/backups/restore`, data, {
             headers: this._authHeaders()
         }));
     }
