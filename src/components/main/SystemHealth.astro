@@ -3,93 +3,40 @@
 ---
 
 <div class="health-card">
-    <div class="card-header">
-      <h2>System Health</h2>
-      <span class="health-status">Healthy</span>
-    </div>
-    
-    <div class="health-items">
-      <div class="health-item">
-        <div class="health-info">
-          <span class="material-symbols-rounded status-icon">check_circle</span>
-          <span>Database Connection</span>
-        </div>
-        <span class="status-text">Operational</span>
-      </div>
-      
-      <div class="health-item">
-        <div class="health-info">
-          <span class="material-symbols-rounded status-icon">check_circle</span>
-          <span>Network Status</span>
-        </div>
-        <span class="status-text">Optimal</span>
-      </div>
-      
-      <div class="health-item">
-        <div class="health-info">
-          <span class="material-symbols-rounded status-icon">check_circle</span>
-          <span>Storage</span>
-        </div>
-        <span class="status-text">72% Available</span>
-      </div>
-    </div>
+    <system-health class="mainsystem"></system-health>
   </div>
-  
+  <script>
+    import {SystemHealthComponent, type HealthItem} from '@litcomponents/system-health.ts'
+    import { networkapi } from 'src/fetch/fetchapi';
+    const systemelement = document.querySelector(".mainsystem") as SystemHealthComponent;
+    const healthItems: HealthItem[] = [
+      {
+        name: 'servidor_local',
+        host: 'localhost',
+        port: 0,
+        fqdn: 'servidor_local',
+        status: 'offline' // opcional
+      }
+    ];
+    async function initcomponent(){
+      if (!systemelement) return;
+      const serversystemdata: { peers: HealthItem } = await getPeersData();
+      console.log(serversystemdata,typeof serversystemdata)
+      systemelement.healthItems = Array.isArray(serversystemdata.peers) ? serversystemdata.peers : healthItems;
+    }
+    async function getPeersData() {
+        const result = await networkapi.getPeers();
+        if (!result) return;
+        console.log(result)
+        return result
+    }
+    document.addEventListener("DOMContentLoaded",initcomponent)
+  </script>
   <style>
     .health-card {
       background-color: var(--color-dark-900);
       border: 1px solid var(--color-gray-800);
       border-radius: var(--border-radius-xl);
       padding: var(--space-6);
-    }
-    
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: var(--space-6);
-    }
-    
-    h2 {
-      font-size: var(--font-size-xl);
-      font-weight: 600;
-    }
-    
-    .health-status {
-      background-color: rgba(34, 197, 94, 0.1);
-      color: var(--color-green-500);
-      padding: var(--space-1) var(--space-3);
-      border-radius: var(--border-radius-full);
-      font-size: var(--font-size-sm);
-    }
-    
-    .health-items {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-4);
-    }
-    
-    .health-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: var(--space-3);
-      background-color: var(--color-dark-800);
-      border-radius: var(--border-radius-lg);
-    }
-    
-    .health-info {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-    }
-    
-    .status-icon {
-      color: var(--color-green-500);
-    }
-    
-    .status-text {
-      font-size: var(--font-size-sm);
-      color: var(--color-gray-400);
     }
   </style>

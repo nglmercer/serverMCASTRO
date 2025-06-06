@@ -379,7 +379,7 @@ class PluginsApi extends BaseApi {
     
   }
 }
-class BackupsAPi extends BaseApi {
+class BackupsApi extends BaseApi {
     // GET ALL /backups/backupsInfo/
     async getBackups() {
         return this.request(this.http.get(`${this.host}/backups/backupsInfo`, {
@@ -430,13 +430,22 @@ class BackupsAPi extends BaseApi {
         }));
     }
 }
+class NetworkApi extends BaseApi {
+    //  GET /network/peers
+    async getPeers(){
+        return this.request(this.http.get(`${this.host}/network/peers`),{
+            headers: this._authHeaders()
+        })
+    }
+}
 const fetchapi = new FetchApi(actualBaseApi);
 const serverapi = new ServerApi(actualBaseApi)
 const servermanagerapi = new ServermanagerApi(actualBaseApi)
 const filemanagerapi = new FileManagerApi(actualBaseApi)
 const systemapi = new SystemMonitor(actualBaseApi);
 const pluginsapi = new PluginsApi(actualBaseApi);
-const backupsapi = new BackupsAPi(actualBaseApi);
+const backupsapi = new BackupsApi(actualBaseApi);
+const networkapi = new NetworkApi(actualBaseApi);
 // test
 async function test() {
     const pathENCODED = encodeURIComponent(window.selectedServer);
@@ -467,5 +476,6 @@ export {
     actualBaseApi,
     fetchFiles,
     pluginsapi,
-    backupsapi
+    backupsapi,
+    networkapi
 }
