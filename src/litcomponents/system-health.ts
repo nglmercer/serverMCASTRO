@@ -1,12 +1,19 @@
 import { LitElement, html, css,type PropertyValueMap } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
+interface Referer {
+  address: string;
+  family: string;
+  port: number;
+  size: number;
+}
 export interface HealthItem {
   name: string;
   host: string;
   port: number;
   fqdn: string;
   status?: 'operational' | 'warning' | 'error' | 'restarting' | 'offline';
+  referer?: Referer;
 }
 
 export type SystemStatus = 'healthy' | 'warning' | 'critical' | 'unknown';
@@ -115,7 +122,7 @@ export class SystemHealthComponent extends LitElement {
 
     .service-meta {
       font-size: var(--font-size-xs, 12px);
-      color: var(--color-gray-500, #6b7280);
+      color: var(--color-gray-100,rgb(206, 206, 206));
     }
 
     .status-icon {
@@ -248,7 +255,11 @@ export class SystemHealthComponent extends LitElement {
                     </span>
                     <div class="service-details">
                       <span class="service-name">${item.name}</span>
-                      <span class="service-meta">${item.host}:${item.port}</span>
+                      <span class="service-meta">
+                      ${item.referer ? 
+                      `${item.referer.address}:${item.referer.port}` :
+                      `${item.host}:${item.port}`}
+                      </span>
                     </div>
                   </div>
                   <span class="status-text">
