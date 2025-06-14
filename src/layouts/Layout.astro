@@ -28,39 +28,57 @@
 	}
 </style>
 <script>
-/* 	import { TaskNotifications } from "src/litcomponents/notify";
-	const notifications = document.querySelector("task-notifications") as TaskNotifications;
-		function initNotifications() {
-		//test
-		if (!notifications) {
-			return;
-		}
-		notifications.updateTasks({
-			"task-1": { // Using more descriptive IDs
-				filename: "Initial_Report.pdf",
-				progress: 75,
-				status: "downloading",
-				type: "downloading"
-			},
-			"task-2": {
-				filename: "System_Update.pkg",
-				progress: 30,
-				status: "processing",
-				type: "downloading" // type might be 'update' or similar if not strictly a download
-			},
-			"task-3": {
-				filename: "User_Agreement.docx",
-				status: "completed", // No progress needed if completed
-			},
-			"task-4": {
-				filename: "Critical_Patch.exe",
-				progress: 10, // Show some progress before failure
-				status: "failed",
-			}
-		});
-		console.log("initNotifications",notifications);
+import { TaskNotifications } from "src/litcomponents/notify";
+import { serverapi } from "src/fetch/fetchapi";
+import { type TasksObject } from 'src/types/task';
+import { scheduleUpdate } from "src/fetch/request";
+import { getBackups } from '@components/main/backups/backup.js'
+interface wsMessage {
+  event: string;
+  data: any;
+}
+import wsClient from '../utils/socketManager';
+  wsClient.connect({
+    onOpen: (event:string) => {
+      console.log("Conexión WS establecida desde el componente.", event);
+    },
+    onMessage: (message:wsMessage, rawData:string) => {
+      console.log("Mensaje recibido desde el componente:", message);
+      if (!message || !message.event) return;
+      if (message.event.startsWith("task")) {
+        scheduleUpdate(async()=>{
+          try {
+          await updateNotifications();
+        } catch (error) {
+          console.error("Error al actualizar notificaciones:", error);
+        }
+        });
+      }
+    },
+    onClose: (event:string) => {
+      console.log("Conexión WS cerrada desde el componente:", event);
+    }
+  });
+const notifications = document.querySelector("task-notifications") as TaskNotifications;
+document.addEventListener("DOMContentLoaded",()=>{
+	console.log(notifications)
+});
+function isTasksObject(obj: any): obj is TasksObject {
+  return typeof obj === 'object' && obj !== null && Object.values(obj).every(value => typeof value !== 'undefined');
+}
+
+async function updateNotifications() {
+  const result = await serverapi.getTasks();
+  if (!notifications)return;
+  if (isTasksObject(result.data)) {
+    console.log("result.data", result.data);
+    notifications.updateTasks(result.data);
+	const esVacio = Object.keys(result.data).length === 0 && result.data.constructor === Object;
+	if (esVacio){
+		getBackups();
 	}
-	document.addEventListener("DOMContentLoaded", () => {
-		setTimeout(initNotifications, 1000);
-	}); */
+  } else {
+    console.error("Datos inesperados recibidos en result.data", result.data);
+  }
+}
 </script>

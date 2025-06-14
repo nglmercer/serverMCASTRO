@@ -40,40 +40,12 @@ const steps = [
 import generateNewServerStart from "@components/newserver/startscript";
 import { type TabButtonData } from "src/types/elements";
 import { serverapi } from "src/fetch/fetchapi";
-import { scheduleUpdate } from "src/fetch/request";
 import { tabsSignal,signals } from "src/globalSignals";
 import { CInput } from "src/litcomponents/CInput";
-import { TaskNotifications } from "src/litcomponents/notify";
-import { type TasksObject } from 'src/types/task';
 import type { DialogContainer } from "src/litcomponents/custom-modal";
 import type { NotificationControls } from 'src/types/Notification';
-interface wsMessage {
-  event: string;
-  data: any;
-}
-import wsClient from '../utils/socketManager';
-  wsClient.connect({
-    onOpen: (event:string) => {
-      console.log("Conexión WS establecida desde el componente.", event);
-    },
-    onMessage: (message:wsMessage, rawData:string) => {
-      console.log("Mensaje recibido desde el componente:", message);
-      if (!message || !message.event) return;
-      if (message.event.startsWith("task")) {
-        scheduleUpdate(async()=>{
-          try {
-          await updateNotifications();
-        } catch (error) {
-          console.error("Error al actualizar notificaciones:", error);
-        }
-        });
-      }
-    },
-    onClose: (event:string) => {
-      console.log("Conexión WS cerrada desde el componente:", event);
-    }
-  });
-const notifications = document.querySelector("task-notifications") as TaskNotifications;
+
+const notifications = document.querySelector("task-notifications");
 const formElemNames = [
   "serverName",
   "selecttab",
@@ -108,19 +80,8 @@ function getFileForm(id: string) {
   const fileInput = inputFile.shadowRoot?.querySelector('input');
   return fileInput?.files?.[0] || null;
 }
-function isTasksObject(obj: any): obj is TasksObject {
-  return typeof obj === 'object' && obj !== null && Object.values(obj).every(value => typeof value !== 'undefined');
-}
 
-async function updateNotifications() {
-  const result = await serverapi.getTasks();
-  if (isTasksObject(result.data)) {
-    console.log("result.data", result.data);
-    notifications.updateTasks(result.data);
-  } else {
-    console.error("Datos inesperados recibidos en result.data", result.data);
-  }
-}
+
 // Inicializar elementos y configurar listeners
 formElemNames.forEach((id) => {
   const element = document.getElementById(id);

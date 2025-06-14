@@ -111,6 +111,7 @@ const quickActions: QuickAction[] = [
 import { type EDetails } from 'src/litcomponents/mc/serveritem.js';
 import { optionsModal, setPopupOptions } from 'src/utils/dropdown.js';
 import { backupsapi } from 'src/fetch/fetchapi';
+import { getBackups } from '@components/main/backups/backup.js'
   const popup = document.getElementById('serverOptions');
   function initEDlisteners(){
     const allServerItems = document.querySelectorAll('server-item');
@@ -146,10 +147,10 @@ import { backupsapi } from 'src/fetch/fetchapi';
             serverName: data.server,
             outputFilename: data.server + '-backup-' + new Date().toISOString().slice(0, 19).replace(/:/g, '-')
           }
-          backupsapi.createBackup(backupdata)
+          backupsapi.createBackups(backupdata)
               .then(response => {
                 console.log("Backup created successfully", response);
-                // Optionally, you can refresh the page or update the UI
+                getBackups();
               })
               .catch(error => {
                 console.error("Error creating backup", error);
@@ -167,13 +168,14 @@ import { backupsapi } from 'src/fetch/fetchapi';
             console.log("Option 3 clicked",data);
           }
         },
-        }, */
-      {
-        html: optionsModal({id:"download-server",icon:"download",text:"Download Server"}),
-        callback: function() {
-          console.log("Option 4 clicked",data);
-        }
-      },
+        }, 
+        {
+          html: optionsModal({id:"download-server",icon:"download",text:"Download Server"}),
+          callback: function() {
+            console.log("Option 4 clicked",data);
+          }
+        },
+      */
     ]
     return options;
   }

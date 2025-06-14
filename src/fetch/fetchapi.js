@@ -395,13 +395,22 @@ class BackupsApi extends BaseApi {
             headers: this._authHeaders()
         }));
     }
-    // DELETE /backups/ { filename }
+    // POST /backups/create-async/ {folderName,outputFilename,serverName?}
+    async createBackups(data) {
+        if (!data || !data.folderName || !data.outputFilename) {
+            console.error("folderName and outputFilename are required");
+        }
+        return this.request(this.http.post(`${this.host}/backups/create-async`, data, {
+            headers: this._authHeaders()
+        }));
+    }
+    // POST /backups/delete/ { filename }
     async deleteBackup(filename) {
         if (!filename || typeof filename !== 'string') {
             console.error("filename is required");
             return;
         }
-        return this.request(this.http.post(`${this.host}/backups`,{filename}, {
+        return this.request(this.http.post(`${this.host}/backups/delete`,{filename}, {
             headers: this._authHeaders()
         }));
     }
@@ -426,6 +435,17 @@ class BackupsApi extends BaseApi {
             return;
         }
         return this.request(this.http.post(`${this.host}/backups/restore`, data, {
+            headers: this._authHeaders()
+        }));
+    }
+    // POST /backups/restore-async/ {folderName,outputFilename,serverName?}
+    async restoreBackups(data) {
+        const { filename, outputFolderName } = data;
+        if (!filename || typeof filename !== 'string' || !outputFolderName || typeof outputFolderName !== 'string') {
+            console.error("filename and outputFolderName are required");
+            return;
+        }
+        return this.request(this.http.post(`${this.host}/backups/restore-async`, data, {
             headers: this._authHeaders()
         }));
     }

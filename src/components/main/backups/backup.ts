@@ -9,7 +9,7 @@ async function getBackups() {
         console.log("No backups");
         return;
     }
-    backups_List.backups = backups;
+    if (backups_List) backups_List.backups = backups;
     return result;
 }
 /*     backups.forEach((backup) => {
@@ -18,7 +18,7 @@ async function getBackups() {
     }); */
 async function restoreBackup(backup: RestoreBody) {
     console.log("backup", backup);
-    const result = await backupsapi.restoreBackup(backup);
+    const result = await backupsapi.restoreBackups(backup);
     console.log("result", result);
     return result;
 }
@@ -75,6 +75,7 @@ async function initiBackupslistener() {
             case 'delete':
                 result = await backupsapi.deleteBackup(item.name);
                 console.log("delete", item);
+                getBackups();
                 break;
             default:
                 console.error("Acción no reconocida", action);
@@ -102,3 +103,6 @@ document.addEventListener("DOMContentLoaded", () => {
     initiBackupslistener();
     getBackups();
 });
+export {
+    getBackups
+}
