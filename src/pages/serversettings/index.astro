@@ -39,13 +39,25 @@ import SideBySideRow from '@components/Sideb.astro';
     });
     let ExistentScript = "";
     const startScript = document.getElementById("start-script") as HTMLInputElement;
+    function detectOS(): string {
+        const userAgent = navigator.userAgent.toLowerCase();
+
+        if (userAgent.includes("windows nt")) return "Windows";
+        if (userAgent.includes("mac os x")) return "macOS";
+        if (userAgent.includes("android")) return "Android";
+        if (userAgent.includes("iphone") || userAgent.includes("ipad")) return "iOS";
+        if (userAgent.includes("linux")) return "Linux";
+
+        return "Desconocido";
+      }
     async function getScript() {
-      const scripts = ["start.sh","start.bat"]
+
+      const scripts = ["start.bat","start.sh"]
       scripts.forEach(async (script) => {
         const pathENCODED = encodeURIComponent(window.selectedServer + "/" + script);
         const result = await filemanagerapi.readFileByPath(pathENCODED);
         console.log("result", result);
-        if (result) {
+        if (result && result.data) {
           console.log("script", script);
           startScript.value = result.data;
           ExistentScript = script;

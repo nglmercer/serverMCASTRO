@@ -1,8 +1,8 @@
 import { LitElement, html, css, type PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-@customElement('circle-progress')
-export class CircleProgress extends LitElement {
+// Clase base abstracta con toda la funcionalidad común
+export abstract class BaseProgress extends LitElement {
   // Define reactive properties with types
   @property({ type: Number }) value: number = 0;
   @property({ type: String, attribute: 'center-color' }) centerColor: string = 'transparent';
@@ -12,7 +12,7 @@ export class CircleProgress extends LitElement {
   @property({ type: Number }) strokeWidth: number = 10;
   @property({ type: String }) text: string = '';
 
-  // Define styles for the component
+  // Estilos base comunes
   static styles = css`
     :host {
       display: inline-block;
@@ -27,49 +27,37 @@ export class CircleProgress extends LitElement {
       position: absolute;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%);
       font-family: sans-serif;
       font-size: 1.2rem;
       font-weight: bold;
       pointer-events: none;
+      text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
     }
   `;
 
   // Called after the component's first update
   firstUpdated() {
     this.setAttribute('role', 'progressbar');
-    this.style.width = `${this.radius}px`;
-    this.style.height = `${this.radius}px`;
+    this.updateDimensions();
   }
 
   // Respond to property changes
   updated(changedProperties: PropertyValues) {
-    if (changedProperties.has('radius')) {
-      this.style.width = `${this.radius}px`;
-      this.style.height = `${this.radius}px`;
+    if (changedProperties.has('radius') || changedProperties.has('strokeWidth')) {
+      this.updateDimensions();
     }
   }
 
-  // Calculate the circumference of the circle
-  private getCircumference(): number {
-    const normalizedRadius = this.radius / 2 - this.strokeWidth / 2;
-    return normalizedRadius * 2 * Math.PI;
-  }
+  // Método abstracto que cada subclase debe implementar
+  protected abstract updateDimensions(): void;
 
-  // Calculate the stroke-dasharray for the progress arc
-  private calculateStrokeDashArray(value: number): string {
-    const circumference = this.getCircumference();
-    const progressLength = circumference * value / 100;
-    return `${progressLength} ${circumference - progressLength}`;
-  }
-
-  // Public API methods
+  // Public API methods (comunes a todos los tipos)
   public getValue(): number {
     return this.value;
   }
 
   public setValue(value: number, updateText: boolean = true): void {
-    this.value = value;
+    this.value = Math.max(0, Math.min(100, value)); // Clamp between 0-100
     if (updateText) {
       this.text = value + '%';
     }
@@ -97,12 +85,50 @@ export class CircleProgress extends LitElement {
 
   public setStrokeWidth(width: number): void {
     this.strokeWidth = width;
+    this.updateDimensions();
   }
 
-  // Render the component's template
+  public setRadius(radius: number): void {
+    this.radius = radius;
+    this.updateDimensions();
+  }
+
+  // Método helper para calcular el porcentaje
+  protected getProgressPercentage(): number {
+    return Math.max(0, Math.min(100, this.value));
+  }
+}
+
+// Componente circular (refactorizado para heredar de BaseProgress)
+@customElement('circle-progress')
+export class CircleProgress extends BaseProgress {
+  static styles = css`
+    ${BaseProgress.styles}
+    .text {
+      transform: translate(-50%, -50%);
+    }
+  `;
+
+  protected updateDimensions(): void {
+    this.style.width = `${this.radius}px`;
+    this.style.height = `${this.radius}px`;
+  }
+
+  // Calculate the circumference of the circle
+  private getCircumference(): number {
+    const normalizedRadius = this.radius / 2 - this.strokeWidth / 2;
+    return normalizedRadius * 2 * Math.PI;
+  }
+
+  // Calculate the stroke-dasharray for the progress arc
+  private calculateStrokeDashArray(value: number): string {
+    const circumference = this.getCircumference();
+    const progressLength = circumference * value / 100;
+    return `${progressLength} ${circumference - progressLength}`;
+  }
+
   render() {
     const normalizedRadius = this.radius / 2 - this.strokeWidth / 2;
-    const circumference = this.getCircumference();
     const dashArray = this.calculateStrokeDashArray(this.value);
     const center = this.radius / 2;
 
@@ -140,6 +166,130 @@ export class CircleProgress extends LitElement {
             transform="rotate(-90 ${center} ${center})"
           />
         </svg>
+        <span class="text">${this.text || this.value + '%'}</span>
+      </div>
+    `;
+  }
+}
+
+// Componente de barra horizontal
+@customElement('horizontal-progress')
+export class HorizontalProgress extends BaseProgress {
+  static styles = css`
+    ${BaseProgress.styles}
+    .container {
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .background {
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+    }
+    .progress {
+      height: 100%;
+      border-radius: 10px;
+      transition: width 0.3s ease;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .text {
+      transform: translate(-50%, -50%);
+      font-size: small;
+      color: black; 
+    }
+  `;
+
+  protected updateDimensions(): void {
+    this.style.height = `${this.strokeWidth}pt`;
+  }
+
+  // Método específico para barras horizontales
+  public setWidth(width: number): void {
+    this.setRadius(width);
+  }
+
+  public setHeight(height: number): void {
+    this.setStrokeWidth(height);
+  }
+
+  render() {
+    return html`
+      <div class="container">
+        <div 
+          class="background" 
+          style="background-color: ${this.bgColor}"
+        ></div>
+        <div 
+          class="progress" 
+          style="
+            width: ${this.getProgressPercentage()}%; 
+            background-color: ${this.activeColor};
+          "
+        ></div>
+        <span class="text">${this.text || this.value + '%'}</span>
+      </div>
+    `;
+  }
+}
+
+// Componente de barra vertical
+@customElement('vertical-progress')
+export class VerticalProgress extends BaseProgress {
+  static styles = css`
+    ${BaseProgress.styles}
+    .container {
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .background {
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+    }
+    .progress {
+      width: 100%;
+      border-radius: 10px;
+      transition: height 0.3s ease;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+    }
+    .text {
+      transform: translate(-50%, -50%) rotate(-90deg);
+      white-space: nowrap;
+    }
+  `;
+
+  protected updateDimensions(): void {
+    this.style.width = `${this.strokeWidth}px`;
+    this.style.height = `${this.radius}px`;
+  }
+
+  // Métodos específicos para barras verticales
+  public setWidth(width: number): void {
+    this.setStrokeWidth(width);
+  }
+
+  public setHeight(height: number): void {
+    this.setRadius(height);
+  }
+
+  render() {
+    return html`
+      <div class="container">
+        <div 
+          class="background" 
+          style="background-color: ${this.bgColor}"
+        ></div>
+        <div 
+          class="progress" 
+          style="
+            height: ${this.getProgressPercentage()}%; 
+            background-color: ${this.activeColor};
+          "
+        ></div>
         <span class="text">${this.text || this.value + '%'}</span>
       </div>
     `;

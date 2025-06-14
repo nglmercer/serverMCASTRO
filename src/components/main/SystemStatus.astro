@@ -15,44 +15,21 @@ const { metrics } = Astro.props;
     <div class="resource-item">
       <div class="resource-header">
         <span class="resource-label">CPU Usage</span>
-        <span class={`resource-value ${metrics.cpu > 80 ? 'danger' : 'success'}`}>
+<!--         <span class={`resource-value ${metrics.cpu > 80 ? 'danger' : 'success'}`}>
           {metrics.cpu}%
-        </span>
+        </span> -->
+
       </div>
-      <div class="progress-bar">
-        <div 
-          class={`progress-fill ${metrics.cpu > 80 ? 'danger' : 'success'}`} 
-          style={`width: ${metrics.cpu}%`}>
-        </div>
-      </div>
+      <horizontal-progress class="horizontal" id="cpu-progress" style={`width: 100%`}></horizontal-progress>
+
     </div>
     
     <div class="resource-item">
       <div class="resource-header">
         <span class="resource-label">Memory Usage</span>
-        <span class={`resource-value ${metrics.memory > 80 ? 'danger' : 'warning'}`}>
-          {metrics.memory}%
-        </span>
+
       </div>
-      <div class="progress-bar">
-        <div 
-          class={`progress-fill ${metrics.memory > 80 ? 'danger' : 'warning'}`} 
-          style={`width: ${metrics.memory}%`}>
-        </div>
-      </div>
-    </div>
-    
-    <div class="resource-item">
-      <div class="resource-header">
-        <span class="resource-label">Network</span>
-        <span class="resource-value primary">{metrics.network}%</span>
-      </div>
-      <div class="progress-bar">
-        <div 
-          class="progress-fill primary" 
-          style={`width: ${metrics.network}%`}>
-        </div>
-      </div>
+      <horizontal-progress class="horizontal" id="ram-progress" style={`width: 100%`}></horizontal-progress>
     </div>
   </div>
 <!--   <circle-progress 
@@ -86,7 +63,12 @@ bg-color="#eeeeee">
 
 </circle-progress> -->
 </div>
-
+<script>
+import { initializegraphs }from '@components/main/usage'
+document.addEventListener("DOMContentLoaded",async ()=>{
+    initializegraphs();
+})
+</script>
 <style>
   .system-status-card {
     background-color: var(--color-dark-900);
