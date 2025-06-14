@@ -327,11 +327,15 @@ class FileManagerApi extends BaseApi  {
     }
 }
 class SystemMonitor extends BaseApi {
+    //GET /hardware/summary
     getSystemInfo() {
-        //GET 
-        ///hardware/resources
-        ///hardware/summary
         return this.request(this.http.get(`${this.host}/hardware/summary`, {
+            headers: this._authHeaders()
+        }));
+    }
+    //GET /hardware/resources
+    getResources(){
+        return this.request(this.http.get(`${this.host}/hardware/resources`, {
             headers: this._authHeaders()
         }));
     }

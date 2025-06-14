@@ -116,3 +116,52 @@ import Inputcommand from "@components/dashboard/inputcommand.astro";
         }
     }   
 </style>
+<script>
+    import { systemapi } from "src/fetch/fetchapi";
+    import { CircleProgress } from "@litcomponents/mc/circle-progress"
+    document.addEventListener("DOMContentLoaded",async ()=>{
+        initializegraphs();
+    })
+    async function initializegraphs() {
+        const result = await systemapi.getResources()
+        console.log("result",result)
+        if (result && result.data){
+            const {cpu,ram} = result.data;
+            setResources("ram",ram.percent)
+            setResources("cpu",cpu)
+        }
+    }
+    const ResourceElements: {
+    [key: string]: string;
+    } = {
+    ram: "ram-progress",
+    cpu: "cpu-progress"
+    };
+    function setResources(id:string,number:number){
+        const validID = ResourceElements[id]
+        if (!id || !validID)return;
+        const element = document.getElementById(validID) as CircleProgress;
+        element.setValue(number)
+        element.setActiveColor(getProgressiveColor(number))
+    }
+    function getProgressiveColor(percent: number): string {
+        // Limitar el rango entre 0 y 100
+        percent = Math.max(0, Math.min(100, percent));
+
+        // Convertir el porcentaje en un valor entre 0 (verde) y 1 (rojo)
+        const ratio = percent / 100;
+
+        // Interpolación lineal entre verde (0,255,0) y rojo (255,0,0)
+        const r = Math.round(255 * ratio);
+        const g = Math.round(255 * (1 - ratio));
+        const b = 0; // No usamos azul
+
+        // Convertir a color hexadecimal
+        const toHex = (value: number) => value.toString(16).padStart(2, "0");
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
+    setInterval(()=>{
+        initializegraphs()
+    },6000)
+</script>
