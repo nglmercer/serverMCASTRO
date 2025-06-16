@@ -7,6 +7,7 @@ async function getBackups() {
     const backups: Backup[] = result.data?.files;
     if (!backups || backups.length === 0) {
         console.log("No backups");
+        backups_List.backups = [];
         return;
     }
     if (backups_List) backups_List.backups = backups;

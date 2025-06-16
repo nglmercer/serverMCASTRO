@@ -1,0 +1,58 @@
+---
+// BackupUploader.astro
+---
+
+<div class="backup-uploader">
+    <slot />  <!-- children will go here -->
+    <div id="dropzone" class="dropzone">
+        <div class="dropzone-content">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17,8 12,3 7,8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <h3>Importar Backup</h3>
+            <p>Arrastra y suelta tu archivo de backup aquí</p>
+            <p class="file-types">Archivos soportados: .zip, .tar.gz</p>
+            <button id="selectFileBtn" class="btn btn-primary">
+                Seleccionar archivo
+            </button>
+        </div>
+        <input 
+            type="file" 
+            id="fileInput" 
+            accept=".zip,.tar.gz" 
+            style="display: none;"
+        />
+    </div>
+    
+    <div id="fileInfo" class="file-info" style="display: none;">
+        <div class="file-details">
+            <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"></path>
+            </svg>
+            <div class="file-text">
+                <span id="fileName" class="file-name"></span>
+                <span id="fileSize" class="file-size"></span>
+            </div>
+            <button id="removeFileBtn" class="btn delete-btn btn-danger">×</button>
+        </div>
+        <button id="uploadBtn" class="flex btn">
+            <span id="uploadText">Importar Backup</span>
+            <div id="uploadSpinner" class="spinner" style="display: none;"></div>
+        </button>
+    </div>
+
+    <div id="messageContainer" class="message-container" style="display: none;">
+        <div id="message" class="message"></div>
+    </div>
+</div>
+
+<style>
+@import url('./BackupUploader.css');
+</style>
+
+<script>
+import './BackupUploader'
+
+</script>

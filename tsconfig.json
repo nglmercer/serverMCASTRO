@@ -27,6 +27,9 @@
       ],
       "@litcomponents/*": [
         "src/litcomponents/*"
+      ],
+      "@fetch/*":[
+        "src/fetch/*"
       ]
     },
     "jsx": "preserve",

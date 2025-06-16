@@ -1,82 +1,21 @@
 ---
 // RecentBackups.astro
+import BackupUploader from './backups/BackupUploader.astro'
 ---
 <script src="src/components/main/backups/backup.ts"></script>
 <div class="backups-card">
-    <div class="card-header">
-      <h2>Recent Backups</h2>
-      <button class="view-all-btn">
-        View all
-        <span class="material-symbols-rounded">chevron_right</span>
-      </button>
-    </div>
-    
-    <div class="backups-content">
-      <backup-list class="backups" id="backups_List"></backup-list>
-    </div>
+  <backup-list class="backups" id="backups_List"></backup-list>
+      <BackupUploader>
+      </BackupUploader>
   </div>
   
   <style>
     .backups-card {
+      display: grid;
+      grid-auto-columns: auto;
       background-color: var(--color-dark-900);
       border: 1px solid var(--color-gray-800);
       border-radius: var(--border-radius-xl);
       padding: var(--space-6);
-    }
-    
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: var(--space-6);
-    }
-    
-    h2 {
-      font-size: var(--font-size-xl);
-      font-weight: 600;
-    }
-    
-    .view-all-btn {
-      display: flex;
-      align-items: center;
-      gap: var(--space-1);
-      color: var(--color-primary-400);
-      font-size: var(--font-size-sm);
-      transition: color 0.2s ease;
-    }
-    
-    .view-all-btn:hover {
-      color: var(--color-primary-300);
-    }
-    
-    .view-all-btn span {
-      font-size: var(--font-size-sm);
-    }
-    
-    .backups-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: var(--space-4);
-      background-color: var(--color-dark-800);
-      border-radius: var(--border-radius-lg);
-    }
-    
-    .backup-icon {
-      font-size: 3rem;
-      color: var(--color-gray-500);
-      margin-bottom: var(--space-2);
-    }
-    
-    .no-backups-text {
-      color: var(--color-gray-400);
-      margin-bottom: var(--space-4);
-    }
-    
-    .create-backup-btn {
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-      font-size: var(--font-size-sm);
     }
   </style>

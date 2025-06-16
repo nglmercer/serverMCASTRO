@@ -91,24 +91,7 @@ var localStorage = typeof window !== 'undefined'
     ? (window.localStorage || storage)
     : storage;
 
-function getParams(paramNames = []) {
-    const urlParams = new URLSearchParams(window.location.search);
-    let paramsObject = Object.fromEntries(urlParams.entries());
 
-    if (Object.keys(paramsObject).length === 0) {
-    const path = window.location.pathname;
-    const parts = path.split('/').filter(Boolean); // ["contenido", "catalogos", "2"]
-
-    if (parts.length >= paramNames.length) {
-        paramsObject = {};
-        for (let i = 0; i < paramNames.length; i++) {
-        paramsObject[paramNames[i]] = parts[i];
-        }
-    }
-    }
-
-    return paramsObject;
-}
       
 function safeParse(value) {
     try {
@@ -452,6 +435,31 @@ class BackupsApi extends BaseApi {
         return this.request(this.http.post(`${this.host}/backups/restore-async`, data, {
             headers: this._authHeaders()
         }));
+    }
+    /**
+     * Sube un archivo de backup al servidor.
+     * @param {File} file - El objeto File del input del formulario.
+     * @returns {Promise<any>} La respuesta del servidor.
+     */
+    async uploadBackup(file) {
+        // 1. Crear un objeto FormData. Es el formato estándar para enviar archivos.
+        const formData = new FormData();
+        // 'file' es el nombre del campo que el backend espera.
+        // Lo definimos en el `request.file()` en backupRoutes.js
+        formData.append('file', file); 
+        console.log("file",file,formData,typeof file)
+        // 2. Construir la URL del endpoint
+        const url = `${this.host}/backups/upload`;
+
+        // 3. Preparar las opciones. Tu http.post es inteligente y manejará FormData.
+        // Solo necesitamos pasarle las cabeceras de autenticación.
+        // Tu función http.post se encargará de NO poner 'Content-Type', lo cual es correcto para FormData.
+        const options = {
+            headers: this._authHeaders()
+        };
+
+        // 4. Realizar la llamada a la API usando el método post existente.
+        return this.request(this.http.post(url, formData, options));
     }
 }
 class NetworkApi extends BaseApi {
