@@ -38,7 +38,8 @@ import SideBySideRow from '@components/Sideb.astro';
       initListener();
     });
     let ExistentScript = "";
-    const startScript = document.getElementById("start-script") as HTMLInputElement;
+    const startScript = document.getElementById("start-script") as HTMLElement & HTMLInputElement;
+
     async function getScript() {
       const scripts = ["start.sh","start.bat"]
       scripts.forEach(async (script) => {
@@ -47,7 +48,8 @@ import SideBySideRow from '@components/Sideb.astro';
         console.log("result", result);
         if (result) {
           console.log("script", script);
-          startScript.value = result.data;
+          const contentFile = typeof result.data === "string" ? result.data : result.data.content;
+          startScript.value = contentFile;
           ExistentScript = script;
         }
       });

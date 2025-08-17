@@ -21,10 +21,10 @@ class ServermanagerApi extends BaseApi {
    * @param action - Acción a realizar
    * @returns Promise con la respuesta de la API
    */
-  async sendCommandToServer(server: string, action: ServerAction): Promise<ApiResponse> {
+  async sendCommandToServer(server: string, action: ServerAction | string): Promise<ApiResponse> {
     const validActions: ServerAction[] = ['start', 'stop', 'restart', 'send', 'log', 'info', 'players', 'metrics', 'kill'];
     
-    if (!validActions.includes(action)) {
+    if (!validActions.includes(action as ServerAction)) {
       throw new Error(`Invalid action: ${action}. Valid actions are: ${validActions.join(', ')}`);
     }
     

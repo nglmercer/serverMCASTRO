@@ -250,7 +250,8 @@ async function fetchLogs(){
       const logs = await servermanagerapi.getServerLog(window.selectedServer);
 //      console.log("logs", logs);
       if (logs.data) {
-        commandContainer.refreshlogs(logs.data);
+        const contentlog = typeof logs.data === "string" ? logs.data : logs.message
+        commandContainer.refreshlogs(contentlog);
       }
     }
 }

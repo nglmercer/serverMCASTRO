@@ -59,7 +59,8 @@ import SideBySideRow from '@components/Sideb.astro';
         console.log("result", result);
         if (result && result.data) {
           console.log("script", script);
-          startScript.value = result.data;
+          const contentFile = typeof result.data === "string" ? result.data : result.data.content;
+          startScript.value = contentFile;
           ExistentScript = script;
         }
       });

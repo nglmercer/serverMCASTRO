@@ -108,16 +108,16 @@ const quickActions: QuickAction[] = [
   }
 </style>
 <script>
-import { type EDetails } from 'src/litcomponents/mc/serveritem.js';
-import { optionsModal, setPopupOptions } from 'src/utils/dropdown.js';
-import { backupsapi } from 'src/utils/fetch/fetchapi';
+import { type EDetails, ServerItem } from '@litcomponents/mc/serveritem.js';
+import { optionsModal, setPopupOptions } from '@utils/dropdown.js';
+import { backupsapi } from '@utils/fetch/fetchapi';
 import { getBackups } from '@components/main/backups/backup.js'
   const popup = document.getElementById('serverOptions');
   function initEDlisteners(){
-    const allServerItems = document.querySelectorAll('server-item');
+    const allServerItems = document.querySelectorAll('server-item') as NodeListOf<HTMLElement & ServerItem>;
     console.log("allServerItems", allServerItems);
     if (!allServerItems) return;
-    allServerItems.forEach(element => {
+    allServerItems.forEach(element  => {
         element.addEventListener('selected', function(e) {
           if (!('detail' in e)) return;
           if (!(e instanceof CustomEvent)) return;

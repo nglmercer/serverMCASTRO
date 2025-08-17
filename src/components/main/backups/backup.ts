@@ -1,5 +1,6 @@
 import { backupsapi } from "src/utils/fetch/fetchapi";
 import type { Backup, RestoreBody,ParsedBackup } from "./Types";
+import type { BackupInfo } from "@utils/fetch/types/server.types";
 import { BackupListComponent, type BackupActionEvent } from "@litcomponents/mc/backups"
 const backups_List = document.getElementById("backups_List") as BackupListComponent;
 
@@ -7,7 +8,7 @@ async function getBackups() {
     const result = await backupsapi.getBackups();
     console.log("result", result);
     if(!result || !result.data)return;
-    const backups: Backup[] = result.data?.files;
+    const backups: BackupInfo[] = result.data?.files;
     if (!backups || backups.length === 0 || !backups_List) {
         console.log("No backups");
         backups_List.backups = [];

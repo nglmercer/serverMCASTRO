@@ -81,11 +81,11 @@ import { urlbase } from "src/config/url";
         | "players"
         | "metrics"
         | "kill";
-    const filemanager = document.getElementById("filemanager") as FileExplorer;
-    const newFile = document.getElementById("file-Editor") as DialogContainer;
-    const uploadFiles = document.getElementById("upload-files") as DialogContainer;
-    const newFolder = document.getElementById("new-folder") as DialogContainer;
-    const EditFilename = document.getElementById("EditFilename") as DialogContainer;
+    const filemanager = document.getElementById("filemanager") as HTMLElement & FileExplorer;
+    const newFile = document.getElementById("file-Editor") as HTMLElement &  DialogContainer;
+    const uploadFiles = document.getElementById("upload-files") as HTMLElement &  DialogContainer;
+    const newFolder = document.getElementById("new-folder") as HTMLElement &  DialogContainer;
+    const EditFilename = document.getElementById("EditFilename") as HTMLElement &  DialogContainer;
     const FilenameEditor = document.getElementById("FilenameEditor") as HTMLInputElement;
     const OriginalFilename = document.getElementById("OriginalFilename") as HTMLInputElement;
     document.addEventListener("DOMContentLoaded", function () {

@@ -39,12 +39,12 @@ import { urlbase } from 'src/config/url';
     </div>
 </dialog-container>
 <script>
-    import { filemanagerapi, pluginsapi } from "src/utils/fetch/fetchapi";
-    import { DialogContainer } from "src/litcomponents/custom-modal.js";
+    import { filemanagerapi, pluginsapi } from "@utils/fetch/fetchapi";
+    import { DialogContainer } from "@litcomponents/custom-modal.js";
     import { pathSignal, signals,normalizePath } from "src/globalSignals";
-    import { PluginsUI, type ToggleEventDetail, type DeleteEventDetail } from "src/litcomponents/mc/PluginsUI.js";
-    const modList = document.getElementById("modList") as PluginsUI;
-    const pluginList = document.getElementById("pluginList") as PluginsUI;
+    import { PluginsUI, type ToggleEventDetail, type DeleteEventDetail } from "@litcomponents/mc/PluginsUI.js";
+    const modList = document.getElementById("modList") as HTMLElement & PluginsUI;
+    const pluginList = document.getElementById("pluginList") as HTMLElement & PluginsUI;
     interface PluginOrMod {
         name: string;
         path?: string;
@@ -72,7 +72,7 @@ import { urlbase } from 'src/config/url';
             if (element) {
                 element.addEventListener("click", async (e) => {
                     console.log("EventName", eventName);
-                    const uploadFiles = document.getElementById("upload-files") as DialogContainer;
+                    const uploadFiles = document.getElementById("upload-files") as HTMLElement & DialogContainer;
                     uploadFiles.show();
                     console.log("uploadFiles", uploadFiles,pathSignal.value);
                 }
