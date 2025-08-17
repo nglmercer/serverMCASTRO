@@ -205,12 +205,13 @@ interface wsMessage {
 event: string;
 data: any;
 }
-import wsClient from '../../utils/socketManager';
+import wsClient from '@utils/socketManager';
 wsClient.connect({
 onOpen: (event:string) => {
   console.log("Conexión WS establecida desde el componente.", event);
 },
-onMessage: (message:wsMessage, rawData:string) => {
+onMessage: (data:any, event:MessageEvent<any>) => {
+  const message = data as wsMessage;
   console.log("Mensaje recibido desde el componente:", message);
   if (!message || !message.event) return;
   if (message.event.startsWith("server")) {

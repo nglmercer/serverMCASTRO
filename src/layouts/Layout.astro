@@ -42,7 +42,7 @@ import wsClient from '../utils/socketManager';
     onOpen: (event:string) => {
       console.log("Conexión WS establecida desde el componente.", event);
     },
-    onMessage: (message:wsMessage, rawData:string) => {
+    onMessage: (message:wsMessage, rawData:MessageEvent<any>) => {
       console.log("Mensaje recibido desde el componente:", message);
       if (!message || !message.event) return;
       if (message.event.startsWith("task")) {

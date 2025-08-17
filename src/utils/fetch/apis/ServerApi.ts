@@ -1,11 +1,12 @@
 import BaseApi from '../commons/BaseApi';
 import type { ApiResponse } from '../types/api.types.ts';
 import type {
-  JavaVersion,
+  JavaVersions,
   CoreInfo,
   ServerInfo,
   ServerLog,
   Task,
+  allCoreInfo,
   NewServerRequest
 } from '../types/server.types';
 import apiConfig from '../config/apiConfig';
@@ -22,10 +23,15 @@ class ServerApi extends BaseApi {
    * Obtener todas las versiones de Java disponibles
    * @returns Promise con las versiones de Java
    */
-  async getVSJava(): Promise<ApiResponse<JavaVersion[]>> {
-    return this.get<ApiResponse<JavaVersion[]>>('/java/all');
+  async getVSJava(): Promise<ApiResponse<JavaVersions>> {
+    return this.get<ApiResponse<JavaVersions>>('/java/all');
   }
-
+  async findJavaVersion(version: string): Promise<ApiResponse<JavaVersions>> {
+    return this.get<ApiResponse<JavaVersions>>(`/java/find/${version}`);
+  }
+  async installJava(version: string): Promise<ApiResponse> {
+    return this.get<ApiResponse>(`/java/download/${version}`);
+  }
   /**
    * Obtener todos los cores disponibles
    * @returns Promise con todos los cores
@@ -38,8 +44,8 @@ class ServerApi extends BaseApi {
    * Obtener cores
    * @returns Promise con los cores
    */
-  async getCores(): Promise<ApiResponse<CoreInfo[]>> {
-    return this.get<ApiResponse<CoreInfo[]>>('/mc/cores');
+  async getCores(): Promise<ApiResponse<allCoreInfo>> {
+    return this.get<ApiResponse<allCoreInfo>>('/mc/cores');
   }
 
   /**
@@ -54,8 +60,8 @@ class ServerApi extends BaseApi {
    * Obtener Array de cores disponibles
    * @returns Promise con la información del core
    */
-  async getCoreData(name: string): Promise<ApiResponse<CoreInfo[]>> {
-    return this.get<ApiResponse<CoreInfo[]>>(`/mc/cores/${name}/versions`);
+  async getCoreData(name: string): Promise<ApiResponse<CoreInfo>> {
+    return this.get<ApiResponse<CoreInfo>>(`/mc/cores/${name}/versions`);
   }
   /**
    * Crear un nuevo servidor

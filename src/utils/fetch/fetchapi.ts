@@ -63,5 +63,8 @@ export {
   test
 };
 
+// Exportar tipos para Long Polling
+export type { NotificationData, LongPollingConfig } from './apis/FetchApi';
+
 // Exportación por defecto
 export default fetchapi;

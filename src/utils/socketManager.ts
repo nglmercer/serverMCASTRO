@@ -1,24 +1,33 @@
-// SimpleWebSocketClient.js
-const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-const wsUrl =
+// SimpleWebSocketClient.ts
+const wsProtocol: string = window.location.protocol === "https:" ? "wss:" : "ws:";
+const wsUrl: string =
   import.meta.env.MODE === "development"
     ? "ws://localhost:3000/ws"
     : `${wsProtocol}//${window.location.host}/ws`;
 
+interface WebSocketClientOptions {
+  onOpen?: (event: Event|string) => void;
+  onMessage?: (data: any, event: MessageEvent) => void;
+  onClose?: (event: CloseEvent|string) => void;
+  onError?: (event: unknown) => void;
+  autoReconnect?: boolean;
+  reconnectInterval?: number;
+  maxReconnectAttempts?: number;
+  debug?: boolean;
+}
+
 class SimpleWebSocketClient {
+    private url: string;
+    private ws: WebSocket | null;
+    private isConnected: boolean;
+    private reconnectAttempts: number;
+    private config: Required<WebSocketClientOptions>;
+
     /**
-     * @param {string} url La URL del servidor WebSocket (ej. "ws://localhost:3000/ws")
-     * @param {object} [options] Opciones para el cliente.
-     * @param {function} [options.onOpen] Callback cuando la conexión se abre. Recibe el evento 'open'.
-     * @param {function} [options.onMessage] Callback cuando se recibe un mensaje. Recibe el mensaje procesado (JSON parseado si es posible) y el evento 'message' original.
-     * @param {function} [options.onClose] Callback cuando la conexión se cierra. Recibe el evento 'close'.
-     * @param {function} [options.onError] Callback cuando ocurre un error. Recibe el evento 'error'.
-     * @param {boolean} [options.autoReconnect=true] Intentar reconectar automáticamente.
-     * @param {number} [options.reconnectInterval=5000] Intervalo en ms para reintentar la conexión.
-     * @param {number} [options.maxReconnectAttempts=5] Máximos intentos de reconexión. 0 para infinitos.
-     * @param {boolean} [options.debug=false] Habilitar logs de depuración.
+     * @param url La URL del servidor WebSocket (ej. "ws://localhost:3000/ws")
+     * @param options Opciones para el cliente.
      */
-    constructor(url, options = {}) {
+    constructor(url: string, options: WebSocketClientOptions = {}) {
       this.url = url;
       this.ws = null;
       this.isConnected = false;
@@ -41,13 +50,13 @@ class SimpleWebSocketClient {
       }
     }
   
-    _log(message, ...args) {
+    private _log(message: string, ...args: any[]): void {
       if (this.config.debug) {
         console.log(`[WS Client] ${message}`, ...args);
       }
     }
   
-    connect(config) {
+    connect(config?: Partial<WebSocketClientOptions>): void {
       this.config = { ...this.config, ...config };
       if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
         this._log('Ya conectado o conectando.');
@@ -67,14 +76,14 @@ class SimpleWebSocketClient {
       }
   
   
-      this.ws.onopen = (event) => {
+      this.ws.onopen = (event: Event) => {
         this.isConnected = true;
         this.reconnectAttempts = 0; // Resetear intentos al conectar exitosamente
         this._log('Conexión WebSocket abierta.');
         this.config.onOpen(event);
       };
   
-      this.ws.onmessage = (event) => {
+      this.ws.onmessage = (event: MessageEvent) => {
         let data = event.data;
         try {
           data = JSON.parse(event.data);
@@ -85,7 +94,7 @@ class SimpleWebSocketClient {
         this.config.onMessage(data, event);
       };
   
-      this.ws.onclose = (event) => {
+      this.ws.onclose = (event: CloseEvent) => {
         this.isConnected = false;
         this._log(`Conexión WebSocket cerrada. Código: ${event.code}, Razón: "${event.reason}", ¿Fue limpia?: ${event.wasClean}`);
         this.config.onClose(event);
@@ -103,7 +112,7 @@ class SimpleWebSocketClient {
         }
       };
   
-      this.ws.onerror = (event) => {
+      this.ws.onerror = (event: Event) => {
         this._log('Error en WebSocket:', event);
         this.config.onError(event);
         // onClose se llamará después de un error que cierre la conexión,
@@ -111,7 +120,7 @@ class SimpleWebSocketClient {
       };
     }
   
-    _handleReconnect() {
+    private _handleReconnect(): void {
       if (this.config.maxReconnectAttempts > 0 && this.reconnectAttempts >= this.config.maxReconnectAttempts) {
         this._log(`Máximo de ${this.config.maxReconnectAttempts} intentos de reconexión alcanzado. Deteniendo.`);
         this.ws = null; // Limpiar instancia si no se reconecta más
@@ -143,9 +152,9 @@ class SimpleWebSocketClient {
   
     /**
      * Envía datos al servidor WebSocket.
-     * @param {string|object} data Los datos a enviar. Si es un objeto, se convertirá a JSON.
+     * @param data Los datos a enviar. Si es un objeto, se convertirá a JSON.
      */
-    send(data) {
+    send(data: string | object): boolean {
       if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
         this._log('No se puede enviar mensaje: WebSocket no conectado o no abierto.');
         // Opcional: encolar mensajes para enviar cuando se reconecte
@@ -166,10 +175,10 @@ class SimpleWebSocketClient {
   
     /**
      * Cierra la conexión WebSocket.
-     * @param {number} [code=1000] Código de cierre opcional.
-     * @param {string} [reason] Razón de cierre opcional.
+     * @param code Código de cierre opcional.
+     * @param reason Razón de cierre opcional.
      */
-    close(code = 1000, reason = 'Cierre manual por cliente') {
+    close(code: number = 1000, reason: string = 'Cierre manual por cliente'): void {
       if (!this.ws) {
         this._log('No hay conexión WebSocket para cerrar.');
         return;
@@ -182,13 +191,12 @@ class SimpleWebSocketClient {
   
     /**
      * Verifica si el WebSocket está actualmente conectado y abierto.
-     * @returns {boolean}
      */
-    isOpen() {
+    isOpen(): boolean | null {
       return this.ws && this.ws.readyState === WebSocket.OPEN;
     }
   }
-const wsClient = new SimpleWebSocketClient(wsUrl);
+const wsClient: SimpleWebSocketClient = new SimpleWebSocketClient(wsUrl);
 export default wsClient;
   // Ejemplo de uso (puedes poner esto en tu archivo HTML dentro de <script> o en otro JS):
   /*

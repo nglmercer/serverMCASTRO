@@ -1,21 +1,29 @@
 // Tipos específicos para las APIs del servidor
-
-export interface JavaVersion {
-  version: string;
-  path: string;
-  vendor?: string;
-  architecture?: string;
+export interface javaRelease {
+    releaseName: string,
+    arch?: string,
+    downloadUrl?: string,
+    featureVersion?: string,
+    os?: string,
+    size?: number,
+}
+export interface JavaVersions {
+    available: number[];
+    lts: number[];
+    installed?: number[];
+    release: javaRelease[];
 }
 
+type CoreType = 'vanilla' | 'bukkit' | 'spigot' | 'paper' | 'forge' | 'fabric' | 'quilt';
 export interface CoreInfo {
   name: string;
-  version: string;
-  type: 'vanilla' | 'bukkit' | 'spigot' | 'paper' | 'forge' | 'fabric' | 'quilt';
-  minecraftVersion: string;
-  downloadUrl?: string;
-  description?: string;
+  type?: CoreType;
+  displayName: string;
+  versionsMethod: string;
+  urlGetMethod: string;
+  [key: string]: any;
 }
-
+export type allCoreInfo = Record<string, CoreInfo>;
 export interface ServerInfo {
   name: string;
   status: 'online' | 'offline' | 'starting' | 'stopping';

@@ -285,6 +285,7 @@ export class ServerPropertiesLitElement extends LitElement {
             // server:string = name
             // result:{...[key:string]:[value:string]}
             const content = Object.entries(propertiesToSave).map(([key, value]) => `${key}=${value}`).join('\n');
+            if (!currentServerId){ console.warn("currentServerId not provided");return}
             const result = await filemanagerapi.writeFile({
                 directoryname: currentServerId,
                 filename: "server.properties",

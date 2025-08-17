@@ -1,13 +1,15 @@
 import { parseCoreversions } from "src/fetch/parser";
 import { serverapi } from "@utils/fetch/fetchapi";
-import { ListSelectorElement } from "@litcomponents/select";
+import { ListSelectorElement,GridSelectorElement,VersionSelectorElement } from "@litcomponents/select";
+import type { JavaVersions } from "@utils/fetch/types/server.types";
+const javaSelect = document.querySelector(".javaVersion") as VersionSelectorElement;
 
 /**
  * Obtiene los núcleos disponibles del servidor y configura el selector
  */
 async function fetchCores() {
   try {
-    const gridElement = document.querySelector('.selectcore');
+    const gridElement = document.querySelector('.selectcore') as GridSelectorElement;
     const newselector = document.querySelector(".coreVersion") as ListSelectorElement;
     newselector.isLoading = true;
     if (!gridElement) {
@@ -16,11 +18,12 @@ async function fetchCores() {
     }
     
     const result = await serverapi.getCores();
+    console.log("getCores",result)
     if (!result || !result.data) {
       console.error("No se pudieron obtener los cores");
       return;
     }
-    
+
     const gridOptions = parseCoreversions(result.data);
     console.log("result", result, gridOptions);
     gridElement.isLoading = false;
@@ -28,13 +31,14 @@ async function fetchCores() {
     
     // Es mejor usar Promise en lugar de setTimeout para operaciones asíncronas
     setTimeout(() => {
-      gridElement.Values = "vanilla";
+      gridElement.Values = ["vanilla"];
     }, 1000);
     
     gridElement.addEventListener('change', async (e) => {
-      console.log("e", e.detail);
+      const detail = (e as CustomEvent).detail;
+      console.log("e", detail);
       try {
-        const result = await serverapi.getCoreData(e.detail.value);
+        const result = await serverapi.getCoreData(detail.value);
         console.log("result", result);
         if (result && result.data) {
           const versions = Array.isArray(result.data) ? result.data : result.data.versions;
@@ -55,6 +59,7 @@ async function fetchCores() {
 async function fetchJavav() {
   try {
     const result = await serverapi.getVSJava();
+    console.log("getVSJava",result)
     if (!result || !result.data) {
       console.error("No se pudieron obtener las versiones de Java");
       return;
@@ -70,7 +75,8 @@ async function fetchJavav() {
  * Configura las opciones del selector de versiones de núcleo
  * @param {Array} arrayV - Lista de versiones disponibles
  */
-async function setcoreversions(arrayV,select) {
+async function setcoreversions(arrayV:number[] | string[],select: ListSelectorElement) {
+
   try {
     const coreSelect = select || document.querySelector(".coreVersion");
     if (!coreSelect) {
@@ -91,27 +97,27 @@ async function setcoreversions(arrayV,select) {
  * Configura las opciones del selector de versiones de Java
  * @param {Object} objV - Objeto con información de versiones de Java
  */
-async function setjavaversions(objV) {
+async function setjavaversions(objV:JavaVersions) {
+
   try {
     if (!objV || !objV.available) {
       console.error("Datos de versiones de Java inválidos");
       return;
     }
     
-    const javaSelect = document.querySelector(".javaVersion");
-    const javaSelect2 = document.querySelector(".javaVersion2");
     if (!javaSelect) {
       console.warn("Elemento .javaVersion no encontrado");
       return;
     }
     
-    const optionsCore = returnOptionfromArray(objV.available, "java ");
+    const optionsCore = returnOptionfromArray(objV.available, objV.installed);
+
     console.log("setjavaversions", optionsCore, objV);
     javaSelect.isLoading = false; 
     javaSelect.options = optionsCore;
-    javaSelect2.options = optionsCore;
     if (objV.installed && objV.installed.length > 0) {
-      javaSelect.value = objV.installed[0];
+      javaSelect.Values = [String(objV.installed[0])];
+      javaSelect
       console.log("javaSelect", objV.installed);
     }
   } catch (error) {
@@ -120,18 +126,22 @@ async function setjavaversions(objV) {
 }
 
 /**
- * Convierte un array en un formato de opciones para selectores
- * @param {Array} arrayV - Array de valores
- * @param {string} prefix - Prefijo para añadir a cada etiqueta
- * @returns {Array} - Array formateado para opciones de selectores
+ * Converts arrays into formatted options for selectors
+ * @param {Array<number | string>} arrayV - Array of available versions
+ * @param {Array<number | string>} installedVersions - Array of installed versions
+ * @returns {Array<{label: string, name: string, value: number | string, status: string}>} - Array formatted for selector options
  */
-function returnOptionfromArray(arrayV, prefix = "") {
-  if (arrayV && Array.isArray(arrayV)) {
-    return arrayV.map((v) => ({
-      label: prefix + v,
-      name: prefix + v,
-      value: v
-    }));
+function returnOptionfromArray(arrayV: number[] | string[], installedVersions: number[] | string[] = []) {
+  if (arrayV && Array.isArray(arrayV) && installedVersions && Array.isArray(installedVersions)) {
+    return arrayV.map((version) => {
+      const isInstalled = installedVersions.some(installed => installed === version);
+      return {
+        label: `${version}${isInstalled ? ' installed' : ''}`,
+        name: `${version}${isInstalled ? ' installed' : ''}`,
+        status: isInstalled ? 'installed' : 'not-installed',
+        value: version
+      };
+    });
   }
   return [];
 }
@@ -155,4 +165,18 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchCores();
   fetchJavav();
   fetchTasks();
+javaSelect?.addEventListener('install-version',async (e) => {
+  const detail = (e as CustomEvent).detail;
+  const {version} = detail;
+  if (!version)return;
+  const resultInstall = await serverapi.findJavaVersion(version);
+  if (!resultInstall || resultInstall.error) {
+    const resultInstall = await serverapi.installJava(version);
+    console.log("installJava", resultInstall);
+  }else{
+    console.log("resultInstall", {detail,resultInstall});
+  }
+
+})
+
 });

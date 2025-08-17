@@ -513,7 +513,7 @@ export class VersionSelectorElement extends ListSelectorElement {
     return Array.from(
       map(this.options, (option) => {
         const isSelected = this.Values?.includes(String(option.value));
-        const isInstalled = option.state === 'instalado' || option.state === 'installed';
+        const isInstalled = option.state === 'instalado' || option.state === 'installed' || option.state === 'true';
         const optionClasses = classMap({
           option: true,
           selected: isSelected,

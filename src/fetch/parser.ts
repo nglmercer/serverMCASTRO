@@ -1,8 +1,8 @@
 interface coreVersion {
-    name: "paper",
-    displayName: "PaperMC",
-    versionsMethod: "paper",
-    urlGetMethod: "paper"
+    name: string,
+    displayName: string,
+    versionsMethod: string,
+    urlGetMethod: string
 }
 interface SelectOption {
     value: string | number;
