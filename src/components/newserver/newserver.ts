@@ -1,5 +1,6 @@
 import { parseCoreversions } from "src/fetch/parser";
-import { serverapi } from "src/fetch/fetchapi";
+import { serverapi } from "@utils/fetch/fetchapi";
+import { ListSelectorElement } from "@litcomponents/select";
 
 /**
  * Obtiene los núcleos disponibles del servidor y configura el selector
@@ -7,7 +8,7 @@ import { serverapi } from "src/fetch/fetchapi";
 async function fetchCores() {
   try {
     const gridElement = document.querySelector('.selectcore');
-    const newselector = document.querySelector(".coreVersion");
+    const newselector = document.querySelector(".coreVersion") as ListSelectorElement;
     newselector.isLoading = true;
     if (!gridElement) {
       console.warn("Elemento .selectcore no encontrado");
@@ -33,10 +34,11 @@ async function fetchCores() {
     gridElement.addEventListener('change', async (e) => {
       console.log("e", e.detail);
       try {
-        const result = await serverapi.getcore(e.detail.value);
+        const result = await serverapi.getCoreData(e.detail.value);
         console.log("result", result);
         if (result && result.data) {
-          await setcoreversions(result.data, newselector);
+          const versions = Array.isArray(result.data) ? result.data : result.data.versions;
+          await setcoreversions(versions, newselector);
         }
       } catch (error) {
         console.error("Error al obtener las versiones del core:", error);
@@ -97,6 +99,7 @@ async function setjavaversions(objV) {
     }
     
     const javaSelect = document.querySelector(".javaVersion");
+    const javaSelect2 = document.querySelector(".javaVersion2");
     if (!javaSelect) {
       console.warn("Elemento .javaVersion no encontrado");
       return;
@@ -106,7 +109,7 @@ async function setjavaversions(objV) {
     console.log("setjavaversions", optionsCore, objV);
     javaSelect.isLoading = false; 
     javaSelect.options = optionsCore;
-    
+    javaSelect2.options = optionsCore;
     if (objV.installed && objV.installed.length > 0) {
       javaSelect.value = objV.installed[0];
       console.log("javaSelect", objV.installed);

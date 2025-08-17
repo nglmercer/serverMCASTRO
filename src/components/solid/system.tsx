@@ -1,6 +1,6 @@
 import { type Component, For, Show, createSignal, onCleanup, createEffect } from 'solid-js';
 import './SystemMonitor.css'; // Import the CSS file
-import { systemapi } from 'src/fetch/fetchapi';
+import { systemapi } from 'src/utils/fetch/fetchapi';
 async function getSystemInfo() {
     try{
         const result = await systemapi.getSystemInfo();

@@ -1,11 +1,14 @@
-import { backupsapi } from "src/fetch/fetchapi";
+import { backupsapi } from "src/utils/fetch/fetchapi";
 import type { Backup, RestoreBody,ParsedBackup } from "./Types";
 import { BackupListComponent, type BackupActionEvent } from "@litcomponents/mc/backups"
+const backups_List = document.getElementById("backups_List") as BackupListComponent;
+
 async function getBackups() {
     const result = await backupsapi.getBackups();
     console.log("result", result);
+    if(!result || !result.data)return;
     const backups: Backup[] = result.data?.files;
-    if (!backups || backups.length === 0) {
+    if (!backups || backups.length === 0 || !backups_List) {
         console.log("No backups");
         backups_List.backups = [];
         return;
@@ -23,7 +26,6 @@ async function restoreBackup(backup: RestoreBody) {
     console.log("result", result);
     return result;
 }
-const backups_List = document.getElementById("backups_List") as BackupListComponent;
 function getOrParserName(filename: string): ParsedBackup {
     const backupSplit = "-backup-";
     

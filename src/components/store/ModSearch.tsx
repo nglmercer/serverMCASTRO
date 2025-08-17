@@ -5,7 +5,7 @@ import ModCard from './ModCard';
 import ModDetails from './ModDetails';
 import type { Mod } from './index.ts';
 import './ModSearch.css';
-import { pluginsapi } from 'src/fetch/fetchapi.js';
+import { pluginsapi } from 'src/utils/fetch/fetchapi';
 const ModSearch = () => {
   const [searchQuery, setSearchQuery] = createSignal('');
   const [results, setResults] = createSignal<Mod[]>([]);

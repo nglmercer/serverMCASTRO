@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { state, property, customElement } from 'lit/decorators.js';
-import { filemanagerapi } from 'src/fetch/fetchapi';
+import { filemanagerapi } from 'src/utils/fetch/fetchapi';
 import { urlbase } from 'src/config/url';
 @customElement('server-properties')
 export class ServerPropertiesLitElement extends LitElement {

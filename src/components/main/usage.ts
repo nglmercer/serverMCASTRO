@@ -1,4 +1,4 @@
-import { systemapi } from "src/fetch/fetchapi";
+import { systemapi } from "src/utils/fetch/fetchapi";
 import { CircleProgress } from "@litcomponents/mc/circle-progress"
 
 async function initializegraphs() {

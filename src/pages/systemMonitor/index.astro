@@ -1,7 +1,7 @@
 ---
 import ServerLayout from '@layouts/serverLayout.astro';
 import SystemMonitorSolid, {type SystemInfoResponse } from '@components/solid/system.tsx';
-import { systemapi } from 'src/fetch/fetchapi';
+import { systemapi } from 'src/utils/fetch/fetchapi';
 
 async function getSystemInfo() {
     try{

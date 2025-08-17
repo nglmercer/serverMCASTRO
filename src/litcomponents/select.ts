@@ -260,7 +260,7 @@ export class ListSelectorElement extends BaseSelectorElement {
     `
   ];
 
-  private _handleOptionClick(event: Event): void {
+  public _handleOptionClick(event: Event): void {
     const optionElement = event.currentTarget as HTMLElement;
     const value = optionElement.dataset.value;
     if (value) {
@@ -436,6 +436,119 @@ export class GridSelectorElement extends BaseSelectorElement {
   }  
 }
 
+// Version selector for software installations
+export class VersionSelectorElement extends ListSelectorElement {
+  static styles = [
+    ...ListSelectorElement.styles,
+    css`
+      .option {
+        position: relative;
+        overflow: visible;
+      }
+
+      .option:not(.installed) {
+        opacity: 0.6;
+      }
+
+      .option:not(.installed):not(:hover) .option-state {
+        display: none;
+      }
+
+      .option.installed .option-state {
+        color: var(--enhanced-select-option-selected-text-color, #32d583);
+        font-weight: 600;
+      }
+
+      .option:not(.installed):hover .option-state {
+        display: block;
+        color: var(--enhanced-select-text-color, #e2e8f0);
+        opacity: 0.8;
+      }
+
+      .install-button {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--enhanced-select-option-selected-bg-color, #32d583);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 0.75em;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        z-index: 10;
+      }
+
+      .option:not(.installed):hover .install-button {
+        opacity: 1;
+      }
+
+      .install-button:hover {
+        background: var(--enhanced-select-option-hover-bg-color, #2e8b57);
+      }
+
+      .option.installed .install-button {
+        display: none;
+      }
+    `
+  ];
+
+  private _handleInstallClick(event: Event, version: string): void {
+    event.stopPropagation();
+    this.dispatchEvent(new CustomEvent('install-version', {
+      detail: { version },
+      bubbles: true,
+      composed: true
+    }));
+  }
+
+  protected generateSelectorOptions(): TemplateResult[] {
+    if (!this.options || this.options.length === 0) {
+      return [];
+    }
+    
+    return Array.from(
+      map(this.options, (option) => {
+        const isSelected = this.Values?.includes(String(option.value));
+        const isInstalled = option.state === 'instalado' || option.state === 'installed';
+        const optionClasses = classMap({
+          option: true,
+          selected: isSelected,
+          installed: isInstalled,
+        });
+
+        return html`
+          <div
+            class=${optionClasses}
+            data-value=${option.value}
+            @click=${this._handleOptionClick}
+            role="option"
+            aria-selected=${isSelected}
+            tabindex="0"
+          >
+            ${when(option.img || option.image, () => html`<img src="${option.img || option.image}" alt="">`)}
+            <span class="option-label">${option.label}</span>
+            ${when(option.state, () => html`<span class="option-state">${option.state}</span>`)}
+            ${when(!isInstalled, () => html`
+              <button 
+                class="install-button"
+                @click=${(e: Event) => this._handleInstallClick(e, String(option.value))}
+                title="Instalar ${option.label}"
+              >
+                Instalar
+              </button>
+            `)}
+          </div>
+        `;
+      })
+    ) as TemplateResult[];
+  }
+}
+
 // Register custom elements
 customElements.define('list-selector', ListSelectorElement);
+customElements.define('version-selector', VersionSelectorElement);
 customElements.define('grid-selector', GridSelectorElement);

@@ -1,6 +1,6 @@
 import { createSignal, onMount, onCleanup, Show } from 'solid-js';
 import type { Component } from 'solid-js';
-import { fetchFiles } from "src/fetch/fetchapi";
+import { fetchFiles } from "src/utils/fetch/fetchapi";
 import {
   FileExplorer
 } from "src/litcomponents/mc/files.js";
