@@ -215,15 +215,15 @@ class ServerApi extends BaseApi {
             headers: this._authHeaders()
         }));
     }
-    // GET "/servermanager/" + server + "/info"
+    // GET "/mc/servermanager/" + server + "/info"
     async getServerInfo(server) {
-        return this.request(http.get(`${this.host}/servermanager/${server}/info`, {
+        return this.request(http.get(`${this.host}/mc/servermanager/${server}/info`, {
             headers: this._authHeaders()
         }));
     }
-    // GET "/servermanager/" + server + "/logs"
+    // GET "/mc/servermanager/" + server + "/logs"
     async getServerLog(server) {
-        return this.request(http.get(`${this.host}/servermanager/${server}/log`, {
+        return this.request(http.get(`${this.host}/mc/servermanager/${server}/log`, {
             headers: this._authHeaders()
         }));
     }
@@ -235,22 +235,22 @@ class ServerApi extends BaseApi {
     }
 }
 class ServermanagerApi extends BaseApi  {
-    // GET "/servermanager/" + server + "/"+ action
+    // GET "/mc/servermanager/" + server + "/"+ action
     async sendCommandToServer(server, action) {
         const validActions = ['start', 'stop', 'restart', 'send', 'log', 'info', 'players', 'metrics', 'kill'];
-        return this.request(http.get(`${this.host}/servermanager/${server}/${action}`, {
+        return this.request(http.get(`${this.host}/mc/servermanager/${server}/${action}`, {
             headers: this._authHeaders()
         }));
     }
-    // GET "/servermanager/" + server + "/info"
+    // GET "/mc/servermanager/" + server + "/info"
     async getServerInfo(server) {
-        return this.request(http.get(`${this.host}/servermanager/${server}/info`, {
+        return this.request(http.get(`${this.host}/mc/servermanager/${server}/info`, {
             headers: this._authHeaders()
         }));
     }
-    // GET "/servermanager/" + server + "/logs"
+    // GET "/mc/servermanager/" + server + "/logs"
     async getServerLog(server) {
-        return this.request(http.get(`${this.host}/servermanager/${server}/log`, {
+        return this.request(http.get(`${this.host}/mc/servermanager/${server}/log`, {
             headers: this._authHeaders()
         }));
     }

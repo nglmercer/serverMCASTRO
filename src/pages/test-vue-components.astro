@@ -1,0 +1,35 @@
+---
+// Test page for Vue components migration
+import Layout from '../layouts/Layout.astro'
+import ServerManager from '../components/vue/mc/servermanager.vue'
+---
+
+<Layout title="Vue Components Test - ServerMCASTRO">
+  <main class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto py-8">
+      <div class="mb-8 text-center">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">Vue Components Migration Test</h1>
+        <p class="text-gray-600">Testing the migrated Lit and SolidJS components to Vue</p>
+      </div>
+      
+      <!-- Server Manager Component -->
+      <ServerManager client:load />
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .material-symbols-rounded {
+    font-family: 'Material Symbols Rounded';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 20px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+  }
+</style>

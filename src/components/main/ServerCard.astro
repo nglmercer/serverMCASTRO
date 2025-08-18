@@ -1,9 +1,9 @@
 ---
 import CPopup from '@components/solid/solid.tsx'; 
-import ServerList from '@components/solid/ServerList.solid.tsx'; 
+import ServerList from '@components/vue/ServerList.vue';
 ---
 
-<ServerList client:only="solid-js" />
+<ServerList client:only="vue" />
 
 <CPopup id="serverOptions" class="serverModal_0 material-symbols-rounded server-card" client:only="solid-js" />
 

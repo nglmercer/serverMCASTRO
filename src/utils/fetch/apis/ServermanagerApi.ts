@@ -28,7 +28,7 @@ class ServermanagerApi extends BaseApi {
       throw new Error(`Invalid action: ${action}. Valid actions are: ${validActions.join(', ')}`);
     }
     
-    return this.get<ApiResponse>(`/servermanager/${server}/${action}`);
+    return this.get<ApiResponse>(`/mc/servermanager/${server}/${action}`);
   }
 
   /**
@@ -37,7 +37,7 @@ class ServermanagerApi extends BaseApi {
    * @returns Promise con la información del servidor
    */
   async getServerInfo(server: string): Promise<ApiResponse<ServerInfo>> {
-    return this.get<ApiResponse<ServerInfo>>(`/servermanager/${server}/info`);
+    return this.get<ApiResponse<ServerInfo>>(`/mc/servermanager/${server}/info`);
   }
 
   /**
@@ -46,7 +46,7 @@ class ServermanagerApi extends BaseApi {
    * @returns Promise con los logs del servidor
    */
   async getServerLog(server: string): Promise<ApiResponse<ServerLog[]>> {
-    return this.get<ApiResponse<ServerLog[]>>(`/servermanager/${server}/log`);
+    return this.get<ApiResponse<ServerLog[]>>(`/mc/servermanager/${server}/log`);
   }
 }
 

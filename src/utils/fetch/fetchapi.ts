@@ -5,7 +5,7 @@ import apiConfig from './config/apiConfig';
 // Importar todas las clases API migradas
 import FetchApi from './apis/FetchApi';
 import ServerApi from './apis/ServerApi';
-import ServermanagerApi from './apis/ServermanagerApi';
+import ServermanagerApi from './apis/servermanagerApi';
 import FileManagerApi from './apis/FileManagerApi';
 import SystemMonitor from './apis/SystemMonitor';
 import PluginsApi from './apis/PluginsApi';

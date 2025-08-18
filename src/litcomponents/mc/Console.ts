@@ -269,7 +269,7 @@ export class GameConsole extends LitElement {
         }
     }
     
-    public refreshlogs(serverLog: string): void {
+    public refreshlogs(serverLog: string = ''): void {
         if (!this.consoleTextElem) {
             this.updateComplete.then(() => this.refreshlogs(serverLog));
             return;
