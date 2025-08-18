@@ -1,4 +1,5 @@
 ---
+import 'src/styles/global.css';
 ---
 <!doctype html>
 <html lang="en">
@@ -39,7 +40,7 @@ interface wsMessage {
 }
 import wsClient from '../utils/socketManager';
   wsClient.connect({
-    onOpen: (event:string) => {
+    onOpen: (event:string | Event) => {
       console.log("Conexión WS establecida desde el componente.", event);
     },
     onMessage: (message:wsMessage, rawData:MessageEvent<any>) => {
@@ -55,7 +56,7 @@ import wsClient from '../utils/socketManager';
         });
       }
     },
-    onClose: (event:string) => {
+    onClose: (event:string | CloseEvent) => {
       console.log("Conexión WS cerrada desde el componente:", event);
     }
   });

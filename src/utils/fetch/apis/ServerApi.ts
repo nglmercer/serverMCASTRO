@@ -78,7 +78,7 @@ class ServerApi extends BaseApi {
    * @returns Promise con la lista de servidores
    */
   async getServers(): Promise<ApiResponse<ServerInfo[]>> {
-    return this.get<ApiResponse<ServerInfo[]>>('/servers');
+    return this.get<ApiResponse<ServerInfo[]>>('/mc/servers');
   }
 
   /**

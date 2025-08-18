@@ -24,7 +24,25 @@ export interface CoreInfo {
   [key: string]: any;
 }
 export type allCoreInfo = Record<string, CoreInfo>;
+export interface file {
+  name: string;
+  path: string;
+  type: 'file' | 'directory';
+  size?: number;
+  lastModified?: string;
+  permissions?: {
+    read: boolean;
+    write: boolean;
+    execute: boolean;
+  };
+  read: boolean;
+  write: boolean;
+  execute: boolean;
+}
 export interface ServerInfo {
+  id: string;
+  folderName: string;
+  files:file[];
   name: string;
   status: 'online' | 'offline' | 'starting' | 'stopping';
   players: {

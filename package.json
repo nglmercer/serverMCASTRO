@@ -13,6 +13,8 @@
     "@astrojs/lit": "^4.3.0",
     "@astrojs/node": "^9.2.1",
     "@astrojs/solid-js": "^5.0.10",
+    "@astrojs/vue": "^5.1.0",
+    "@tailwindcss/vite": "^4.1.12",
     "@webcomponents/template-shadowroot": "^0.2.1",
     "ansi_up": "^6.0.6",
     "astro": "^5.7.1",
@@ -21,6 +23,7 @@
     "lit": "^3.2.1",
     "marked": "^15.0.11",
     "socket.io-client": "^4.8.1",
-    "solid-js": "^1.9.6"
+    "solid-js": "^1.9.6",
+    "tailwindcss": "^4.1.12"
   }
 }

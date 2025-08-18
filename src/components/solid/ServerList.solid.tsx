@@ -1,6 +1,6 @@
 import { createSignal, onMount, For, Show } from 'solid-js'; // Añadido Show
 import type { Component } from 'solid-js';
-import { serverapi } from '../../fetch/fetchapi'; // Ajusta la ruta
+import { serverapi } from '@utils/fetch/fetchapi'
 
 const StatusIndicatorSolid: Component<{ status: string }> = (props) => {
   const colorClass = () => {
@@ -60,10 +60,11 @@ const ServerList: Component = () => {
     try {
       setLoading(true);
       const serversfetch = await serverapi.getServers();
-      const mapped = (serversfetch.data.files as FileData[]).map((server) => ({
-        id: server.name, // Asegúrate que server.name es único y válido como ID
+      if (!serversfetch || !serversfetch.data || !Array.isArray(serversfetch.data)) return;
+      const mapped = (serversfetch.data as any[]).map((server) => ({
+        id: server.id || server.name, // Asegúrate que server.name es único y válido como ID
         name: server.name,
-        size: server.size,
+        size: server.size || 0, // Asigna un tamaño por defecto si no está presente
         lastModified: server.lastModified || server.modified,
         status: server.status || 'stopped',
         version: server.version || 'N/A',
