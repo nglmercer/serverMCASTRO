@@ -29,10 +29,10 @@ async function fetchCores() {
     gridElement.isLoading = false;
     gridElement.options = gridOptions;
     
-    // Es mejor usar Promise en lugar de setTimeout para operaciones asíncronas
-    setTimeout(() => {
-      gridElement.Values = ["vanilla"];
-    }, 1000);
+    // Comentado: No establecer automáticamente "vanilla" como seleccionado
+    // setTimeout(() => {
+    //   gridElement.Values = ["vanilla"];
+    // }, 1000);
     
     gridElement.addEventListener('change', async (e) => {
       const detail = (e as CustomEvent).detail;
@@ -115,11 +115,11 @@ async function setjavaversions(objV:JavaVersions) {
     console.log("setjavaversions", optionsCore, objV);
     javaSelect.isLoading = false; 
     javaSelect.options = optionsCore;
-    if (objV.installed && objV.installed.length > 0) {
-      javaSelect.Values = [String(objV.installed[0])];
-      javaSelect
-      console.log("javaSelect", objV.installed);
-    }
+    // Comentado: No seleccionar automáticamente la primera versión de Java instalada
+    // if (objV.installed && objV.installed.length > 0) {
+    //   javaSelect.Values = [String(objV.installed[0])];
+    //   console.log("javaSelect", objV.installed);
+    // }
   } catch (error) {
     console.error("Error en setjavaversions:", error);
   }

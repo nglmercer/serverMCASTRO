@@ -56,8 +56,9 @@ export abstract class BaseSelectorElement extends LitElement {
 
     const newSelectedValues = currentSelected.filter(val => validValues.has(val));
 
+    // Only update if there were actual changes and avoid auto-selecting first element
     if (newSelectedValues.length !== currentSelected.length ||
-        (this.Values && newSelectedValues.length !== this.Values.length)) { // Check if actual values changed
+        (this.Values && newSelectedValues.length !== this.Values.length)) {
       this.Values = newSelectedValues;
       this._dispatchChange(this.getSelectedOptions());
     }
