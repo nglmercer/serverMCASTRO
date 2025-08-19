@@ -207,7 +207,7 @@ data: any;
 }
 import wsClient from '@utils/socketManager';
 wsClient.connect({
-onOpen: (event:string) => {
+onOpen: (event:string | Event) => {
   console.log("Conexión WS establecida desde el componente.", event);
 },
 onMessage: (data:any, event:MessageEvent<any>) => {
@@ -227,7 +227,7 @@ onMessage: (data:any, event:MessageEvent<any>) => {
     });
   }
 },
-onClose: (event:string) => {
+onClose: (event:string | CloseEvent) => {
   console.log("Conexión WS cerrada desde el componente:", event);
 }
 });
@@ -248,9 +248,13 @@ fetchLogs();
 async function fetchLogs(){
   if (isValidstatus()) {
       const logs = await servermanagerapi.getServerLog(window.selectedServer);
-//      console.log("logs", logs);
       if (logs.data) {
-        const contentlog = typeof logs.data === "string" ? logs.data : logs.message
+        // Handle both string and array responses
+        const contentlog = Array.isArray(logs.data) 
+          ? logs.data.join('\n')  // Join array elements with newlines
+          : typeof logs.data === "string" 
+            ? logs.data 
+            : logs.message;
         commandContainer.refreshlogs(contentlog);
       }
     }
