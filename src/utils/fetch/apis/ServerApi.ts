@@ -68,9 +68,9 @@ class ServerApi extends BaseApi {
    * @param formData - Datos del formulario para crear el servidor
    * @returns Promise con la respuesta de la API
    */
-  async postNewserver(formData: FormData): Promise<ApiResponse> {
+  async postNewserver(formData: FormData): Promise<ApiResponse<ServerInfo>> {
     // Para FormData, no establecemos Content-Type manualmente
-    return this.post<ApiResponse>('/newserver', formData);
+    return this.post<ApiResponse<ServerInfo>>('/newserver', formData);
   }
 
   /**
