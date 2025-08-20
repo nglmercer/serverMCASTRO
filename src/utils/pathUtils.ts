@@ -4,7 +4,16 @@
 
 const ROOT_PATH = '/';
 const normalizedPathCache = new Map<string, string>();
-
+const DataPath ={
+  value:ROOT_PATH,
+  ROOT_PATH,
+  setPath(path: string) {
+    this.value = path;
+  },
+  getPath() {
+    return this.value;
+  }
+}
 /**
  * Normalizes file paths to ensure consistent format across the application.
  * Handles both forward slashes and backslashes, removes duplicates, and ensures proper formatting.
@@ -86,4 +95,45 @@ export function getRootPath(): string {
   return ROOT_PATH;
 }
 
-export { ROOT_PATH };
+/**
+ * Normaliza rutas eliminando duplicaciones de directorio en el filename
+ * @param directoryname - Nombre del directorio base
+ * @param filename - Ruta del archivo que puede contener duplicación
+ * @returns Objeto con directoryname y filename normalizados
+ */
+export function normalizeFilePath(directoryname: string, filename: string): { directoryname: string; filename: string } {
+  // Si filename comienza con el directoryname seguido de '/', eliminar la duplicación
+  if (filename.startsWith(directoryname + '/')) {
+    return {
+      directoryname,
+      filename: filename.substring(directoryname.length + 1)
+    };
+  }
+  
+  // Si filename comienza con '/' + directoryname + '/', eliminar la duplicación
+  if (filename.startsWith('/' + directoryname + '/')) {
+    return {
+      directoryname,
+      filename: filename.substring(directoryname.length + 2)
+    };
+  }
+  
+  // Si no hay duplicación, devolver tal como está
+  return {
+    directoryname,
+    filename
+  };
+}
+
+/**
+ * Combina directoryname y filename de manera segura
+ * @param directoryname - Nombre del directorio
+ * @param filename - Nombre del archivo
+ * @returns Ruta completa combinada
+ */
+export function combineFilePath(directoryname: string, filename: string): string {
+  const { directoryname: normalizedDir, filename: normalizedFile } = normalizeFilePath(directoryname, filename);
+  return normalizePath(`/${normalizedDir}/${normalizedFile}`);
+}
+
+export { ROOT_PATH,DataPath };

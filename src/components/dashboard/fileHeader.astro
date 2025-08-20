@@ -66,15 +66,17 @@ import { urlbase } from "src/config/url";
     import { DialogContainer } from "src/litcomponents/custom-modal.js";
     import { CInput } from "src/litcomponents/CInput.js";
     import { optionsModal } from "src/utils/dropdown.js";
-    import { signals,normalizePath } from "src/globalSignals";
-    import { FILE_EXPLORER_EVENTS} from 'src/types/fileExplorerEvents';
+    import { signals } from "src/globalSignals";
+    import { FILE_EXPLORER_EVENTS,type FileExplorerEventData} from 'src/types/fileExplorerEvents';
     import { emitter } from "@utils/Emitter";
+    import { normalizeFilePath,DataPath,normalizePath } from "@utils/pathUtils";
     const newFile = document.getElementById("file-Editor") as HTMLElement &  DialogContainer;
     const uploadFiles = document.getElementById("upload-files") as HTMLElement &  DialogContainer;
     const newFolder = document.getElementById("new-folder") as HTMLElement &  DialogContainer;
     const EditFilename = document.getElementById("EditFilename") as HTMLElement &  DialogContainer;
     const FilenameEditor = document.getElementById("FilenameEditor") as HTMLInputElement;
     const OriginalFilename = document.getElementById("OriginalFilename") as HTMLInputElement;
+    const InputFile = document.getElementById("file-name") as HTMLInputElement & { value: string };
     document.addEventListener("DOMContentLoaded", function () {
         const actionsElement = document.getElementById("FileActions");
         if (!actionsElement) return;
@@ -115,7 +117,7 @@ import { urlbase } from "src/config/url";
         buttonsConfig.forEach((button) => {
             actionsElement.addButton(button);
         });
-        emitter.on(FILE_EXPLORER_EVENTS[4],async(data)=>{
+        emitter.on(FILE_EXPLORER_EVENTS[4], async({ data }: FileExplorerEventData['file-explorer:selected'])=>{
             console.log(FILE_EXPLORER_EVENTS[4], data);
                     if (data.type !== "directory") {
                         //const editorContent = signals.set("fileEditor-content", "text=false");
@@ -125,9 +127,8 @@ import { urlbase } from "src/config/url";
                         console.log("fileData", fileData, typeof fileData);
                         newFile.show();
                         signals.set("fileEditor-content", fileData);
-                        signals.set("file-name", data.path);
-                        const fileNameInput = document.getElementById("file-name") as HTMLInputElement;
-                        fileNameInput.value = data.path;
+                        InputFile.value = data.path;
+                        
                         //console.log("fileData", fileData,editorContent);
                         return;
                     }
@@ -194,8 +195,13 @@ import { urlbase } from "src/config/url";
     window.URL.revokeObjectURL(url);
     }
     function refreshFolder(){
-        emitter.emit(FILE_EXPLORER_EVENTS[13],{path: window.selectedServer});
+        emitter.emit(FILE_EXPLORER_EVENTS[13],{path: getPath()});
     }
+    function getPath(path?:string){
+        const directoryPath = DataPath.getPath()
+        return normalizePath(window.selectedServer + directoryPath + "/"+(path || ""));
+    }
+
     async function readFile(path: string) {
         const pathENCODED = encodeURIComponent(path);
         const result = await filemanagerapi.readFileByPath(pathENCODED);
@@ -283,28 +289,33 @@ import { urlbase } from "src/config/url";
                 MF_elements[action] = element;
                 element.addEventListener("click", async (e) => {
                     console.log("MF_action", action);
-                    const InputFile = document.getElementById("file-name") as HTMLInputElement & { value: string };
 
                     if (action === "save-file") {
                         const fileData = signals.get("fileEditor-content")?.value as string;
                         if (!fileData) return;
                         console.log("fileData", fileData, InputFile.value);
+
+                        // Normalizar rutas para evitar duplicación
+                        const { directoryname, filename } = normalizeFilePath(
+                            window.selectedServer,
+                            InputFile?.value as string
+                        );
+
                         const result = await filemanagerapi.writeFile({
-                            directoryname: window.selectedServer,
-                            filename: InputFile?.value || signals.get("file-name")?.value as string,
+                            directoryname,
+                            filename,
                             content: fileData,
                         });
                         console.log("result", result);
                         if (!result || typeof result.data === 'undefined') return;
                         newFile.hide();
-                        signals.set("file-name", "");
-                        signals.set("fileEditor-content", "");
                         InputFile.value = "";
+                        signals.set("fileEditor-content", "");
                         refreshFolder();
                     }
                     if (action === "cancel-file") {
                         newFile.hide();
-                        signals.set("file-name", "");
+                        InputFile.value = "";
                         signals.set("fileEditor-content", "");
                         InputFile.value = "";
                     }
@@ -326,7 +337,8 @@ import { urlbase } from "src/config/url";
                     if (action === "create-folder") {
                         console.log("InputFolder", InputFolder.value);
                         if (!InputFolder) return;
-                        const result = await filemanagerapi.createFolder(window.selectedServer + "/" + InputFolder.value);
+                        const result = await filemanagerapi.createFolder(getPath(InputFolder.value));
+
                         if (!result) return;
                         console.log("result", result);
                         if (result.success || result.data) refreshFolder();

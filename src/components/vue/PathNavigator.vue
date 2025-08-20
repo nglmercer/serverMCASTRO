@@ -48,7 +48,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { emitter } from '../../utils/Emitter'
-import { normalizePath, ROOT_PATH } from '../../utils/pathUtils'
+import { normalizePath, ROOT_PATH,DataPath } from '../../utils/pathUtils'
 
 export interface PathNavigatorProps {
   basePath?: string // Vendrá de props o será ""
@@ -99,7 +99,7 @@ const pathSegments = computed(() => {
   const path = currentPath.value
   const basePath = effectiveBasePath.value
   const segments: { name: string; path: string }[] = []
-
+  DataPath.setPath(path)
   // Normalizar paths para asegurar consistencia
   const normalizedPath = normalizePath(path)
   const normalizedBasePath = normalizePath(basePath)

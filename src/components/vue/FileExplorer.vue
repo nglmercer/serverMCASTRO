@@ -234,13 +234,13 @@ async function handleDblClick(item: FileSystemItem): Promise<void> {
     const data = item;
     emit('selected', {data})
     // Emit global event through emitter
-    fileExplorerEmitter.emit('file-explorer:selected', data)
+    fileExplorerEmitter.emit('file-explorer:selected', {data})
   }
 }
 
 function handleContextMenu(event: MouseEvent, item: FileSystemItem): void {
   event.preventDefault()
-      const data = item;
+  const data = item;
 
   emit('menu', { event, data })
   // Emit global event through emitter
@@ -352,7 +352,6 @@ watch(
 
 // Initialize header icons on mount
 onMounted(async () => {
-  window.selectedServer = 'NombreServidor'
   updateHeaderIcons();
   
   // Listen to PathNavigator path changes

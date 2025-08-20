@@ -97,7 +97,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { emitter } from '../../utils/Emitter'
 import { fetchFiles } from "../../utils/fetch/fetchapi"
-
+import { DataPath,normalizePath } from '@utils/pathUtils'
 interface FileUploaderProps {
   apiEndpoint: string
   maxFileSize?: number // in bytes, default is 2GB
@@ -245,10 +245,10 @@ const uploadFiles = async () => {
         : fileData.file
       formData.append('files', fileToUpload)
     })
-    
+    currentPath.value =  normalizePath((window as any).selectedServer + DataPath.getPath());
     // Add directory parameter
-    const normalizedSubDirectory = currentPath.value.startsWith("/") ? currentPath.value.substring(1) : currentPath.value
-    formData.append('directory', normalizedSubDirectory || (window as any).selectedServer || '')
+    const normalizedSubDirectory = currentPath.value.startsWith("/") ? currentPath.value.substring(1) : currentPath.value;
+    formData.append('directory', normalizedSubDirectory || '')
     
     console.log("formData prepared for backend", formData)
     console.log("currentPath", currentPath.value)
