@@ -1,5 +1,5 @@
 <template>
-  <div class="block font-sans text-gray-300 bg-gray-800 border border-gray-600 border-opacity-50 overflow-y-auto">
+  <div class="block font-sans text-gray-300 bg-gray-800 border border-gray-600 border-opacity-50">
     <!-- Path Navigator -->
     <PathNavigator :basePath="basePath" :currentPath="internalCurrentPath"/>
     <table class="w-full border-collapse">

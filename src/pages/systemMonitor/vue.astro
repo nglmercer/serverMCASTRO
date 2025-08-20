@@ -1,0 +1,8 @@
+---
+import ServerLayout from '@layouts/serverLayout.astro';
+import SystemMonitor from '@components/vue/SystemMonitor.vue';
+---
+
+<ServerLayout title={"systemMonitor Vue"} activeConfig="A">
+    <SystemMonitor client:only="vue" />
+</ServerLayout>

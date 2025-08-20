@@ -1,23 +1,13 @@
 ---
 import ServerLayout from '@layouts/serverLayout.astro';
-import SystemMonitorSolid, {type SystemInfoResponse } from '@components/solid/system.tsx';
-import { systemapi } from 'src/utils/fetch/fetchapi';
+import SystemMonitor from '@components/vue/SystemMonitor.vue';
 
-async function getSystemInfo() {
-    try{
-        const result = await systemapi.getSystemInfo();
-        return result;
-    } catch (error) {
-        console.error("Error fetching system info:", error);
-        return null;
-    }
-}
-const systemInfo = await getSystemInfo();
 ---
 <script src="/src/litcomponents/mcinit.js"></script>
 <ServerLayout title={"systemMonitor"} activeConfig="A">
-    <h2>Server Properties</h2>
-    <SystemMonitorSolid client:only="solid-js" systemInfo={systemInfo} />
+    <div class="grid gap-4">
+        <SystemMonitor client:only="VUE" />
+    </div>
 </ServerLayout>
 
 

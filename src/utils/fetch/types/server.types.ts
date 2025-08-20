@@ -123,12 +123,136 @@ export interface RenameRequest {
   newName: string;
 }
 
+// Interfaces extendidas para información del sistema
+export interface CacheInfo {
+  l1d?: number;
+  l1i?: number;
+  l2?: number;
+  l3?: number;
+}
+
+export interface RawCpuInfo {
+  manufacturer?: string;
+  brand?: string;
+  vendor?: string;
+  cache?: CacheInfo;
+  cores?: number; // Logical cores/threads
+  efficiencyCores?: number;
+  family?: string;
+  flags?: string;
+  governor?: string;
+  model?: string; // CPU model number, not brand
+  performanceCores?: number;
+  physicalCores?: number;
+  processors?: number; // Number of physical CPU packages
+  revision?: string;
+  socket?: string;
+  speed?: number; // Base speed in GHz
+  speedMax?: number; // Max speed in GHz
+  speedMin?: number; // Min speed in GHz
+  stepping?: string;
+  virtualization?: boolean;
+  voltage?: string;
+}
+
+export interface CpuInfo {
+  model?: string; // This is the brand string e.g., "Intel® 0000"
+  speed?: number; // Base speed in GHz
+  cores?: number; // Usually physical cores
+  cache?: CacheInfo;
+  rawCpuInfo?: RawCpuInfo;
+  usage?: number; // CPU usage percentage
+}
+
+export interface RawBatteryInfo {
+  hasBattery: boolean;
+  cycleCount: number;
+  isCharging: boolean;
+  acConnected: boolean;
+  capacityUnit: string;
+  currentCapacity: number;
+  designedCapacity: number;
+  manufacturer: string;
+  maxCapacity: number;
+  model: string;
+  percent: number;
+  serial: string;
+  timeRemaining: number | null;
+  type: string;
+  voltage: number;
+}
+
+export interface BatteryInfo {
+  hasBattery: boolean;
+  cycleCount: number;
+  isCharging: boolean;
+  percent: number;
+  rawBatteryInfo?: RawBatteryInfo;
+}
+
+export interface SimpleDiskInfo {
+  filesystem?: string;
+  total?: number; // bytes
+  used?: number; // bytes
+  [key: string]: any;
+}
+
+export interface RawDiskInfo {
+  fs?: string;
+  type?: string;
+  size?: number;
+  used?: number;
+  available?: number;
+  rw?: boolean;
+  mount?: string;
+  use?: number;
+  mountPoint?: string;
+}
+
+// Unified disk interface for display purposes
+export interface DisplayDiskInfo {
+  mountPoint?: string;
+  filesystem?: string;
+  fs?: string;
+  total?: number;
+  size?: number;
+  used?: number;
+  available?: number;
+  use?: number;
+  type?: string;
+  rw?: boolean;
+  mount?: string;
+}
+
+export interface GraphicsController {
+  model?: string;
+  vendor?: string;
+  vram?: number; // in MB
+  rawGraphicsInfo?: Record<string, any>;
+}
+
+export interface GraphicsInfo {
+  controllers?: GraphicsController[];
+}
+
+export interface NetworkInterfaceDetail {
+  address?: string;
+  netmask?: string;
+  family?: string;
+  mac?: string;
+  internal?: boolean;
+  cidr?: string | null;
+}
+
+export interface PlatformInfo {
+  name?: string;
+  release?: string;
+  arch?: string;
+  version?: string;
+}
+
 export interface SystemInfo {
-  cpu: {
-    model: string;
-    cores: number;
-    usage: number;
-  };
+  cpu: CpuInfo;
   memory: {
     total: number;
     used: number;
@@ -146,6 +270,13 @@ export interface SystemInfo {
     download: number;
   };
   uptime: number;
+  platform?: PlatformInfo;
+  battery?: BatteryInfo;
+  disks?: SimpleDiskInfo[];
+  rawdisks?: RawDiskInfo[];
+  environment?: Record<string, string>;
+  graphics?: GraphicsInfo;
+  networkInterfaces?: Record<string, NetworkInterfaceDetail[]>;
 }
 
 export interface Plugin {

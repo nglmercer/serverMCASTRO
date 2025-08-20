@@ -1,0 +1,95 @@
+---
+// Example: How to use Vue CPopup component in Astro
+import Layout from '../layouts/Layout.astro';
+import CPopup from '../components/vue/CPopup.vue';
+let x = Math.floor(Math.random());
+let y = Math.floor(Math.random());
+---
+<Layout title="Ejemplo de Popup con Astro y Vue">
+	<main class="p-8 space-y-8">
+		<h1 class="text-3xl font-bold">Controlando un Popup de Vue desde Astro</h1>
+		
+		<div class="space-x-4">
+			<button id="button1" class="px-4 py-2 font-semibold text-white bg-blue-500 rounded-md hover:bg-blue-600">
+				Opciones de Archivo
+			</button>
+			<button id="button2" class="px-4 py-2 font-semibold text-white bg-green-500 rounded-md hover:bg-green-600">
+				Opciones de Edición
+			</button>
+		</div>
+
+		<div id="right-click-area" class="p-12 text-center text-gray-500 border-2 border-dashed rounded-lg bg-gray-50">
+			Haz clic derecho aquí para un menú contextual personalizado.
+		</div>
+
+		<p class="text-gray-600">
+			El componente `CustomPopup.vue` está renderizado abajo, pero está oculto por defecto.
+			Los botones y el área de clic derecho de arriba utilizan un bus de eventos global (`emitter`) 
+			para enviarle comandos.
+		</p>
+	</main>
+
+	<!-- 
+		El componente Vue se renderiza en el cliente.
+		`client:only="vue"` asegura que no intente renderizarse en el servidor.
+	-->
+	<CPopup client:only="vue" />
+</Layout>
+
+<script>
+	// Este script se ejecuta en el cliente
+	import { emitter } from '@utils/Emitter';
+
+	// Opciones para el primer botón
+	const fileOptions = [
+		{ 
+			html: '<span class="flex items-center gap-2">📄 Nuevo Archivo</span>', 
+			callback: () => alert('Creando nuevo archivo...') 
+		},
+		{ 
+			html: '<span class="flex items-center gap-2">💾 Guardar</span>', 
+			callback: () => alert('Guardando...') 
+		},
+		{ 
+			html: '<span class="font-bold text-red-600 flex items-center gap-2">❌ Cerrar</span>', 
+			callback: () => alert('Cerrando...') 
+		},
+	];
+
+	// Opciones para el segundo botón
+	const editOptions = [
+		{ html: 'Copiar', callback: () => alert('Copiado') },
+		{ html: 'Pegar', callback: () => alert('Pegado') },
+		{ html: 'Cortar', callback: () => alert('Cortado') },
+	];
+
+	// Lógica para el botón 1
+	document.getElementById('button1')?.addEventListener('click', (event) => {
+		// 1. Enviamos las opciones que queremos mostrar
+		emitter.emit('popup:setOptions', fileOptions);
+		// 2. Le decimos al popup que se muestre en la posición del botón
+		emitter.emit('popup:showAtElement', event.currentTarget as HTMLElement);
+	});
+
+	// Lógica para el botón 2
+	document.getElementById('button2')?.addEventListener('click', (event) => {
+		emitter.emit('popup:setOptions', editOptions);
+		emitter.emit('popup:showAtElement', event.currentTarget as HTMLElement);
+	});
+
+	// Lógica para el área de clic derecho
+	document.getElementById('right-click-area')?.addEventListener('contextmenu', (event) => {
+		event.preventDefault(); // Evitamos el menú contextual nativo del navegador
+
+		const customContextMenuOptions = [
+			{ html: 'Recargar Vista', callback: () => location.reload() },
+			{ html: 'Inspeccionar', callback: () => alert('Esta no es la herramienta de desarrollador :)') },
+		];
+
+		// 1. Seteamos las opciones
+		emitter.emit('popup:setOptions', customContextMenuOptions);
+
+		// 2. Mostramos el popup en las coordenadas del cursor
+		emitter.emit('popup:show', { x: event.clientX, y: event.clientY });
+	});
+</script>
