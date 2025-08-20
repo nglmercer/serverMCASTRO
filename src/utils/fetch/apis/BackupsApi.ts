@@ -28,6 +28,22 @@ export interface BackupListOptions {
   filterByServer?: string;
 }
 
+export interface BackupUploadOptions {
+  file: File;
+  overwrite?: boolean;
+}
+
+export interface BackupUploadResponse {
+  success: boolean;
+  message: string;
+  data: {
+    filename: string;
+    size: number;
+    path: string;
+    overwritten: boolean;
+  };
+}
+
 /**
  * API para gestión de backups
  */
@@ -129,6 +145,42 @@ class BackupsApi extends PrefixedApi {
     const { backupName: _, ...restoreOptions } = data;
     
     return this.post<ApiResponse>(`/${urlEncoded}/restore`, restoreOptions);
+  }
+
+  /**
+   * Subir archivo de backup
+   * @param data - Datos para subir el backup
+   * @returns Promise con la respuesta de la API
+   */
+  async uploadBackup(data: BackupUploadOptions): Promise<ApiResponse<BackupUploadResponse>> {
+    if (!data || !data.file) {
+      throw new Error("file is required");
+    }
+    
+    // Validar extensión del archivo
+    const allowedExtensions = ['.zip', '.tar', '.gz', '.tar.gz', '.7z', '.rar'];
+    const fileName = data.file.name.toLowerCase();
+    const isValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+    
+    if (!isValidExtension) {
+      throw new Error(`Invalid file format. Allowed formats: ${allowedExtensions.join(', ')}`);
+    }
+    
+    // Crear FormData para enviar el archivo
+    const formData = new FormData();
+    formData.append('file', data.file);
+    
+    if (data.overwrite !== undefined) {
+      formData.append('overwrite', data.overwrite.toString());
+    }
+    
+    // Enviar petición POST con FormData (sin Content-Type para que el navegador lo configure automáticamente)
+    return this.post<ApiResponse<BackupUploadResponse>>('/upload', formData, {
+      headers: {
+        // No establecer Content-Type para FormData, el navegador lo hará automáticamente
+        'Authorization': `${this.token}`
+      }
+    });
   }
 
 

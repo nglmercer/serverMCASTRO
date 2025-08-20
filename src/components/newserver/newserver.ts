@@ -1,4 +1,4 @@
-import { parseCoreversions } from "src/fetch/parser";
+import { parseCoreversions } from "@utils/fetch/coreparser";
 import { serverapi } from "@utils/fetch/fetchapi";
 import { ListSelectorElement,GridSelectorElement,VersionSelectorElement } from "@litcomponents/select";
 import type { JavaVersions } from "@utils/fetch/types/server.types";

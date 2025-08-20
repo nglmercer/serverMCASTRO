@@ -1,5 +1,5 @@
-import { fetchapi } from './fetch/fetchapi';
-import type { NotificationData } from './fetch/apis/FetchApi';
+import { fetchapi } from '@utils/fetch/fetchapi.js';
+import type { NotificationData } from '@utils/fetch/fetchapi.js';
 import type { TasksObject } from '../types/task';
 import { TaskNotifications } from '../litcomponents/notify';
 import { scheduleUpdate } from '../fetch/request';

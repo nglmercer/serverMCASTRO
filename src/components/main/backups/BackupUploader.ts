@@ -1,4 +1,4 @@
-import { backupsapi } from '@fetch/fetchapi';
+import { backupsapi } from '@utils/fetch/fetchapi';
 import { getBackups } from './backup'
 interface FileValidation {
   isValid: boolean;
@@ -127,7 +127,7 @@ class BackupUploaderComponent {
 
   private validateFile(file: File): FileValidation {
     const validExtensions = ['.zip', '.tar.gz'];
-    const maxSize = 100 * 1024 * 1024; // 100MB
+    const maxSize = 5 * 1024 * 1024 * 1024; // 5GB
     
     const isValidExtension = validExtensions.some(ext => file.name.endsWith(ext));
     
@@ -141,7 +141,7 @@ class BackupUploaderComponent {
     if (file.size > maxSize) {
       return {
         isValid: false,
-        errorMessage: 'El archivo es demasiado grande. Máximo 100MB.'
+        errorMessage: 'El archivo es demasiado grande. Máximo 2GB.'
       };
     }
     
@@ -182,7 +182,9 @@ class BackupUploaderComponent {
     this.hideMessage();
 
     try {
-      const response: UploadResponse = await backupsapi.uploadBackup(this.selectedFile);
+      const response: UploadResponse = await backupsapi.uploadBackup({
+        file:this.selectedFile
+      });
       
       if (response.success || response.message) {
         this.showMessage(response.message || 'Backup importado correctamente', 'success');
