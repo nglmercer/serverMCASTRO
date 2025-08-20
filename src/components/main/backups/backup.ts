@@ -1,4 +1,4 @@
-import { backupsapi } from "src/utils/fetch/fetchapi";
+import { backupsapi } from "@utils/fetch/fetchapi";
 import type { Backup, RestoreBody,ParsedBackup } from "./Types";
 import type { BackupInfo } from "@utils/fetch/types/server.types";
 import { BackupListComponent, type BackupActionEvent } from "@litcomponents/mc/backups"
@@ -8,7 +8,7 @@ async function getBackups() {
     const result = await backupsapi.getBackups();
     console.log("result", result);
     if(!result || !result.data)return;
-    const backups: BackupInfo[] = result.data?.files;
+    const backups: BackupInfo[] = result.data;
     if (!backups || backups.length === 0 || !backups_List) {
         console.log("No backups");
         backups_List.backups = [];
@@ -23,7 +23,7 @@ async function getBackups() {
     }); */
 async function restoreBackup(backup: RestoreBody) {
     console.log("backup", backup);
-    const result = await backupsapi.restoreBackups(backup);
+    const result = await backupsapi.restoreBackup({backupName: backup.filename});
     console.log("result", result);
     return result;
 }
@@ -71,10 +71,21 @@ async function initiBackupslistener() {
                 console.log("result", result);
                 break;
             case 'download':
-                const blob = await backupsapi.downloadBackup(item.name);
-                console.log("download", item);
-                
-                downloadFile(blob, item.name);
+                try {
+                    console.log("Downloading backup:", item.name);
+                    const blob = await backupsapi.downloadBackup(item.name);
+                    console.log("Download successful, blob:", blob);
+                    
+                    if (blob instanceof Blob) {
+                        downloadFile(blob, item.name);
+                    } else {
+                        console.error("Response is not a Blob:", blob);
+                        throw new Error("Invalid response type - expected Blob");
+                    }
+                } catch (error) {
+                    console.error("Error downloading backup:", error);
+                    // You could add user notification here
+                }
                 break;
             case 'delete':
                 result = await backupsapi.deleteBackup(item.name);

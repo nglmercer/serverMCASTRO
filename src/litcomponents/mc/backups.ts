@@ -4,11 +4,17 @@ import { repeat } from 'lit/directives/repeat.js';
 
 // Interface para los elementos de backup
 interface Backup {
-    isDirectory: boolean;
-    modified: string;
     name: string;
     path: string;
     size: number;
+    created: string;
+    createdDate: string;
+    isValid: boolean;
+    serverName: string;
+    sizeFormatted: string;
+    // Campos opcionales para compatibilidad con versiones anteriores
+    isDirectory?: boolean;
+    modified?: string;
 }
 
 type ActionType = 'restore' | 'download' | 'delete';
@@ -92,7 +98,7 @@ export class BackupListComponent extends LitElement {
     .backup-info {
       flex: 1;
       display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
       gap: 16px;
       align-items: center;
     }
@@ -120,6 +126,53 @@ export class BackupListComponent extends LitElement {
       font-size: 12px;
       color: var(--text-muted);
       font-family: monospace;
+    }
+
+    .backup-server {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-top: 2px;
+    }
+
+    .backup-status {
+      display: flex;
+      justify-content: center;
+    }
+
+    .status-badge {
+      padding: 2px 6px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-badge.valid {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .status-badge.invalid {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .status-badge.valid {
+        background-color: #1e4620;
+        color: #75b798;
+        border: 1px solid #2d5a31;
+      }
+
+      .status-badge.invalid {
+        background-color: #4a1e1e;
+        color: #f5a3a3;
+        border: 1px solid #5a2d2d;
+      }
     }
   
     .backup-actions {
@@ -197,15 +250,20 @@ export class BackupListComponent extends LitElement {
         grid-template-columns: 1fr;
         gap: 4px;
       }
-  
+
       .backup-actions {
         margin-left: 0;
         margin-top: 8px;
       }
-  
+
       .backup-item {
         flex-direction: column;
         align-items: stretch;
+      }
+
+      .backup-status {
+        justify-content: flex-start;
+        margin-top: 4px;
       }
     }
   `;
@@ -222,6 +280,20 @@ export class BackupListComponent extends LitElement {
     private formatDate(dateString: string): string {
         const date = new Date(dateString);
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    private getDisplayDate(backup: Backup): string {
+        // Usar 'created' como campo principal, 'modified' como fallback
+        const dateToUse = backup.created || backup.modified || backup.createdDate;
+        return this.formatDate(dateToUse);
+    }
+
+    private getDisplaySize(backup: Backup): string {
+        // Usar 'sizeFormatted' si está disponible, sino formatear 'size'
+        if (backup.sizeFormatted) {
+            return backup.sizeFormatted;
+        }
+        return backup.isDirectory ? 'Directory' : this.formatFileSize(backup.size);
     }
 
     private handleAction(action: ActionType, item: Backup): void {
@@ -248,13 +320,22 @@ export class BackupListComponent extends LitElement {
                         <div>
                             <div>${backup.name}</div>
                             <div class="backup-path">${backup.path}</div>
+                            ${backup.serverName ? html`<div class="backup-server">Server: ${backup.serverName}</div>` : ''}
                         </div>
                     </div>
                     <div class="backup-size">
-                        ${backup.isDirectory ? 'Directory' : this.formatFileSize(backup.size)}
+                        ${this.getDisplaySize(backup)}
                     </div>
                     <div class="backup-modified">
-                        ${this.formatDate(backup.modified)}
+                        ${this.getDisplayDate(backup)}
+                    </div>
+                    <div class="backup-status">
+                        ${backup.isValid !== undefined ? 
+                            html`<span class="status-badge ${backup.isValid ? 'valid' : 'invalid'}">
+                                ${backup.isValid ? '✓ Valid' : '✗ Invalid'}
+                            </span>` : 
+                            ''
+                        }
                     </div>
                 </div>
                 

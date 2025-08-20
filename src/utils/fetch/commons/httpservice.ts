@@ -7,27 +7,39 @@ type FetchOptions = Omit<RequestInit, 'headers'> & {
   headers?: Record<string, string>;
   useProxy?: boolean;
   proxyConfig?: Partial<ProxyConfig>;
+  responseType?: 'json' | 'blob' | 'text' | 'arrayBuffer';
 };
 
 type RequestBody = Record<string, any> | FormData;
 /**
  * Maneja la respuesta de la API
  */
-async function handleResponse<T>(res: Response): Promise<T | any> {
+async function handleResponse<T>(res: Response, responseType: string = 'json'): Promise<T | any> {
   if (res.status === 204) {
     return Promise.resolve(undefined);
   }
   
-  const text = await res.text();
-  if (!text) {
-    return Promise.resolve(undefined);
-  }
-  
-  try {
-    return safeParse(text) as T;
-  } catch (error) {
-    console.error("Falló el análisis de la respuesta:", error);
-    return Promise.reject(new Error("La respuesta no pudo ser analizada."));
+  // Handle different response types
+  switch (responseType) {
+    case 'blob':
+      return res.blob() as Promise<T>;
+    case 'text':
+      return res.text() as Promise<T>;
+    case 'arrayBuffer':
+      return res.arrayBuffer() as Promise<T>;
+    case 'json':
+    default:
+      const text = await res.text();
+      if (!text) {
+        return Promise.resolve(undefined);
+      }
+      
+      try {
+        return safeParse(text) as T;
+      } catch (error) {
+        console.error("Falló el análisis de la respuesta:", error);
+        return Promise.reject(new Error("La respuesta no pudo ser analizada."));
+      }
   }
 }
 
@@ -119,11 +131,12 @@ function buildProxyRequest(url: string, options: RequestInit): [string, RequestI
  */
 async function executeRequest<T>(
   requestFn: () => Promise<Response>,
-  fallbackFn?: () => Promise<Response>
+  fallbackFn?: () => Promise<Response>,
+  responseType: string = 'json'
 ): Promise<T> {
   try {
     const response = await requestFn();
-    return await handleResponse<T>(response);
+    return await handleResponse<T>(response, responseType);
   } catch (error) {
     
     // Si hay una función de fallback (sin proxy), intentarla
@@ -131,7 +144,7 @@ async function executeRequest<T>(
       console.warn('Error con proxy, intentando sin proxy:', error);
       try {
         const fallbackResponse = await fallbackFn();
-        return await handleResponse<T>(fallbackResponse);
+        return await handleResponse<T>(fallbackResponse, responseType);
       } catch (fallbackError) {
         console.error('Error también sin proxy:', fallbackError);
         throw fallbackError;
@@ -144,14 +157,15 @@ async function executeRequest<T>(
 
 const http = {
   get: <T>(url: string, options: FetchOptions = {}): Promise<T> => {
-    const [finalUrl, finalOptions] = prepareFetchOptions(url, { ...options, method: 'GET' });
+    const { responseType = 'json', ...fetchOptions } = options;
+    const [finalUrl, finalOptions] = prepareFetchOptions(url, { ...fetchOptions, method: 'GET' });
     
     const requestWithProxy = () => fetch(finalUrl, finalOptions);
     const requestWithoutProxy = options.useProxy !== false 
-      ? () => fetch(url, { ...options, method: 'GET' })
+      ? () => fetch(url, { ...fetchOptions, method: 'GET' })
       : undefined;
     
-    return executeRequest<T>(requestWithProxy, requestWithoutProxy);
+    return executeRequest<T>(requestWithProxy, requestWithoutProxy, responseType);
   },
 
   post: <T>(url: string, body: RequestBody = {}, options: FetchOptions = {}): Promise<T> => {

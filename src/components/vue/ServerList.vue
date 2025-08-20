@@ -55,15 +55,14 @@
 
 <script setup lang="ts">
 import { computed, onMounted, defineComponent } from 'vue'
-import { useServerApi } from '../../composables/useServerApi'
-import { serverEvents, SERVER_EVENTS } from '../../composables/useServerApi'
+import { useServerApi, type Server } from '../../composables/useServerApi'
 import ServerItem from './ServerItem.vue'
-
+import { emitter } from '@utils/Emitter'
 // Define emits
 const emit = defineEmits<{
-  'server-selected': [server: any]
-  'server-menu': [server: any, event: Event]
-  'server-options': [server: any]
+  'server-selected': [server: Server]
+  'server-menu': [server: Server, event: Event]
+  'server-options': [server: Server]
 }>()
 
 // Status Indicator Component
@@ -110,29 +109,40 @@ onMounted(async () => {
   await fetchServers()
 })
 
+// Define interface for event details
+interface ServerEventDetails {
+  data: {
+    server?: string
+  }
+  event?: Event
+}
+
 // Event handlers
-const handleServerSelected = (details: any) => {
+const handleServerSelected = (details: ServerEventDetails | any) => {
   const server = getServerById(details.data.server || '')
   if (server) {
     setActiveServer(server.id)
-    emit('server-selected', server)
+    emit('server-selected', server);
+    console.log("handleServerSelected", server);
+    emitter.emit('server-selected', server);
     window.location.href = '/console/?server=' + server.id
-    serverEvents.emit(SERVER_EVENTS.SELECTED, server)
     console.log('Server selected:', server.id)
   }
 }
 
-const handleServerMenu = (details: any) => {
+const handleServerMenu = (details: ServerEventDetails | any) => {
   const server = getServerById(details.data.server || '')
-  if (server) {
-    emit('server-menu', server, details.event)
-    serverEvents.emit(SERVER_EVENTS.MENU, server, details.event)
+  if (server && details.event) {
+    console.log("handleServerMenu", server, details.event);
+    emit('server-menu', server, details.event);
+    emitter.emit('server-menu', {server, event: details.event});
   }
 }
 
-const openServerOptions = (server: any) => {
-  emit('server-options', server)
-  serverEvents.emit(SERVER_EVENTS.OPTIONS, server)
+const openServerOptions = (server: Server) => {
+  emit('server-options', server);
+  console.log("openServerOptions", server);
+  emitter.emit('server-options', server);
 }
 </script>
 

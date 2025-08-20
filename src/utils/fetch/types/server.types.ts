@@ -295,11 +295,16 @@ export interface Mod extends Plugin {
 }
 
 export interface BackupInfo {
-  filename: string;
-  size: number;
-  created: string;
-  serverName?: string;
-  type: 'full' | 'world' | 'plugins';
+    name: string;
+    path: string;
+    size: number;
+    created: string;
+    createdDate: string;
+    isValid: boolean;
+    serverName: string;
+    sizeFormatted: string;
+    isDirectory?: boolean;
+    modified?: string;
 }
 
 export interface CreateBackupRequest {

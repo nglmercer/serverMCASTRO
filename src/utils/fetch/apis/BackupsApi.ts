@@ -1,4 +1,4 @@
-import BaseApi from '../commons/BaseApi';
+import BaseApi,{ PrefixedApi} from '../commons/BaseApi';
 import type { ApiResponse } from '../types/api.types.ts';
 import type {
   BackupInfo,
@@ -7,125 +7,131 @@ import type {
 } from '../types/server.types';
 import apiConfig from '../config/apiConfig';
 
+// Nuevos tipos basados en el backend
+export interface ServerBackupOptions {
+  serverName: string;
+  outputFilename?: string;
+  useZip?: boolean;
+  compressionLevel?: number;
+  exclude?: string[];
+}
+
+export interface BackupRestoreOptions {
+  backupName: string;
+  destinationServerName?: string;
+  destinationFolderName?: string;
+}
+
+export interface BackupListOptions {
+  sortBy?: 'name' | 'size' | 'created';
+  sortOrder?: 'asc' | 'desc';
+  filterByServer?: string;
+}
+
 /**
  * API para gestión de backups
  */
-class BackupsApi extends BaseApi {
+class BackupsApi extends PrefixedApi {
   constructor(config: typeof apiConfig) {
-    super(config);
+    super(config,'/files/backups');
   }
 
   /**
    * Obtener lista de backups
+   * @param options - Opciones de filtrado y ordenamiento
    * @returns Promise con la lista de backups
    */
-  async getBackups(): Promise<ApiResponse<{ files: BackupInfo[] }>> {
-    return this.get<ApiResponse<{ files: BackupInfo[] }>>('/backups/backupsInfo');
+  async getBackups(options?: BackupListOptions): Promise<ApiResponse<BackupInfo[]>> {
+    const queryParams = new URLSearchParams();
+    
+    if (options?.sortBy) queryParams.append('sortBy', options.sortBy);
+    if (options?.sortOrder) queryParams.append('sortOrder', options.sortOrder);
+    if (options?.filterByServer) queryParams.append('filterByServer', options.filterByServer);
+    
+    const queryString = queryParams.toString();
+    const url = queryString ? `/?${queryString}` : '';
+    
+    return this.get<ApiResponse<BackupInfo[]>>(url);
   }
 
   /**
-   * Crear backup (síncrono)
+   * Crear backup
    * @param data - Datos para crear el backup
    * @returns Promise con la respuesta de la API
    */
-  async createBackup(data: CreateBackupRequest): Promise<ApiResponse> {
-    if (!data || !data.folderName || !data.outputFilename) {
-      throw new Error("folderName and outputFilename are required");
+  async createBackup(data: ServerBackupOptions): Promise<ApiResponse> {
+    if (!data || !data.serverName) {
+      throw new Error("serverName is required");
     }
     
-    return this.post<ApiResponse>('/backups/create', data);
+    return this.post<ApiResponse>('', data);
   }
 
   /**
-   * Crear backup (asíncrono)
-   * @param data - Datos para crear el backup
-   * @returns Promise con la respuesta de la API
+   * Obtener información de un backup específico
+   * @param backupName - Nombre del backup
+   * @returns Promise con la información del backup
    */
-  async createBackups(data: CreateBackupRequest): Promise<ApiResponse> {
-    if (!data || !data.folderName || !data.outputFilename) {
-      throw new Error("folderName and outputFilename are required");
+  async getBackupInfo(backupName: string): Promise<ApiResponse<BackupInfo>> {
+    if (!backupName || typeof backupName !== 'string') {
+      throw new Error("backupName is required");
     }
     
-    return this.post<ApiResponse>('/backups/create-async', data);
+    const urlEncoded = encodeURIComponent(backupName);
+    return this.get<ApiResponse<BackupInfo>>(`/${urlEncoded}`);
   }
 
   /**
    * Eliminar backup
-   * @param filename - Nombre del archivo de backup
+   * @param backupName - Nombre del backup
    * @returns Promise con la respuesta de la API
    */
-  async deleteBackup(filename: string): Promise<ApiResponse> {
-    if (!filename || typeof filename !== 'string') {
-      throw new Error("filename is required");
+  async deleteBackup(backupName: string): Promise<ApiResponse> {
+    if (!backupName || typeof backupName !== 'string') {
+      throw new Error("backupName is required");
     }
     
-    return this.post<ApiResponse>('/backups/delete', { filename });
+    const urlEncoded = encodeURIComponent(backupName);
+    return this.delete<ApiResponse>(`/${urlEncoded}`);
   }
 
   /**
    * Descargar backup
-   * @param filename - Nombre del archivo de backup
+   * @param backupName - Nombre del backup
    * @returns Promise con el blob del archivo
    */
-  async downloadBackup(filename: string): Promise<Blob> {
-    if (!filename || typeof filename !== 'string') {
-      throw new Error("filename is required");
+  async downloadBackup(backupName: string): Promise<Blob> {
+    if (!backupName || typeof backupName !== 'string') {
+      throw new Error("backupName is required");
     }
     
-    const urlEncoded = encodeURIComponent(filename);
+    const urlEncoded = encodeURIComponent(backupName);
     
     // Especificamos que esperamos un blob
-    return this.get<Blob>(`/backups/download/${urlEncoded}`, {
+    return this.get<Blob>(`/${urlEncoded}/download`, {
       responseType: 'blob'
     } as any);
   }
 
   /**
-   * Restaurar backup (síncrono)
+   * Restaurar backup
    * @param data - Datos para restaurar el backup
    * @returns Promise con la respuesta de la API
    */
-  async restoreBackup(data: RestoreBackupRequest): Promise<ApiResponse> {
-    const { filename, outputFolderName } = data;
+  async restoreBackup(data: BackupRestoreOptions): Promise<ApiResponse> {
+    const { backupName } = data;
     
-    if (!filename || typeof filename !== 'string' || !outputFolderName || typeof outputFolderName !== 'string') {
-      throw new Error("filename and outputFolderName are required");
+    if (!backupName || typeof backupName !== 'string') {
+      throw new Error("backupName is required");
     }
     
-    return this.post<ApiResponse>('/backups/restore', data);
+    const urlEncoded = encodeURIComponent(backupName);
+    const { backupName: _, ...restoreOptions } = data;
+    
+    return this.post<ApiResponse>(`/${urlEncoded}/restore`, restoreOptions);
   }
 
-  /**
-   * Restaurar backup (asíncrono)
-   * @param data - Datos para restaurar el backup
-   * @returns Promise con la respuesta de la API
-   */
-  async restoreBackups(data: RestoreBackupRequest): Promise<ApiResponse> {
-    const { filename, outputFolderName } = data;
-    
-    if (!filename || typeof filename !== 'string' || !outputFolderName || typeof outputFolderName !== 'string') {
-      throw new Error("filename and outputFolderName are required");
-    }
-    
-    return this.post<ApiResponse>('/backups/restore-async', data);
-  }
 
-  /**
-   * Subir archivo de backup al servidor
-   * @param file - El objeto File del input del formulario
-   * @returns Promise con la respuesta del servidor
-   */
-  async uploadBackup(file: File): Promise<ApiResponse> {
-    // Crear un objeto FormData
-    const formData = new FormData();
-    // 'file' es el nombre del campo que el backend espera
-    formData.append('file', file);
-    
-    console.log("file", file, formData, typeof file);
-    
-    // Realizar la llamada a la API usando el método post existente
-    return this.post<ApiResponse>('/backups/upload', formData);
-  }
 }
 
 export default BackupsApi;

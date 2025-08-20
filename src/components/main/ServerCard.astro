@@ -1,9 +1,82 @@
 ---
-import CPopup from '@components/solid/solid.tsx'; 
+import CPopup from '@components/vue/CPopup.vue';
+
 import ServerList from '@components/vue/ServerList.vue';
 ---
 
 <ServerList client:only="vue" />
 
-<CPopup id="serverOptions" class="serverModal_0 material-symbols-rounded server-card" client:only="solid-js" />
+<CPopup id="serverOptions" client:only="vue" />
+<script>
+    import { emitter } from "@utils/Emitter";
+    import { backupsapi } from "@utils/fetch/fetchapi";
+    import type { Server } from "../../composables/useServerApi";
+    import type { ServerBackupOptions } from "@utils/fetch/apis/BackupsApi";
+    
+    // Define interfaces for type safety
+    interface ServerMenuData {
+        server: Server;
+        event: MouseEvent;
+    }
+    
+    interface PopupOption {
+        html: string;
+        callback: (event: MouseEvent) => void;
+    }
+    
+    // Escuchar el evento de menú contextual del servidor
+    emitter.on('server-menu', (data: ServerMenuData) => {
+        console.log("server-menu", data);
+        
+        // Configurar las opciones del popup
+        const popupOptions: PopupOption[] = [
+            {
+                html: '<span class="material-symbols-rounded" style="margin-right: 8px;">backup</span>Crear backup',
+                callback: (event: MouseEvent) => {
+                    console.log('Crear backup para servidor:', data.server);
+                    createBackup(data.server);
+                }
+            }
+        ];
+        
+        // Mostrar el popup en la posición del evento
+        emitter.emit('popup:setOptions', popupOptions);
+        emitter.emit('popup:show', {
+            x: data.event.clientX,
+            y: data.event.clientY
+        });
+    });
+    
+    // Función para crear backup
+    async function createBackup(server: Server) {
+        try {
+            console.log('Iniciando creación de backup para:', server.name || server.id);
+            
+            // Preparar datos para el backup
+            const backupData: ServerBackupOptions = {
+                serverName: server.id || server.name,
+                outputFilename: `${server.id || server.name}`
+            };
+            
+            console.log('Datos del backup:', backupData);
+            
+            // Llamar a la API para crear el backup
+            const response = await backupsapi.createBackup(backupData);
+            
+            if (response && response.success) {
+                console.log('Backup creado exitosamente:', response);
+                // Mostrar notificación de éxito
+                console.log('Backup creado exitosamente', 'success');
+            } else {
+                console.error('Error en la respuesta del backup:', response);
+                console.log('Error al crear el backup', 'error');
+            }
+            
+        } catch (error) {
+            console.error('Error al crear backup:', error);
+        }
+    }
+    
 
+
+</script>

@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import type { Ref } from 'vue'
+import { emitter } from '@utils/Emitter'
 
 export interface Server {
   id: string
@@ -142,49 +143,5 @@ export function useServerApi() {
   }
 }
 
-// Event emitter for global server events
-export class ServerEventEmitter {
-  private listeners: Map<string, Function[]> = new Map()
-
-  on(event: string, callback: Function) {
-    if (!this.listeners.has(event)) {
-      this.listeners.set(event, [])
-    }
-    this.listeners.get(event)!.push(callback)
-  }
-
-  off(event: string, callback: Function) {
-    const callbacks = this.listeners.get(event)
-    if (callbacks) {
-      const index = callbacks.indexOf(callback)
-      if (index > -1) {
-        callbacks.splice(index, 1)
-      }
-    }
-  }
-
-  emit(event: string, ...args: any[]) {
-    const callbacks = this.listeners.get(event)
-    if (callbacks) {
-      callbacks.forEach(callback => callback(...args))
-    }
-  }
-
-  clear() {
-    this.listeners.clear()
-  }
-}
-
-// Global event emitter instance
-export const serverEvents = new ServerEventEmitter()
-
-// Event types
-export const SERVER_EVENTS = {
-  SELECTED: 'server:selected',
-  MENU: 'server:menu',
-  OPTIONS: 'server:options',
-  STATUS_CHANGED: 'server:status-changed',
-  UPDATED: 'server:updated'
-} as const
-
-export type ServerEventType = typeof SERVER_EVENTS[keyof typeof SERVER_EVENTS]
+// Global event emitter instance - using the global emitter
+export const serverEvents = emitter

@@ -138,7 +138,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import ServerList from './ServerList.vue'
-import { useServerApi, serverEvents, SERVER_EVENTS, type Server } from '../../composables/useServerApi'
+import { useServerApi, type Server } from '../../composables/useServerApi'
+import { emitter } from '@utils/Emitter'
 
 // Use the server API composable
 const {
@@ -184,8 +185,8 @@ const onServerSelected = (server: Server) => {
   addEventLog('GLOBAL_EVENT', `Global server selected: "${server.name}"`)
 }
 
-const onServerMenu = (server: Server, event: MouseEvent) => {
-  addEventLog('GLOBAL_EVENT', `Global server menu: "${server.name}"`)
+const onServerMenu = (data: {server: Server, event: MouseEvent}) => {
+  addEventLog('GLOBAL_EVENT', `Global server menu: "${data.server.name}"`)
 }
 
 const onServerOptions = (server: Server) => {
@@ -283,18 +284,18 @@ const formatSize = (bytes: number) => {
 // Lifecycle
 onMounted(() => {
   // Register global event listeners
-  serverEvents.on(SERVER_EVENTS.SELECTED, onServerSelected)
-  serverEvents.on(SERVER_EVENTS.MENU, onServerMenu)
-  serverEvents.on(SERVER_EVENTS.OPTIONS, onServerOptions)
+  const unsubscribeSelected = emitter.on('server-selected', onServerSelected)
+  const unsubscribeMenu = emitter.on('server-menu', onServerMenu)
+  const unsubscribeOptions = emitter.on('server-options', onServerOptions)
   
   addEventLog('INIT', 'Server Manager initialized')
-})
-
-onUnmounted(() => {
-  // Clean up event listeners
-  serverEvents.off(SERVER_EVENTS.SELECTED, onServerSelected)
-  serverEvents.off(SERVER_EVENTS.MENU, onServerMenu)
-  serverEvents.off(SERVER_EVENTS.OPTIONS, onServerOptions)
+  
+  // Store unsubscribe functions for cleanup
+  onUnmounted(() => {
+    unsubscribeSelected()
+    unsubscribeMenu()
+    unsubscribeOptions()
+  })
 })
 
 // Expose for external access
