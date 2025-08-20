@@ -1,5 +1,5 @@
 ---
-import CPopup from "@components/solid/solid.tsx";
+import CPopup from "@components/vue/CPopup.vue";
 import PathNavigator from "@components/vue/PathNavigator.vue";
 import FilteTable from "./FilteTable.astro";
 
@@ -13,7 +13,7 @@ import { urlbase } from "src/config/url";
     <action-buttons-lit id="FileActions"></action-buttons-lit>
 </div>
 <FilteTable/>
-<CPopup id="fileOptions" class="file-options"  client:only="solid-js"/>
+<CPopup id="fileOptions" client:only="vue" />
 <dialog-container id="file-Editor" required>
     <div class="modal__base">
       <c-input type="text" name="name" id="file-name" placeholder="Nombre del archivo" required style="--padding: 0; border: 0; background-color: var(--bg-dark-accent-light);"></c-input>
@@ -65,22 +65,10 @@ import { urlbase } from "src/config/url";
     import {type FileSystemItem } from "@components/vue/FileExplorer.vue";
     import { DialogContainer } from "src/litcomponents/custom-modal.js";
     import { CInput } from "src/litcomponents/CInput.js";
-    import { optionsModal, setPopupOptions } from "src/utils/dropdown.js";
+    import { optionsModal } from "src/utils/dropdown.js";
     import { signals,normalizePath } from "src/globalSignals";
     import { FILE_EXPLORER_EVENTS} from 'src/types/fileExplorerEvents';
-
-
     import { emitter } from "@utils/Emitter";
-    type ValidAction =
-        | "start"
-        | "stop"
-        | "restart"
-        | "send"
-        | "log"
-        | "info"
-        | "players"
-        | "metrics"
-        | "kill";
     const newFile = document.getElementById("file-Editor") as HTMLElement &  DialogContainer;
     const uploadFiles = document.getElementById("upload-files") as HTMLElement &  DialogContainer;
     const newFolder = document.getElementById("new-folder") as HTMLElement &  DialogContainer;
@@ -88,7 +76,6 @@ import { urlbase } from "src/config/url";
     const FilenameEditor = document.getElementById("FilenameEditor") as HTMLInputElement;
     const OriginalFilename = document.getElementById("OriginalFilename") as HTMLInputElement;
     document.addEventListener("DOMContentLoaded", function () {
-        const File_nameS = signals.create<string>("file-name", "");
         const actionsElement = document.getElementById("FileActions");
         if (!actionsElement) return;
         if (!(actionsElement instanceof ActionButtonsLit)) return;
@@ -149,9 +136,13 @@ import { urlbase } from "src/config/url";
             console.log(FILE_EXPLORER_EVENTS[5], data);
             const popupOptions = getOptions(data);
             console.log("menu", {data,event});
-            const filepopup = document.getElementById("fileOptions");
-            setPopupOptions(filepopup, popupOptions, event);
-                
+            
+            // Use emitter to show popup with Vue CPopup component
+            emitter.emit('popup:setOptions', popupOptions);
+            emitter.emit('popup:show', {
+                x: event.clientX,
+                y: event.clientY
+            });
         })
 
         actionsElement.addEventListener("button-clicked", (event) => {
@@ -187,6 +178,21 @@ import { urlbase } from "src/config/url";
             }
         });
     });
+    function downloadFile(blob: Blob, filename: string) {
+    // Crear un URL temporal para el blob
+    const url = window.URL.createObjectURL(blob);
+    
+    // Crear un enlace temporal y hacer clic automáticamente
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    
+    // Limpiar
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    }
     function refreshFolder(){
         emitter.emit(FILE_EXPLORER_EVENTS[13],{path: window.selectedServer});
     }
@@ -209,9 +215,17 @@ import { urlbase } from "src/config/url";
                 icon: "download",
                 text: "Download File",
             }),
-            callback: function () {
+            callback:async function () {
             // fetch GET file
-                console.log("Option 1 clicked",data);
+                const result = await filemanagerapi.downloadFile(data.path);
+
+                if (result instanceof Blob) {
+                    downloadFile(result, data.name);
+                }
+                else{
+                    console.log("result", result);
+                }
+
             },
         };
 

@@ -93,6 +93,21 @@ class FileManagerApi extends PrefixedApi {
     
     return this.put<ApiResponse>('/rename', renameData);
   }
+
+  /**
+   * Descargar archivo
+   * @param serverName - Nombre del servidor
+   * @param filePath - Ruta del archivo a descargar
+   * @returns Promise con la respuesta de descarga
+   */
+  async downloadFile(filePath: string): Promise<Response> {
+    const cleanPath = filePath.startsWith("/") ? filePath.substring(1) : filePath;
+    const urlEncoded = encodeURIComponent(cleanPath);
+    const url = `/download/${cleanPath}`;
+    return this.get(url, {
+      responseType: 'blob'
+    });
+  }
 }
 
 export default FileManagerApi;
