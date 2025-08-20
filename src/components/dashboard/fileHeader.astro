@@ -1,6 +1,6 @@
 ---
 import CPopup from "@components/solid/solid.tsx";
-import PathNavigator from "@components/solid/PathNavigator.tsx";
+import PathNavigator from "@components/solid/PathNavigator.vue";
 import FileUploader from "@components/solid/FileUploader.tsx";
 import CodeEditor from "./codeEditor.astro";
 import { urlbase } from "src/config/url";
@@ -11,7 +11,7 @@ import { urlbase } from "src/config/url";
     <action-buttons-lit id="FileActions"></action-buttons-lit>
 </div>
 <p id="current-path">Current Path: ./</p>
-<PathNavigator client:only="solid-js" basePath={typeof window !== "undefined" ? window.selectedServer : ""} />
+<PathNavigator client:only="vue" basePath={typeof window !== "undefined" ? window.selectedServer : ""} />
 <file-explorer current-path="/" id="filemanager"></file-explorer>
 <CPopup id="fileOptions" class="file-options"  client:only="solid-js"/>
 <dialog-container id="file-Editor" required>

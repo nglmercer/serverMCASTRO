@@ -1,9 +1,6 @@
 import { createSignal, onMount, onCleanup, Show } from 'solid-js';
 import type { Component } from 'solid-js';
 import { fetchFiles } from "src/utils/fetch/fetchapi";
-import {
-  FileExplorer
-} from "src/litcomponents/mc/files.js";
 import 'src/components/solid/FileUploader.css';
 interface FileUploaderProps {
   apiEndpoint: string;
@@ -163,8 +160,10 @@ const uploadFiles = async () => {
 
     setFiles([]);
     if (fileInputRef) fileInputRef.value = '';
-    const filemanager = document.getElementById("filemanager") as FileExplorer;
-    fetchFiles(normalizedSubDirectory, filemanager);
+    // Dispatch custom event to update Vue FileExplorer component
+    window.dispatchEvent(new CustomEvent('update-files', {
+      detail: { path: normalizedSubDirectory }
+    }));
   } catch (error) {
     console.error('Upload failed (catch block):', error);
     setErrorType('failed-request');
