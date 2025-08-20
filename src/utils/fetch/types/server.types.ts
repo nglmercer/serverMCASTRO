@@ -95,7 +95,8 @@ export interface FolderInfo {
   path: string;
   type: 'file' | 'directory';
   size?: number;
-  lastModified?: string;
+  lastModified?: string | Date;
+  isDirectory?: boolean;
   permissions?: {
     read: boolean;
     write: boolean;

@@ -6,7 +6,7 @@ export interface FileSystemItem {
   path: string;
   type: 'file' | 'directory';
   size?: number;
-  lastModified: string | Date;
+  lastModified?: string | Date;
   isDirectory?: boolean;
   modified?: string | Date;
 }
@@ -210,8 +210,8 @@ export class FileExplorer extends LitElement {
           valueB = b.size || 0;
           break;
         case 'lastModified':
-          valueA = new Date(a.lastModified).getTime();
-          valueB = new Date(b.lastModified).getTime();
+          valueA = new Date(a.lastModified || a.modified || '').getTime();
+          valueB = new Date(b.lastModified || b.modified || '').getTime();
           break;
         default:
           valueA = a.name.toLowerCase();

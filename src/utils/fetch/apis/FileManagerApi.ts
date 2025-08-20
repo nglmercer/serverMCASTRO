@@ -6,14 +6,52 @@ import type {
   WriteFileRequest,
   RenameRequest
 } from '../types/server.types';
+import type { FileSystemItem } from '@litcomponents/mc/files.ts';
 import apiConfig from '../config/apiConfig';
+import type { FetchOptions } from '../commons/httpservice';
+
+/**
+ * Clase base para APIs con prefijo de ruta
+ */
+class PrefixedApi extends BaseApi {
+  protected pathPrefix: string;
+
+  constructor(config: typeof apiConfig, pathPrefix: string = '') {
+    super(config);
+    this.pathPrefix = pathPrefix;
+  }
+
+  private addPrefix(endpoint: string): string {
+    return `${this.pathPrefix}${endpoint}`;
+  }
+
+  async get<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+    return super.get<T>(this.addPrefix(endpoint), options);
+  }
+
+  async post<T>(endpoint: string, body: any = {}, options: FetchOptions = {}): Promise<T> {
+    return super.post<T>(this.addPrefix(endpoint), body, options);
+  }
+
+  async put<T>(endpoint: string, body: any = {}, options: FetchOptions = {}): Promise<T> {
+    return super.put<T>(this.addPrefix(endpoint), body, options);
+  }
+
+  async patch<T>(endpoint: string, body: any = {}, options: FetchOptions = {}): Promise<T> {
+    return super.patch<T>(this.addPrefix(endpoint), body, options);
+  }
+
+  async delete<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+    return super.delete<T>(this.addPrefix(endpoint), options);
+  }
+}
 
 /**
  * API para gestión de archivos
  */
-class FileManagerApi extends BaseApi {
+class FileManagerApi extends PrefixedApi {
   constructor(config: typeof apiConfig) {
-    super(config);
+    super(config, '/files');
   }
 
   /**
@@ -21,9 +59,9 @@ class FileManagerApi extends BaseApi {
    * @param folderName - Nombre de la carpeta
    * @returns Promise con la información de la carpeta
    */
-  async getFolderInfo(folderName: string): Promise<ApiResponse<{ files: FolderInfo[] }>> {
+  async getFolderInfo(folderName: string): Promise<ApiResponse<{ files: FileSystemItem[] }>> {
     console.log("FName", folderName);
-    return this.get<ApiResponse<{ files: FolderInfo[] }>>(`/folder-info/${folderName}`);
+    return this.get<ApiResponse<{ files: FileSystemItem[] }>>(`/folder-info/${folderName}`);
   }
 
   /**

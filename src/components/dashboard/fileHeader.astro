@@ -172,7 +172,8 @@ import { urlbase } from "src/config/url";
         console.log("result", result);
         if (result && result.data) {
             if (!element) return;
-            element.data = result.data?.files;
+            const filescontent = Array.isArray(result.data) ? result.data : result.data?.files;
+            element.data = filescontent;
             element.currentPath = path;
         }
     }
@@ -181,7 +182,8 @@ import { urlbase } from "src/config/url";
         const result = await filemanagerapi.readFileByPath(pathENCODED);
         console.log("result", result);
         if (result) {
-            return result.data;
+            const fileContent = typeof result.data === "string" ? result.data : result.data?.content;
+            return fileContent;
         }
         return false;
     }
@@ -309,18 +311,19 @@ import { urlbase } from "src/config/url";
                 MF_elements[action] = element;
                 element.addEventListener("click", async (e) => {
                     console.log("MF_action", action);
-                    const InputFile = document.getElementById("file-name") as HTMLInputElement;
+                    const InputFile = document.getElementById("file-name") as HTMLInputElement & { value: string };
+
                     if (action === "save-file") {
-                        const fileData = signals.get("fileEditor-content")?.value;
+                        const fileData = signals.get("fileEditor-content")?.value as string;
                         if (!fileData) return;
                         console.log("fileData", fileData, InputFile.value);
                         const result = await filemanagerapi.writeFile({
                             directoryname: pathSignal?.value || window.selectedServer,
-                            filename: InputFile?.value || signals.get("file-name")?.value,
+                            filename: InputFile?.value || signals.get("file-name")?.value as string,
                             content: fileData,
                         });
                         console.log("result", result);
-                        if (!result && result.data) return;
+                        if (!result || typeof result.data === 'undefined') return;
                         newFile.hide();
                         signals.set("file-name", "");
                         signals.set("fileEditor-content", "");

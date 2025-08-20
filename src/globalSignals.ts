@@ -163,6 +163,7 @@ var signals = window.$signals = {
   const normalizedPathCache = new Map<string, string>();
   const normalizePath = (path: string | undefined | null): string => {
     if (!path) return ROOT_PATH;
+    const selectedServer = window.selectedServer;
     
     // Comprobar si ya tenemos este path en caché
     if (normalizedPathCache.has(path)) {
@@ -174,18 +175,41 @@ var signals = window.$signals = {
   
     // 2. Eliminar barras duplicadas (ej: // -> /)
     normalized = normalized.replace(/\/{2,}/g, '/');
+    
+    // 3. Eliminar duplicaciones del nombre del servidor si existe
+    if (selectedServer && selectedServer.trim() !== '') {
+      const serverName = selectedServer.trim();
+      
+      // Dividir la ruta en segmentos para analizar duplicaciones
+      const segments = normalized.split('/').filter(segment => segment !== '');
+      
+      // Eliminar segmentos duplicados consecutivos del servidor
+      const cleanedSegments: string[] = [];
+      let lastSegment = '';
+      
+      for (const segment of segments) {
+        // Si el segmento actual es diferente al anterior, o no es el nombre del servidor, lo añadimos
+        if (segment !== lastSegment || segment !== serverName) {
+          cleanedSegments.push(segment);
+        }
+        lastSegment = segment;
+      }
+      
+      // Reconstruir la ruta
+      normalized = cleanedSegments.length > 0 ? '/' + cleanedSegments.join('/') : ROOT_PATH;
+    }
   
-    // 3. Asegurar que comience con una barra, a menos que sea solo la raíz
+    // 4. Asegurar que comience con una barra, a menos que sea solo la raíz
     if (normalized !== ROOT_PATH && !normalized.startsWith(ROOT_PATH)) {
       normalized = ROOT_PATH + normalized;
     }
   
-    // 4. Eliminar la barra final si no es la raíz
+    // 5. Eliminar la barra final si no es la raíz
     if (normalized !== ROOT_PATH && normalized.endsWith('/') && normalized.length > 1) {
       normalized = normalized.slice(0, -1);
     }
     
-    // 5. Si después de todo esto queda vacío (ej. input era solo "//"), devolver ROOT_PATH
+    // 6. Si después de todo esto queda vacío (ej. input era solo "//"), devolver ROOT_PATH
     if (normalized === '' && path && path.length > 0) {
       normalized = ROOT_PATH;
     }

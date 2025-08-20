@@ -263,7 +263,8 @@ function isValidstatus(){
   return window.selectedServer && (window.serverStatus !== 'stopped' && window.serverStatus !== 'STOPPED');
 }
 async function sendCommand(command: string) {
-    const result = await servermanagerapi.sendCommandToServer(window.selectedServer, "send?cmd=" + command);
+    const result = await servermanagerapi.sendCommand(window.selectedServer, command);
+
     console.log("result", result);
 }
 </script>
