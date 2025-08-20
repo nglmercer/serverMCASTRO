@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { state, property, customElement } from 'lit/decorators.js';
 import { filemanagerapi } from '@utils/fetch/fetchapi';
 import { urlbase } from 'src/config/url';
+import type { FileContent, ApiResponse } from '@utils/fetch/types/server.types';
 @customElement('server-properties')
 export class ServerPropertiesLitElement extends LitElement {
     @property({ type: String, attribute: 'server-id' })
@@ -159,11 +160,21 @@ export class ServerPropertiesLitElement extends LitElement {
         try {
             const filepath = `/${currentServerId}/server.properties`;
             console.log("filepath", filepath);
-            const result = await filemanagerapi.readFileByPath(filepath)
-            let propertiesData = result.data;
-
-            if (typeof result.data === "string") {
-                propertiesData = result.data.split('\n').reduce((acc: Record<string, string>, line: string) => {
+            const result = await filemanagerapi.readFileByPath(filepath);
+            
+            if (!result.success || !result.data) {
+                throw new Error(result.error || 'Failed to read file');
+            }
+            
+            let propertiesData: Record<string, string> = {};
+            
+            // Handle FileContent type or direct string
+            const fileContent = typeof result.data === 'string' 
+                ? result.data 
+                : result.data.content;
+            
+            if (typeof fileContent === "string") {
+                propertiesData = fileContent.split('\n').reduce((acc: Record<string, string>, line: string) => {
                     if (!line.startsWith('#') && line.includes('=')) {
                         const [key, value] = line.split('=');
                         acc[key.trim()] = value.trim();

@@ -219,10 +219,8 @@ var signals = window.$signals = {
     return normalized || ROOT_PATH;
   };
 const tabsSignal = window.$signals.create('tabs', {});
-const pathSignal = window.$signals.create('path', '/');
 export {
   tabsSignal,
-  pathSignal,
   signals,
   Signal,
   normalizePath,

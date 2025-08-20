@@ -2,7 +2,8 @@
 import CPopup from "@components/solid/solid.tsx";
 import PathNavigator from "@components/vue/PathNavigator.vue";
 import FilteTable from "./FilteTable.astro";
-import FileUploader from "@components/solid/FileUploader.tsx";
+
+import FileUploader from "@components/vue/FileUploader.vue";
 import CodeEditor from "./codeEditor.astro";
 import { urlbase } from "src/config/url";
 ---
@@ -31,7 +32,7 @@ import { urlbase } from "src/config/url";
 </dialog-container>
 <dialog-container id="upload-files">
     <div class="modal__base p-10">
-        <FileUploader client:only="solid-js" apiEndpoint={(urlbase + "/upload/files?pathType=servers")} multiple={true} />
+        <FileUploader client:only="vue" apiEndpoint={(urlbase + "/files/upload-files")} multiple={true} />
     </div>
 </dialog-container>
 <dialog-container id="EditFilename">
@@ -65,7 +66,7 @@ import { urlbase } from "src/config/url";
     import { DialogContainer } from "src/litcomponents/custom-modal.js";
     import { CInput } from "src/litcomponents/CInput.js";
     import { optionsModal, setPopupOptions } from "src/utils/dropdown.js";
-    import { pathSignal, signals,normalizePath } from "src/globalSignals";
+    import { signals,normalizePath } from "src/globalSignals";
     import { FILE_EXPLORER_EVENTS} from 'src/types/fileExplorerEvents';
 
 
@@ -275,7 +276,7 @@ import { urlbase } from "src/config/url";
                         if (!fileData) return;
                         console.log("fileData", fileData, InputFile.value);
                         const result = await filemanagerapi.writeFile({
-                            directoryname: pathSignal?.value || window.selectedServer,
+                            directoryname: window.selectedServer,
                             filename: InputFile?.value || signals.get("file-name")?.value as string,
                             content: fileData,
                         });
@@ -311,7 +312,7 @@ import { urlbase } from "src/config/url";
                     if (action === "create-folder") {
                         console.log("InputFolder", InputFolder.value);
                         if (!InputFolder) return;
-                        const result = await filemanagerapi.createFolder(pathSignal?.value + "/" + InputFolder.value);
+                        const result = await filemanagerapi.createFolder(window.selectedServer + "/" + InputFolder.value);
                         if (!result) return;
                         console.log("result", result);
                         if (result.success || result.data) refreshFolder();

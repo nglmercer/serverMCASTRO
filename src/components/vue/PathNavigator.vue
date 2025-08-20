@@ -174,7 +174,9 @@ watch(effectiveBasePath, (newBasePath) => {
     emitter.emit('path-navigator:path-changed', { path: newBasePath })
   }
 })
-
+emitter.on('path-navigator:get-current-path', () => {
+  emitter.emit('path-navigator:current-path', { path: currentPath.value })
+})
 // Watch for currentPath prop changes
 watch(() => props.currentPath, (newCurrentPath) => {
   if (newCurrentPath && newCurrentPath !== currentPath.value) {
