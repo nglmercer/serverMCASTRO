@@ -1,4 +1,4 @@
-import BaseApi from '../commons/BaseApi';
+import BaseApi,{ PrefixedApi} from '../commons/BaseApi';
 import type { ApiResponse } from '../types/api.types.ts';
 import type {
   FolderInfo,
@@ -9,42 +9,6 @@ import type {
 import type { FileSystemItem } from '@litcomponents/mc/files.ts';
 import apiConfig from '../config/apiConfig';
 import type { FetchOptions } from '../commons/httpservice';
-
-/**
- * Clase base para APIs con prefijo de ruta
- */
-class PrefixedApi extends BaseApi {
-  protected pathPrefix: string;
-
-  constructor(config: typeof apiConfig, pathPrefix: string = '') {
-    super(config);
-    this.pathPrefix = pathPrefix;
-  }
-
-  private addPrefix(endpoint: string): string {
-    return `${this.pathPrefix}${endpoint}`;
-  }
-
-  async get<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
-    return super.get<T>(this.addPrefix(endpoint), options);
-  }
-
-  async post<T>(endpoint: string, body: any = {}, options: FetchOptions = {}): Promise<T> {
-    return super.post<T>(this.addPrefix(endpoint), body, options);
-  }
-
-  async put<T>(endpoint: string, body: any = {}, options: FetchOptions = {}): Promise<T> {
-    return super.put<T>(this.addPrefix(endpoint), body, options);
-  }
-
-  async patch<T>(endpoint: string, body: any = {}, options: FetchOptions = {}): Promise<T> {
-    return super.patch<T>(this.addPrefix(endpoint), body, options);
-  }
-
-  async delete<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
-    return super.delete<T>(this.addPrefix(endpoint), options);
-  }
-}
 
 /**
  * API para gestión de archivos

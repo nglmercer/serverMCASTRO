@@ -265,5 +265,40 @@ class BaseApi {
     });
   }
 }
+class PrefixedApi extends BaseApi {
+  protected pathPrefix: string;
 
+  constructor(config: typeof apiConfig, pathPrefix: string = '') {
+    super(config);
+    this.pathPrefix = pathPrefix;
+  }
+
+  private addPrefix(endpoint: string): string {
+    return `${this.pathPrefix}${endpoint}`;
+  }
+
+  async get<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+    return super.get<T>(this.addPrefix(endpoint), options);
+  }
+
+  async post<T>(endpoint: string, body: any = {}, options: FetchOptions = {}): Promise<T> {
+    return super.post<T>(this.addPrefix(endpoint), body, options);
+  }
+
+  async put<T>(endpoint: string, body: any = {}, options: FetchOptions = {}): Promise<T> {
+    return super.put<T>(this.addPrefix(endpoint), body, options);
+  }
+
+  async patch<T>(endpoint: string, body: any = {}, options: FetchOptions = {}): Promise<T> {
+    return super.patch<T>(this.addPrefix(endpoint), body, options);
+  }
+
+  async delete<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+    return super.delete<T>(this.addPrefix(endpoint), options);
+  }
+}
+export {
+  PrefixedApi,
+  BaseApi,
+}
 export default BaseApi;

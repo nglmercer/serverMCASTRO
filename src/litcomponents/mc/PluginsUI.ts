@@ -6,6 +6,7 @@ import { map } from 'lit/directives/map.js';
 // Definimos una interfaz para los elementos que son objetos
 interface ElementObject {
   name: string;
+  filename?: string;
   // Aquí podrías añadir más propiedades si tus elementos objeto las tuvieran
 }
 
@@ -17,6 +18,7 @@ interface ToggleEventDetail {
   item: string; // Siempre será el nombre del archivo (string)
   type: string;
   newName: string;
+  state: boolean;
 }
 
 interface DeleteEventDetail {
@@ -186,8 +188,8 @@ export class PluginsUI extends LitElement {
       return nothing; // No renderizar si no hay nombre
     }
 
-    const isEnabled = !itemName.toLowerCase().endsWith('.dis');
-    const displayName = itemName.replace(/\.(jar|dis)$/i, ''); // Case-insensitive para .jar y .dis
+    const isEnabled = !itemName.toLowerCase().match(/\.jar\..+$/);
+    const displayName = itemName.replace(/\.jar(\..+)?$/i, ''); // Remueve .jar y cualquier sufijo adicional
 
     return html`
         <div class="item" data-item-name="${itemName}">
@@ -228,32 +230,27 @@ export class PluginsUI extends LitElement {
 
     // Lógica para determinar el nuevo nombre
     let newName: string;
-    const baseName = itemName.replace(/\.(jar|dis)$/i, '');
-    const extension = itemName.substring(baseName.length).toLowerCase(); // .jar o .dis o ""
-
+    const hasDisabledSuffix = itemName.toLowerCase().match(/\.jar\..+$/);
+    
     if (isEnabled) {
-      // Si se habilita y tenía .dis, quitarlo. Si no tenía .dis, mantener/añadir .jar (o el original)
-      newName = extension === '.dis' ? baseName + itemName.substring(baseName.length).replace(/\.dis$/i, '') : itemName.replace(/\.dis$/i, '');
-      if (!newName.toLowerCase().endsWith('.jar') && extension !== '.jar') { // Si no termina en .jar y no era .jar antes
-        // Podríamos asumir .jar si es un plugin, pero es mejor ser explícito o basarse en el nombre original
-        // Para simplificar, si se habilita y era .dis, se quita .dis.
-        // Si se habilita y no era .dis, no cambia (ya estaba habilitado o es un nombre base).
+      // Si se habilita y tenía sufijo de deshabilitado (.jar.algo), quitarlo
+      if (hasDisabledSuffix) {
+        newName = itemName.replace(/\.jar\..+$/i, '.jar');
+      } else {
+        newName = itemName; // Ya estaba habilitado
       }
     } else {
-      // Si se deshabilita, añadir .dis si no lo tiene.
-      newName = itemName.toLowerCase().endsWith('.dis') ? itemName : baseName + (extension || '.jar') + '.dis';
-    }
-    // Corrección para evitar ".jar.dis" si originalmente era ".jar"
-    if (newName.toLowerCase().endsWith('.jar.dis')) {
-      newName = baseName + '.jar.dis';
-    } else if (!isEnabled && !itemName.toLowerCase().endsWith('.dis')) {
-      newName = itemName + '.dis';
-    } else if (isEnabled && itemName.toLowerCase().endsWith('.dis')) {
-      newName = itemName.replace(/\.dis$/i, '');
+      // Si se deshabilita, añadir .disabled si no lo tiene
+      if (hasDisabledSuffix) {
+        newName = itemName; // Ya estaba deshabilitado
+      } else {
+        newName = itemName + '.disabled';
+      }
     }
 
 
-    this._emitEvent('toggle', { item: itemName, type: itemType, newName });
+    this._emitEvent('toggle', { item: itemName, type: itemType, newName, state: isEnabled });
+
   }
 
   private _handleDelete(event: Event): void {

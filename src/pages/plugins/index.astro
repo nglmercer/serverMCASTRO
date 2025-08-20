@@ -46,9 +46,13 @@ import { urlbase } from 'src/config/url';
     import { PluginsUI, type ToggleEventDetail, type DeleteEventDetail } from "@litcomponents/mc/PluginsUI.js";
     const modList = document.getElementById("modList") as HTMLElement & PluginsUI;
     const pluginList = document.getElementById("pluginList") as HTMLElement & PluginsUI;
+    let uploadPath = "/" + window.selectedServer;
+
+
     interface PluginOrMod {
         name: string;
-        path?: string;
+        filename?: string;
+        path?: string; 
         size?: number;
         type?: "plugin" | "mod";
         modified?: string;
@@ -68,49 +72,60 @@ import { urlbase } from 'src/config/url';
         const EventNames = ["uploadItem_mod", "uploadItem_plugin"];
         EventNames.forEach((eventName) => {
             const element = document.getElementById(eventName) as HTMLButtonElement;
-            if (eventName === "uploadItem_mod") {
-            const path = window.selectedServer + "/mods";
-            emitter.emit('path-navigator:update-path', { path });
-        }
-        if (eventName === "uploadItem_plugin") {
-            const path = window.selectedServer + "/plugins";
-            emitter.emit('path-navigator:update-path', { path });
-        }
-            if (element) {
-                element.addEventListener("click", async (e) => {
-                    console.log("EventName", eventName);
-                    const uploadFiles = document.getElementById("upload-files") as HTMLElement & DialogContainer;
-                    uploadFiles.show();
-                    console.log("uploadFiles", uploadFiles);
+            if (!element) return;
+            element.addEventListener("click", async (e) => {
+                console.log("EventName", eventName);
+                
+                // Establecer el path correcto según el botón clickeado
+                if (eventName === "uploadItem_mod") {
+                    uploadPath = window.selectedServer + "/mods";
+                } else if (eventName === "uploadItem_plugin") {
+                    uploadPath = window.selectedServer + "/plugins";
                 }
-            );
-            }
+                
+                emitter.emit('path-navigator:update-path', { path: uploadPath  });
+                emitter.emit('path-navigator:current-path', { path: uploadPath });
+                
+                const uploadFiles = document.getElementById("upload-files") as HTMLElement & DialogContainer;
+                uploadFiles.show();
+                console.log("uploadFiles", uploadFiles);
+            });
+            
         });
         const MPEList = ["toggle", "delete"];
+        const GetState = (state?:boolean) => {
+            if (state) {
+                return "enable";
+            }
+            return "disable";
+        }
+
         MPEList.forEach((eventName) => {
-            modList.addEventListener(eventName, ((e: Event) => {
+            modList.addEventListener(eventName, (async (e: Event) => {
                 const details = (e as CustomEvent).detail;
                 if (eventName === "delete") {
                     DeteletePluginorMod(details,"mods")
                     return;
                 }
-                TogglePluginorMod(details,"mods")
+                 const result = await pluginsapi.ModToggle(window.selectedServer,details.item,GetState(details.state));
+
+                console.log("details", details,result);
+
             }) as EventListener);
-            pluginList.addEventListener(eventName, ((e: Event) => {
+            pluginList.addEventListener(eventName, (async (e: Event) => {
                 const details = (e as CustomEvent).detail;
                 if (eventName === "delete") {
                     DeteletePluginorMod(details,"plugins")
                     return;
                 }
-                TogglePluginorMod(details,"plugins")
+                console.log("details", details);
+
+                const result = await pluginsapi.pluginToggle(window.selectedServer,details.item,GetState(details.state));
+                console.log("result", result);
+
+
             }) as EventListener);
         });
-    }
-
-    async function TogglePluginorMod(data:ToggleEventDetail,type:string) {
-        console.log("data", data, type);
-        const result = await filemanagerapi.renameFile(window.selectedServer, getFILEPATH(type,data.item),data.newName);
-        console.log("result", result);
     }
     async function DeteletePluginorMod(data:DeleteEventDetail,type:string) {
         const filePath = getFILEPATH(type,data.item);
@@ -122,16 +137,17 @@ import { urlbase } from 'src/config/url';
     async function fetchPluginandMods(){
         const plugins = await pluginsapi.getPlugins(window.selectedServer);
         const mods = await pluginsapi.getMods(window.selectedServer);
-        console.log("plugins", plugins,returnArrayName(plugins.data));
-        pluginList.elements = returnArrayName(plugins.data);
-        modList.elements = returnArrayName(mods.data);
-        console.log("mods", mods,returnArrayName(mods.data));
+        if (!plugins || !mods) return;
+        pluginList.elements = returnArrayName(plugins.data || []);
+        modList.elements = returnArrayName(mods.data || []);
+        console.log("plugins", plugins,returnArrayName(plugins.data || []));
+        console.log("mods", mods,returnArrayName(mods.data || []));
     }
     function returnArrayName(array: PluginOrMod[]): string[]{
         if (!array || !Array.isArray(array)) return [];
         const arrayName: string[] = [];
         array.forEach((item) => {
-                arrayName.push(item.name);
+                arrayName.push(item.filename || item.name);
         });
         return arrayName;
     }

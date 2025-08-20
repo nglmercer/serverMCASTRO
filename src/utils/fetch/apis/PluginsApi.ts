@@ -1,4 +1,4 @@
-import BaseApi from '../commons/BaseApi';
+import BaseApi, { PrefixedApi } from '../commons/BaseApi';
 import type { ApiResponse } from '../types/api.types.ts';
 import type {
   Plugin,
@@ -12,9 +12,9 @@ import apiConfig from '../config/apiConfig';
 /**
  * API para gestión de plugins y mods
  */
-class PluginsApi extends BaseApi {
+class PluginsApi extends PrefixedApi {
   constructor(config: typeof apiConfig) {
-    super(config);
+    super(config, '/extensions');
   }
 
   /**
@@ -49,7 +49,7 @@ class PluginsApi extends BaseApi {
       throw new Error(`Invalid operation: ${operation}. Valid operations are: ${validOperations.join(', ')}`);
     }
     
-    return this.get<ApiResponse>(`/plugin/${serverName}/${itemName}/${operation}`);
+    return this.get<ApiResponse>(`/plugins/${serverName}/${itemName}/${operation}`);
   }
 
   /**
@@ -66,7 +66,23 @@ class PluginsApi extends BaseApi {
       throw new Error(`Invalid operation: ${operation}. Valid operations are: ${validOperations.join(', ')}`);
     }
     
-    return this.get<ApiResponse>(`/mod/${serverName}/${itemName}/${operation}`);
+    return this.get<ApiResponse>(`/mods/${serverName}/${itemName}/${operation}`);
+  }
+
+  /**
+   * Subir archivos .jar al servidor
+   * @param serverName - Nombre del servidor
+   * @param files - Archivos a subir
+   * @param type - Tipo de extensión ('plugins' o 'mods')
+   * @returns Promise con la respuesta de la API
+   */
+  async uploadFiles(serverName: string, files: File[], type: 'plugins' | 'mods'): Promise<ApiResponse> {
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+    
+    return this.post<ApiResponse>(`/upload/${type}/${serverName}`, formData);
   }
 
   /**
@@ -77,12 +93,10 @@ class PluginsApi extends BaseApi {
    * @returns Promise con la respuesta de la API
    */
   async DownloadModorPlugin(serverName: string, url: string, type: 'mods' | 'plugins'): Promise<ApiResponse> {
-    const isModorPlugin = type === "mods" ? "mods" : "plugins";
-    
     const downloadData: DownloadModPluginRequest = {
       server: serverName,
       url: url,
-      path: isModorPlugin
+      path: type
     };
     
     return this.post<ApiResponse>('/download-file', downloadData);
