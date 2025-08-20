@@ -1,6 +1,7 @@
 ---
 import CPopup from "@components/solid/solid.tsx";
-import PathNavigator from "@components/solid/PathNavigator.vue";
+import PathNavigator from "@components/vue/PathNavigator.vue";
+import FilteTable from "./FilteTable.astro";
 import FileUploader from "@components/solid/FileUploader.tsx";
 import CodeEditor from "./codeEditor.astro";
 import { urlbase } from "src/config/url";
@@ -10,9 +11,7 @@ import { urlbase } from "src/config/url";
 <div class="content-header">
     <action-buttons-lit id="FileActions"></action-buttons-lit>
 </div>
-<p id="current-path">Current Path: ./</p>
-<PathNavigator client:only="vue" basePath={typeof window !== "undefined" ? window.selectedServer : ""} />
-<file-explorer current-path="/" id="filemanager"></file-explorer>
+<FilteTable/>
 <CPopup id="fileOptions" class="file-options"  client:only="solid-js"/>
 <dialog-container id="file-Editor" required>
     <div class="modal__base">
@@ -62,15 +61,15 @@ import { urlbase } from "src/config/url";
 <script>
     import { ActionButtonsLit } from "src/litcomponents/mc/barstatus.js";
     import { filemanagerapi, serverapi } from "src/utils/fetch/fetchapi";
-    import {
-        FileExplorer,
-        type ItemMenuEventDetail,
-        type FileSystemItem,
-    } from "src/litcomponents/mc/files.js";
+    import {type FileSystemItem } from "@components/vue/FileExplorer.vue";
     import { DialogContainer } from "src/litcomponents/custom-modal.js";
     import { CInput } from "src/litcomponents/CInput.js";
     import { optionsModal, setPopupOptions } from "src/utils/dropdown.js";
     import { pathSignal, signals,normalizePath } from "src/globalSignals";
+    import { FILE_EXPLORER_EVENTS} from 'src/types/fileExplorerEvents';
+
+
+    import { emitter } from "@utils/Emitter";
     type ValidAction =
         | "start"
         | "stop"
@@ -81,7 +80,6 @@ import { urlbase } from "src/config/url";
         | "players"
         | "metrics"
         | "kill";
-    const filemanager = document.getElementById("filemanager") as HTMLElement & FileExplorer;
     const newFile = document.getElementById("file-Editor") as HTMLElement &  DialogContainer;
     const uploadFiles = document.getElementById("upload-files") as HTMLElement &  DialogContainer;
     const newFolder = document.getElementById("new-folder") as HTMLElement &  DialogContainer;
@@ -93,7 +91,6 @@ import { urlbase } from "src/config/url";
         const actionsElement = document.getElementById("FileActions");
         if (!actionsElement) return;
         if (!(actionsElement instanceof ActionButtonsLit)) return;
-        initListener();
         initCDlisteners();
         initMFilelisteners();
         initEFlisteners();
@@ -130,6 +127,31 @@ import { urlbase } from "src/config/url";
         buttonsConfig.forEach((button) => {
             actionsElement.addButton(button);
         });
+        emitter.on(FILE_EXPLORER_EVENTS[4],async(data)=>{
+            console.log(FILE_EXPLORER_EVENTS[4], data);
+                    if (data.type !== "directory") {
+                        //const editorContent = signals.set("fileEditor-content", "text=false");
+                        //const editorLang = signals.set("fileEditor-lang", "plaintext");
+                        const fileData = await readFile(data.path);
+                        if (typeof fileData !== "string") return;
+                        console.log("fileData", fileData, typeof fileData);
+                        newFile.show();
+                        signals.set("fileEditor-content", fileData);
+                        signals.set("file-name", data.path);
+                        const fileNameInput = document.getElementById("file-name") as HTMLInputElement;
+                        fileNameInput.value = data.path;
+                        //console.log("fileData", fileData,editorContent);
+                        return;
+                    }
+        })
+        emitter.on(FILE_EXPLORER_EVENTS[5],({data,event})=>{
+            console.log(FILE_EXPLORER_EVENTS[5], data);
+            const popupOptions = getOptions(data);
+            console.log("menu", {data,event});
+            const filepopup = document.getElementById("fileOptions");
+            setPopupOptions(filepopup, popupOptions, event);
+                
+        })
 
         actionsElement.addEventListener("button-clicked", (event) => {
             if (!("detail" in event)) return;
@@ -164,18 +186,8 @@ import { urlbase } from "src/config/url";
             }
         });
     });
-    refreshFolder();
-    async function fetchFiles(path: string,element = filemanager) {
-        if (path === "/") return;
-        const pathENCODED = encodeURIComponent(path);
-        const result = await filemanagerapi.getFolderInfo(pathENCODED);
-        console.log("result", result);
-        if (result && result.data) {
-            if (!element) return;
-            const filescontent = Array.isArray(result.data) ? result.data : result.data?.files;
-            element.data = filescontent;
-            element.currentPath = path;
-        }
+    function refreshFolder(){
+        emitter.emit(FILE_EXPLORER_EVENTS[13],{path: window.selectedServer});
     }
     async function readFile(path: string) {
         const pathENCODED = encodeURIComponent(path);
@@ -187,62 +199,7 @@ import { urlbase } from "src/config/url";
         }
         return false;
     }
-    async function initListener() {
-        const events = ["selected", "menu", "updated"];
-        events.forEach((Evname) => {
-            if (!filemanager) return;
-            (filemanager as FileExplorer).addEventListener(Evname,async (e) => {
-                if (!("detail" in e)) return;
-                console.log("event", Evname,"e", typeof e, e.detail);
-                const { data, event } = e.detail as ItemMenuEventDetail;
-                if (Evname === "selected") {
-                    if (data.type !== "directory") {
-                        //const editorContent = signals.set("fileEditor-content", "text=false");
-                        //const editorLang = signals.set("fileEditor-lang", "plaintext");
-                        const fileData = await readFile(window.selectedServer + "/" + data.path);
-                        if (typeof fileData !== "string") return;
-                        console.log("fileData", fileData, typeof fileData);
-                        newFile.show();
-                        signals.set("fileEditor-content", fileData);
-                        signals.set("file-name", data.path);
-                        const fileNameInput = document.getElementById("file-name") as HTMLInputElement;
-                        fileNameInput.value = data.path;
-                        //console.log("fileData", fileData,editorContent);
-                        return;
-                    }
-                    pathSignal.value = window.selectedServer + "/" + data.path;
-                    //    fetchFiles(window.selectedServer + "/" + data.path);
-                } else if (Evname === "menu") {
-                    const popupOptions = getOptions(data);
-                    console.log("menu", data, event);
-                    const filepopup = document.getElementById("fileOptions");
-                    setPopupOptions(filepopup, popupOptions, event);
-                } else if (Evname === "updated") {
-                    pathSignal.value = data;
-                }
-            });
-            signals.subscribe<string>(
-                "path",
-                (value: string, oldValue: string) => {
-                    console.log("pathSignal", value, oldValue);
-                    const normalizedValue = normalizePath(value);
-                    const normalizedOldValue = normalizePath(oldValue);
-                    if (value !== normalizedValue) {
-                        console.log("Normalizing path:", value, "->", normalizedValue);
-                        pathSignal.value = normalizedValue;
-                    }
-                    
-                    if (normalizedValue !== normalizedOldValue) {
-                        fetchFiles(normalizedValue);
-                    }
-                },
-            );
-        });
-    }
-    async function refreshFolder(path: string = (pathSignal?.value || window.selectedServer)) {
-        console.log("refreshFolder", path);
-        fetchFiles(path);
-    }
+
     function getOptions(data: FileSystemItem) {
         // Definir opciones individuales
         const downloadOption = {

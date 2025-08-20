@@ -1,0 +1,8 @@
+---
+import FileExplorer from '@components/vue/FileExplorer.vue';
+---
+<FileExplorer 
+    client:only="vue"
+    current-path={typeof window !== 'undefined' ? window.selectedServer : '/'}
+    id="file-explorer-component"
+/>

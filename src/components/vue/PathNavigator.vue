@@ -8,6 +8,7 @@
             segment.path !== currentPath ? 'path-segment-clickable' : 'path-segment-current'
           ]"
           @click="segment.path !== currentPath && navigateToPath(segment.path)"
+          :title="`Navigate to ${segment.path}`"
         >
           {{ segment.name }}
         </span>
@@ -17,13 +18,28 @@
       </template>
     </div>
     
-    <div class="flex items-center">
+    <div class="flex items-center gap-2">
+      <button
+        @click="goToBase"
+        class="base-button"
+        title="Go to base directory"
+      >
+        /
+      </button>
       <button
         v-if="currentPath !== effectiveBasePath"
         @click="goUp"
         class="up-button"
+        title="Go up one level"
       >
-        Subir Nivel (..)
+        ↑ Up
+      </button>
+      <button
+        @click="refreshCurrentPath"
+        class="refresh-button"
+        title="Refresh current directory"
+      >
+        ↻ Refresh
       </button>
     </div>
   </div>
@@ -31,18 +47,21 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { pathSignal as globalCustomPathSignal, normalizePath, ROOT_PATH } from '../../globalSignals'
+import { emitter } from '../../utils/Emitter'
+import { normalizePath, ROOT_PATH } from '../../utils/pathUtils'
 
 export interface PathNavigatorProps {
-  basePath?: string // Vendrá de window.selectedServer o será ""
+  basePath?: string // Vendrá de props o será ""
+  currentPath?: string // Path actual donde está navegando
 }
 
 const props = withDefaults(defineProps<PathNavigatorProps>(), {
-  basePath: ''
+  basePath: typeof window !== 'undefined' ? (window as any).selectedServer : '',
+  currentPath: typeof window !== 'undefined' ? (window as any).selectedServer : '/'
 })
 
-// Define un nombre de servidor por defecto si window.selectedServer está vacío
-const DEFAULT_SERVER_NAME_IF_EMPTY = (typeof window !== "undefined" ? (window as any).selectedServer : "") || "/"
+// Define un nombre de servidor por defecto
+const DEFAULT_SERVER_NAME_IF_EMPTY = "/"
 
 const effectiveBasePath = computed(() => {
   let pathFromServer = props.basePath
@@ -73,79 +92,63 @@ const effectiveBasePath = computed(() => {
   return normalized
 })
 
-const getInitialNormalizedPath = () => {
-  const globalPath = normalizePath(globalCustomPathSignal.value)
-  const basePath = effectiveBasePath.value // Ya está normalizado y nunca es ROOT_PATH
-
-  const initialPathToUse = !globalPath.startsWith(basePath) || globalPath.length < basePath.length 
-    ? basePath 
-    : globalPath
-
-  if (globalCustomPathSignal.value !== initialPathToUse) {
-    globalCustomPathSignal.value = initialPathToUse
-  }
-  
-  return initialPathToUse
-}
-
-const currentPath = ref<string>(getInitialNormalizedPath())
+// Internal path state - use prop currentPath or fallback to effectiveBasePath
+const currentPath = ref<string>(props.currentPath || effectiveBasePath.value)
 
 const pathSegments = computed(() => {
   const path = currentPath.value
   const basePath = effectiveBasePath.value
   const segments: { name: string; path: string }[] = []
 
-  // El nombre del segmento base. Como basePath nunca es ROOT_PATH, siempre tendrá partes.
-  const baseParts = basePath.split('/').filter(p => p.length > 0)
-  const baseSegmentName = baseParts.length > 0 ? baseParts[baseParts.length - 1] : 'Base'
-  segments.push({ name: baseSegmentName, path: basePath })
-
-  if (path === basePath) {
+  // Normalizar paths para asegurar consistencia
+  const normalizedPath = normalizePath(path)
+  const normalizedBasePath = normalizePath(basePath)
+  
+  // Si el path actual es igual al basePath, solo mostrar el basePath
+  if (normalizedPath === normalizedBasePath) {
+    const baseSegmentName = normalizedBasePath.split('/').filter(p => p.length > 0).pop() || '/'
+    segments.push({ name: baseSegmentName, path: normalizedBasePath })
     return segments
   }
   
-  let relativePathString = ''
-  if (path.startsWith(basePath) && path.length > basePath.length) {
-    relativePathString = path.substring(basePath.length + 1)
+  // Verificar que el path actual esté dentro del basePath
+  if (!normalizedPath.startsWith(normalizedBasePath)) {
+    // Si no está dentro, mostrar solo el basePath
+    const baseSegmentName = normalizedBasePath.split('/').filter(p => p.length > 0).pop() || '/'
+    segments.push({ name: baseSegmentName, path: normalizedBasePath })
+    return segments
   }
   
-  const relativeParts = relativePathString.split('/').filter(p => p.length > 0)
+  // Obtener la parte relativa del path después del basePath
+  const relativePath = normalizedPath.slice(normalizedBasePath.length)
+  const relativeParts = relativePath.split('/').filter(p => p.length > 0)
   
-  if (relativeParts.length > 0) {
-    let currentSegmentPathAccumulator = basePath
-    for (const part of relativeParts) {
-      currentSegmentPathAccumulator = `${currentSegmentPathAccumulator}/${part}`
-      // Normalizar solo si es estrictamente necesario
-      if (currentSegmentPathAccumulator.includes('//') || currentSegmentPathAccumulator.includes('\\')) {
-        currentSegmentPathAccumulator = normalizePath(currentSegmentPathAccumulator)
-      }
-      segments.push({ name: part, path: currentSegmentPathAccumulator })
-    }
+  // Agregar el segmento base
+  const baseSegmentName = normalizedBasePath.split('/').filter(p => p.length > 0).pop() || '/'
+  segments.push({ name: baseSegmentName, path: normalizedBasePath })
+  
+  // Agregar segmentos relativos acumulativos
+  let accumulatedPath = normalizedBasePath
+  for (const part of relativeParts) {
+    accumulatedPath = `${accumulatedPath}/${part}`
+    segments.push({ name: part, path: accumulatedPath })
   }
   
   return segments
 })
 
-let unsubscribe: (() => void) | null = null
+let unsubscribePathUpdate: (() => void) | null = null
 
 onMounted(() => {
-  unsubscribe = globalCustomPathSignal.subscribe((newGlobalValue: string) => {
-    const normalizedNewGlobalValue = normalizePath(newGlobalValue)
+  // Listen for path updates from other components
+  unsubscribePathUpdate = emitter.on('path-navigator:update-path', (data: { path: string }) => {
+    const normalizedNewPath = normalizePath(data.path)
     const basePath = effectiveBasePath.value
     
-    if (newGlobalValue !== normalizedNewGlobalValue && globalCustomPathSignal.value === newGlobalValue) {
-      globalCustomPathSignal.value = normalizedNewGlobalValue
-      return
-    }
-    
-    const pathForVueRef = normalizedNewGlobalValue.startsWith(basePath) && 
-                          normalizedNewGlobalValue.length >= basePath.length
-      ? normalizedNewGlobalValue
+    const pathForVueRef = normalizedNewPath.startsWith(basePath) && 
+                          normalizedNewPath.length >= basePath.length
+      ? normalizedNewPath
       : basePath // Si está fuera de los límites del basePath, se ajusta al basePath
-    
-    if (pathForVueRef !== normalizedNewGlobalValue && globalCustomPathSignal.value !== pathForVueRef) {
-      globalCustomPathSignal.value = pathForVueRef
-    }
 
     if (currentPath.value !== pathForVueRef) {
       currentPath.value = pathForVueRef
@@ -154,8 +157,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (unsubscribe) {
-    unsubscribe()
+  if (unsubscribePathUpdate) {
+    unsubscribePathUpdate()
   }
 })
 
@@ -166,10 +169,16 @@ watch(effectiveBasePath, (newBasePath) => {
   // Si currentPath es más corto que basePath o no comienza con él,
   // (ej. si basePath cambió dinámicamente), reajusta.
   if (!current.startsWith(newBasePath) || current.length < newBasePath.length) {
-    if (globalCustomPathSignal.value !== newBasePath) {
-      globalCustomPathSignal.value = newBasePath
-    }
-    // currentPath se actualizará a través del subscriber
+    currentPath.value = newBasePath
+    // Emit path change event
+    emitter.emit('path-navigator:path-changed', { path: newBasePath })
+  }
+})
+
+// Watch for currentPath prop changes
+watch(() => props.currentPath, (newCurrentPath) => {
+  if (newCurrentPath && newCurrentPath !== currentPath.value) {
+    currentPath.value = newCurrentPath
   }
 })
 
@@ -190,22 +199,58 @@ const goUp = () => {
     ? basePath
     : newPath
     
-  if (globalCustomPathSignal.value !== finalPath) {
-    globalCustomPathSignal.value = finalPath
+  if (currentPath.value !== finalPath) {
+    currentPath.value = finalPath
+    // Emit path change event
+    emitter.emit('path-navigator:path-changed', { path: finalPath })
   }
 }
 
 const navigateToPath = (newPathFromClick: string) => {
   const normalizedNewPath = normalizePath(newPathFromClick)
   const basePath = effectiveBasePath.value
+  const previousPath = currentPath.value
 
   const finalPath = normalizedNewPath.startsWith(basePath) && normalizedNewPath.length >= basePath.length
     ? normalizedNewPath
     : basePath // Si el path clickeado está fuera, ir al basePath
 
-  if (globalCustomPathSignal.value !== finalPath) {
-    globalCustomPathSignal.value = finalPath
+  console.log('navigateToPath', { from: previousPath, to: finalPath, clicked: newPathFromClick })
+  
+  if (currentPath.value !== finalPath) {
+    currentPath.value = finalPath
+    // Emit path change event to trigger file explorer re-render
+    emitter.emit('path-navigator:path-changed', { path: finalPath })
+    // Also emit a specific navigation event for better tracking
+    emitter.emit('path-navigator:navigate', { 
+      from: previousPath, 
+      to: finalPath,
+      trigger: 'segment-click'
+    })
   }
+}
+
+const goToBase = () => {
+  const basePath = effectiveBasePath.value
+  const previousPath = currentPath.value
+  console.log("goToBase", {basePath, currentPath: previousPath})
+  if (currentPath.value !== basePath) {
+    currentPath.value = basePath
+    // Emit path change event
+    emitter.emit('path-navigator:path-changed', { path: basePath })
+    // Also emit a specific navigation event for better tracking
+    emitter.emit('path-navigator:navigate', { 
+      from: previousPath, 
+      to: basePath,
+      trigger: 'base-button'
+    })
+  }
+}
+
+const refreshCurrentPath = () => {
+  // Emit refresh event to trigger file explorer data reload
+  emitter.emit('path-navigator:refresh-requested', { path: currentPath.value })
+  emitter.emit('file-explorer:refresh-data', { path: currentPath.value })
 }
 </script>
 
@@ -248,7 +293,7 @@ const navigateToPath = (newPathFromClick: string) => {
   color: #6b7280;
 }
 
-.up-button {
+.base-button, .up-button, .refresh-button {
   padding: 6px 12px;
   background-color: #4b5563;
   color: white;
@@ -257,10 +302,30 @@ const navigateToPath = (newPathFromClick: string) => {
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.up-button:hover {
+.base-button:hover, .up-button:hover, .refresh-button:hover {
   background-color: #374151;
+}
+
+.base-button {
+  background-color: #7c3aed;
+  font-weight: bold;
+}
+
+.base-button:hover {
+  background-color: #6d28d9;
+}
+
+.refresh-button {
+  background-color: #059669;
+}
+
+.refresh-button:hover {
+  background-color: #047857;
 }
 
 /* Dark mode styles using prefers-color-scheme media query */
@@ -287,12 +352,28 @@ const navigateToPath = (newPathFromClick: string) => {
     color: #9ca3af;
   }
 
-  .up-button {
+  .base-button, .up-button, .refresh-button {
     background-color: #6b7280;
   }
 
-  .up-button:hover {
+  .base-button:hover, .up-button:hover, .refresh-button:hover {
     background-color: #9ca3af;
+  }
+
+  .base-button {
+    background-color: #8b5cf6;
+  }
+
+  .base-button:hover {
+    background-color: #7c3aed;
+  }
+
+  .refresh-button {
+    background-color: #10b981;
+  }
+
+  .refresh-button:hover {
+    background-color: #059669;
   }
 }
 
@@ -319,12 +400,20 @@ const navigateToPath = (newPathFromClick: string) => {
     color: #6b7280;
   }
 
-  .up-button {
+  .up-button, .refresh-button {
     background-color: #4b5563;
   }
 
-  .up-button:hover {
+  .up-button:hover, .refresh-button:hover {
     background-color: #374151;
+  }
+
+  .refresh-button {
+    background-color: #059669;
+  }
+
+  .refresh-button:hover {
+    background-color: #047857;
   }
 }
 </style>

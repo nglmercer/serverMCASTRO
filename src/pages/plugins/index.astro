@@ -41,7 +41,7 @@ import { urlbase } from 'src/config/url';
 <script>
     import { filemanagerapi, pluginsapi } from "@utils/fetch/fetchapi";
     import { DialogContainer } from "@litcomponents/custom-modal.js";
-    import { pathSignal, signals,normalizePath } from "src/globalSignals";
+    import { emitter } from "@utils/Emitter";
     import { PluginsUI, type ToggleEventDetail, type DeleteEventDetail } from "@litcomponents/mc/PluginsUI.js";
     const modList = document.getElementById("modList") as HTMLElement & PluginsUI;
     const pluginList = document.getElementById("pluginList") as HTMLElement & PluginsUI;
@@ -67,14 +67,20 @@ import { urlbase } from 'src/config/url';
         const EventNames = ["uploadItem_mod", "uploadItem_plugin"];
         EventNames.forEach((eventName) => {
             const element = document.getElementById(eventName) as HTMLButtonElement;
-            if (eventName === "uploadItem_mod") pathSignal.value = window.selectedServer + "/mods";
-            if (eventName === "uploadItem_plugin") pathSignal.value = window.selectedServer + "/plugins";
+            if (eventName === "uploadItem_mod") {
+            const path = window.selectedServer + "/mods";
+            emitter.emit('path-navigator:update-path', { path });
+        }
+        if (eventName === "uploadItem_plugin") {
+            const path = window.selectedServer + "/plugins";
+            emitter.emit('path-navigator:update-path', { path });
+        }
             if (element) {
                 element.addEventListener("click", async (e) => {
                     console.log("EventName", eventName);
                     const uploadFiles = document.getElementById("upload-files") as HTMLElement & DialogContainer;
                     uploadFiles.show();
-                    console.log("uploadFiles", uploadFiles,pathSignal.value);
+                    console.log("uploadFiles", uploadFiles);
                 }
             );
             }

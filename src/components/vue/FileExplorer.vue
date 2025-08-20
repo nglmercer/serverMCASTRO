@@ -1,5 +1,7 @@
 <template>
   <div class="block font-sans text-gray-300 bg-gray-800 border border-gray-600 border-opacity-50 overflow-y-auto">
+    <!-- Path Navigator -->
+    <PathNavigator :basePath="basePath" :currentPath="internalCurrentPath"/>
     <table class="w-full border-collapse">
       <thead>
         <tr>
@@ -64,7 +66,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { emitter } from '@utils/Emitter'
+import { filemanagerapi, serverapi } from "@utils/fetch/fetchapi.ts";
+import { normalizePath } from '@utils/pathUtils';
+import PathNavigator from './PathNavigator.vue';
 
 export interface FileSystemItem {
   name: string
@@ -92,11 +98,13 @@ export interface PathUpdatedEventDetail {
 interface Props {
   id?: string
   currentPath?: string
+  basePath?: string
   data?: FileSystemItem[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
   currentPath: '/',
+  basePath: typeof window !== 'undefined' ? (window as any).selectedServer || '/' : '/',
   data: () => []
 })
 
@@ -111,6 +119,9 @@ const emit = defineEmits<{
   sort: [detail: { column: string; direction: 'asc' | 'desc' }]
 }>()
 
+// Create emitter instance for global event handling
+const fileExplorerEmitter = emitter
+
 const sortColumn = ref<string>('name')
 const sortDirection = ref<'asc' | 'desc'>('asc')
 const headerIcons = ref({
@@ -119,6 +130,8 @@ const headerIcons = ref({
   size: '↕️',
   lastModified: '↕️'
 })
+
+
 
 // Use internal reactive refs
 const currentPath = internalCurrentPath
@@ -180,23 +193,7 @@ const sortedData = computed(() => {
   })
 })
 
-function normalizePath(path?: string): string {
-  if (!path) return "/"
-  
-  let normalized = path.replace(/\/+/g, '/')
-  
-  if (normalized !== '/' && normalized.endsWith('/')) {
-    normalized = normalized.slice(0, -1)
-  }
-  
-  if (!normalized.startsWith('/') && !normalized.startsWith('./')) {
-    normalized = '/' + normalized
-  }
-  
-  if (normalized === '') return '/'
-  
-  return normalized
-}
+
 
 function formatFileSize(bytes?: number): string {
   if (bytes === undefined || bytes === null || isNaN(bytes)) return '-'
@@ -228,13 +225,26 @@ function formatDate(dateInput?: string | Date): string {
   }
 }
 
-function handleDblClick(item: FileSystemItem): void {
-  emit('selected', { data: item })
+async function handleDblClick(item: FileSystemItem): Promise<void> {
+  if (item.type === 'directory') {
+    // Navigate into directory
+    await navigateToDirectory(item.path)
+  } else {
+    // Handle file selection
+    const data = item;
+    emit('selected', {data})
+    // Emit global event through emitter
+    fileExplorerEmitter.emit('file-explorer:selected', data)
+  }
 }
 
 function handleContextMenu(event: MouseEvent, item: FileSystemItem): void {
   event.preventDefault()
-  emit('menu', { event, data: item })
+      const data = item;
+
+  emit('menu', { event, data })
+  // Emit global event through emitter
+  fileExplorerEmitter.emit('file-explorer:menu', { event, data })
 }
 
 function handleKeydown(event: KeyboardEvent, item: FileSystemItem): void {
@@ -242,6 +252,46 @@ function handleKeydown(event: KeyboardEvent, item: FileSystemItem): void {
     handleDblClick(item)
   }
 }
+
+async function navigateToDirectory(directoryPath: string): Promise<void> {
+  try {
+    console.log(`Navigating to directory: ${directoryPath}`);
+    
+    // Update current path
+    const normalizedPath = normalizePath(directoryPath);
+    internalCurrentPath.value = normalizedPath;
+    
+    // Update PathNavigator via emitter
+    emitter.emit('path-navigator:update-path', { path: normalizedPath });
+    
+    // Fetch files for the new directory
+    const result = await fetchFiles(normalizedPath);
+    if (result?.files) {
+      internalData.value = result.files;
+      console.log(`Loaded ${result.files.length} items for path: ${normalizedPath}`);
+    } else {
+      console.warn(`No files found for path: ${normalizedPath}`);
+      internalData.value = [];
+    }
+    
+    // Emit events
+    emit('updated', { path: normalizedPath });
+        console.log("normalizedPath", normalizedPath)
+    fileExplorerEmitter.emit('file-explorer:path-updated', { path: normalizedPath });
+    fileExplorerEmitter.emit('file-explorer:data-updated', { data: result?.files || [] });
+    
+    // Force Vue reactivity update
+    await nextTick();
+  } catch (error) {
+    console.error('Error navigating to directory:', error);
+    // On error, keep current data but still update path
+    const normalizedPath = normalizePath(directoryPath);
+    emit('updated', { path: normalizedPath });
+    fileExplorerEmitter.emit('file-explorer:navigation-error', { path: normalizedPath, error });
+  }
+}
+
+
 
 function handleSort(column: string): void {
   if (sortColumn.value === column) {
@@ -258,6 +308,8 @@ function handleSort(column: string): void {
   
   // Emit sort event
   emit('sort', { column: sortColumn.value, direction: sortDirection.value })
+  // Emit global event through emitter
+  fileExplorerEmitter.emit('file-explorer:sort', { column: sortColumn.value, direction: sortDirection.value })
 }
 
 function updateHeaderIcons(): void {
@@ -281,7 +333,10 @@ watch(
   (newPath) => {
     internalCurrentPath.value = newPath
     const normalizedPath = normalizePath(newPath)
+    console.log("normalizedPath", normalizedPath)
     emit('updated', { path: normalizedPath })
+    // Emit global event through emitter
+    fileExplorerEmitter.emit('file-explorer:path-updated', { path: normalizedPath })
   }
 )
 
@@ -289,13 +344,53 @@ watch(
   () => props.data,
   (newData) => {
     internalData.value = [...(newData || [])]
+    // Emit global event through emitter when data changes
+    fileExplorerEmitter.emit('file-explorer:data-updated', { data: newData })
   },
   { deep: true }
 )
 
 // Initialize header icons on mount
-onMounted(() => {
+onMounted(async () => {
+  window.selectedServer = 'NombreServidor'
   updateHeaderIcons();
+  
+  // Listen to PathNavigator path changes
+  const unsubscribePathChanged = emitter.on('path-navigator:path-changed', (data: { path: string }) => {
+    if (data.path !== internalCurrentPath.value) {
+      navigateToDirectory(data.path);
+    }
+  });
+  
+  // Listen to PathNavigator navigation events for better tracking
+  const unsubscribeNavigate = emitter.on('path-navigator:navigate', (data: { from: string, to: string, trigger: string }) => {
+    console.log(`Navigation triggered by ${data.trigger}: ${data.from} -> ${data.to}`);
+    if (data.to !== internalCurrentPath.value) {
+      navigateToDirectory(data.to);
+    }
+  });
+  
+  // Listen to refresh requests from PathNavigator
+  const unsubscribeRefresh = emitter.on('file-explorer:refresh-data', async (data: { path: string }) => {
+    console.log(`Refreshing data for path: ${data.path}`);
+    try {
+      const result = await fetchFiles(data.path);
+      if (result?.files) {
+        internalData.value = result.files;
+        // Emit data updated event
+        fileExplorerEmitter.emit('file-explorer:data-updated', { data: result.files });
+      }
+    } catch (error) {
+      console.error('Error refreshing directory data:', error);
+    }
+  });
+  
+  // Cleanup on unmount
+  onUnmounted(() => {
+    unsubscribePathChanged();
+    unsubscribeNavigate();
+    unsubscribeRefresh();
+  });
   
   // Listen for external data updates from Astro
   const handleUpdateFiles = (event: CustomEvent) => {
@@ -308,9 +403,18 @@ onMounted(() => {
         internalData.value = [...event.detail.data]
       }
       emit('updated', { path: event.detail.currentPath || '/' });
+      // Emit global event through emitter
+      fileExplorerEmitter.emit('file-explorer:external-update', { 
+        currentPath: event.detail.currentPath || '/', 
+        data: event.detail.data 
+      });
     }
   };
-  
+  const UpdateData = async (newPath?:string) => {
+      const data = await fetchFiles(newPath || window.selectedServer)
+      internalData.value = data?.files || [];
+  }
+  UpdateData()
   // Add event listener for external updates
   const element = document.getElementById('filemanager');
   if (element) {
@@ -324,4 +428,11 @@ onMounted(() => {
     }
   });
 });
+async function fetchFiles(path: string= window.selectedServer) {
+    if (path === "/") return;
+    const pathENCODED = encodeURIComponent(path);
+    const result = await filemanagerapi.getFolderInfo(pathENCODED);
+    console.log("result", result);
+    return result.data
+}
 </script>

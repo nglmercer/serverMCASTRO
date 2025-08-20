@@ -1,0 +1,140 @@
+---
+// Example: How to use Vue FileExplorer component in Astro
+import Layout from '../layouts/Layout.astro';
+import FileExplorer from '../components/vue/FileExplorer.vue';
+---
+
+<Layout title="Vue FileExplorer Example">
+  <main class="p-6">
+    <h1 class="text-2xl font-bold mb-4 text-white">Vue FileExplorer Component Example</h1>
+    
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold mb-2 text-gray-300">Basic Usage</h2>
+      <p class="text-gray-400 mb-4">This example shows how to integrate the Vue FileExplorer component in an Astro page.</p>
+      
+      <!-- Vue FileExplorer Component -->
+      <div class="border border-gray-600 rounded-lg overflow-hidden">
+        <FileExplorer 
+          client:only="vue"
+          current-path={typeof window !== 'undefined' ? window.selectedServer : '/'}
+          id="file-explorer-component"
+        />
+      </div>
+    </div>
+
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold mb-2 text-gray-300">Path Navigation Features</h2>
+      <div class="bg-gray-700 p-4 rounded border border-gray-600 mb-4">
+        <h3 class="text-md font-medium mb-2 text-gray-200">How to Navigate:</h3>
+        <ul class="text-gray-300 text-sm space-y-1">
+          <li>• Click on any folder/subfolder segment in the path navigator to jump to that location</li>
+          <li>• Double-click on folders in the table to navigate into them</li>
+          <li>• Use the "↑ Up" button to go up one directory level</li>
+          <li>• Use the "↻ Refresh" button to reload the current directory contents</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold mb-2 text-gray-300">Event Handling Example</h2>
+      <div id="event-log" class="bg-gray-800 p-4 rounded border border-gray-600 h-32 overflow-y-auto">
+        <p class="text-gray-400">Navigation and file events will appear here...</p>
+      </div>
+    </div>
+
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold mb-2 text-gray-300">Manual Controls</h2>
+      <div class="flex gap-4">
+        <button id="change-path-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+          Navigate to /src
+        </button>
+        <button id="refresh-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+          Force Refresh
+        </button>
+        <button id="simulate-nav-btn" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
+          Simulate Path Click
+        </button>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  // Import emitter for global event handling
+  import { emitter } from '../utils/Emitter';
+
+  // Function to log events
+  function logEvent(message: string) {
+    const eventLog = document.getElementById('event-log');
+    if (!eventLog) return;
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = document.createElement('div');
+    logEntry.className = 'text-sm text-gray-300 mb-1';
+    logEntry.textContent = `[${timestamp}] ${message}`;
+    eventLog.appendChild(logEntry);
+    eventLog.scrollTop = eventLog.scrollHeight;
+  }
+
+  // Wait for DOM to be ready
+  document.addEventListener('DOMContentLoaded', () => {
+    logEvent('Astro page with Vue FileExplorer initialized');
+    
+    // Listen to file explorer events
+    emitter.on('file-explorer:path-updated', (data) => {
+      logEvent(`Path updated to: ${data.path}`);
+    });
+    
+    emitter.on('file-explorer:data-updated', (data) => {
+      logEvent(`Data updated: ${data.data?.length || 0} items loaded`);
+    });
+    
+    emitter.on('path-navigator:navigate', (data) => {
+      logEvent(`Navigation: ${data.from} → ${data.to} (${data.trigger})`);
+    });
+    
+    emitter.on('path-navigator:refresh-requested', (data) => {
+      logEvent(`Refresh requested for: ${data.path}`);
+    });
+    
+    emitter.on('file-explorer:selected', (data) => {
+      logEvent(`File selected: ${data.data.name} (${data.data.type})`);
+    });
+    
+    emitter.on('file-explorer:navigation-error', (data) => {
+      logEvent(`Navigation error for ${data.path}: ${data.error.message}`);
+    });
+    
+    // Add event listeners for control buttons
+    document.getElementById('change-path-btn')?.addEventListener('click', () => {
+      logEvent('Manual navigation to /src triggered');
+      emitter.emit('path-navigator:update-path', { path: '/src' });
+    });
+
+    document.getElementById('refresh-btn')?.addEventListener('click', () => {
+      logEvent('Manual refresh triggered');
+      emitter.emit('file-explorer:refresh-data', { path: window.selectedServer || '/' });
+    });
+    
+    document.getElementById('simulate-nav-btn')?.addEventListener('click', () => {
+      logEvent('Simulating path segment click');
+      emitter.emit('path-navigator:navigate', { 
+        from: window.selectedServer || '/', 
+        to: (window.selectedServer || '/') + '/subfolder',
+        trigger: 'manual-simulation'
+      });
+    });
+  });
+</script>
+
+<style>
+  /* Additional styles for the example */
+  #file-explorer-container {
+    min-height: 400px;
+    max-height: 600px;
+  }
+  
+  #event-log {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+  }
+</style>

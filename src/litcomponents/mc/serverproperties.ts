@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { state, property, customElement } from 'lit/decorators.js';
-import { filemanagerapi } from 'src/utils/fetch/fetchapi';
+import { filemanagerapi } from '@utils/fetch/fetchapi';
 import { urlbase } from 'src/config/url';
 @customElement('server-properties')
 export class ServerPropertiesLitElement extends LitElement {
@@ -157,13 +157,9 @@ export class ServerPropertiesLitElement extends LitElement {
         this._isLoading = true;
         this._error = null;
         try {
-            const url = urlbase+`/api/servers/${currentServerId}/server.properties`;
-            console.log("url", url);
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const result = await response.json();
+            const filepath = `/${currentServerId}/server.properties`;
+            console.log("filepath", filepath);
+            const result = await filemanagerapi.readFileByPath(filepath)
             let propertiesData = result.data;
 
             if (typeof result.data === "string") {
